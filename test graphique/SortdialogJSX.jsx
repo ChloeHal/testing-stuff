@@ -2583,10 +2583,10 @@ function ColVisItem({
           {/* Colored dots — tous les rôles sélectionnés si au moins un rôle business */}
           {hasBusinessRoles && (
             <span className="absolute -bottom-0.5 -right-0.5 flex items-center gap-[2px]">
-              {selectedRoles.slice(0, 2).map((r) => (
+              {(selectedRoles.length > 3 ? selectedRoles.slice(0, 2) : selectedRoles).map((r) => (
                 <span key={r.id} className={`w-1.5 h-1.5 rounded-full ${r.dot} ring-1 ring-white dark:ring-zinc-900`} />
               ))}
-              {selectedRoles.length > 2 && (
+              {selectedRoles.length > 3 && (
                 <span className="text-[7px] font-bold leading-none text-zinc-500 dark:text-zinc-400">+</span>
               )}
             </span>
