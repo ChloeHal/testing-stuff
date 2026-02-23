@@ -2428,44 +2428,46 @@ function RolePickerPopover({ colId, colRoles, visibleHint, onToggleRole, onToggl
         );
       })}
 
-      {/* Divider */}
-      <div className="my-1 mx-2 border-t border-zinc-100 dark:border-zinc-800" />
-
-      {/* Visible-hint toggle */}
-      <div className="flex items-center gap-2 px-2.5 py-1.5">
-        <span className="flex-1 text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight">
-          Indiquer que la colonne est masquée
-        </span>
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleHint(colId); }}
-          style={{
-            position: "relative",
-            width: 28,
-            height: 16,
-            borderRadius: 999,
-            flexShrink: 0,
-            border: "none",
-            cursor: "pointer",
-            transition: "background-color 150ms",
-            backgroundColor: visibleHint ? "#6366f1" : "#d1d5db",
-            padding: 0,
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: 2,
-              left: visibleHint ? 14 : 2,
-              width: 12,
-              height: 12,
-              borderRadius: "50%",
-              backgroundColor: "white",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
-              transition: "left 150ms",
-            }}
-          />
-        </button>
-      </div>
+      {/* Divider + toggle — uniquement si au moins un rôle business sélectionné */}
+      {MOCK_ROLES.some((r) => !r.isSelf && colRoles.has(r.id)) && (
+        <>
+          <div className="my-1 mx-2 border-t border-zinc-100 dark:border-zinc-800" />
+          <div className="flex items-center gap-2 px-2.5 py-1.5">
+            <span className="flex-1 text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight">
+              Indiquer que la colonne est masquée
+            </span>
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleHint(colId); }}
+              style={{
+                position: "relative",
+                width: 28,
+                height: 16,
+                borderRadius: 999,
+                flexShrink: 0,
+                border: "none",
+                cursor: "pointer",
+                transition: "background-color 150ms",
+                backgroundColor: visibleHint ? "#6366f1" : "#d1d5db",
+                padding: 0,
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  top: 2,
+                  left: visibleHint ? 14 : 2,
+                  width: 12,
+                  height: 12,
+                  borderRadius: "50%",
+                  backgroundColor: "white",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
+                  transition: "left 150ms",
+                }}
+              />
+            </button>
+          </div>
+        </>
+      )}
     </div>
   </>
   );
