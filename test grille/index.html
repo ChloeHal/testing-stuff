@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Grille Précise</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.11/dist/interact.min.js"></script>
+  </head>
+  <body>
+    <div class="controls">
+      <button id="add-widget">Ajouter un widget</button>
+      <button id="add-column">Ajouter une colonne</button>
+      <button id="remove-column">Retirer une colonne</button>
+      <label for="gap-slider">Gap (px):</label>
+      <input type="range" id="gap-slider" min="0" max="30" value="10" />
+      <span id="gap-value">10</span>
+    </div>
+    <div class="dashboard-container">
+      <div class="grid-background" id="grid-background"></div>
+      <div class="dashboard" id="dashboard"></div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
