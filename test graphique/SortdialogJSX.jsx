@@ -46,6 +46,7 @@ import {
   ChevronRight,
   Check,
   Lock,
+  LockOpen,
   Filter,
   Circle,
   Loader,
@@ -1432,7 +1433,15 @@ function AdvancedFilterBuilder({
 /* ═══════════════════════════════════════════════════════
    ADVANCED FILTER CHIP — inline display of conditions
    ═══════════════════════════════════════════════════════ */
-function AdvancedFilterChip({ filter, columns, onEdit, onRemove }) {
+function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, onToggleRole, onToggleHint }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const userBtnRef = useRef(null);
+
+  const colRoles = filter.roles || new Set();
+  const visibleHint = filter.visibleHint ?? false;
+  const selectedRoles = MOCK_ROLES.filter((r) => colRoles.has(r.id));
+  const hasBusinessRoles = selectedRoles.some((r) => !r.isSelf);
+
   const renderCondition = (cond) => {
     const col = columns.find((c) => c.id === cond.columnId);
     if (!col) return null;
@@ -1459,31 +1468,86 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove }) {
   };
 
   return (
-    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-all dark:border-zinc-700 dark:bg-zinc-900">
-      <button
-        onClick={onEdit}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-zinc-700 cursor-pointer dark:text-zinc-300"
-      >
-        {filter.conditions.map((cond, i) => (
-          <span key={i} className="inline-flex items-center gap-1">
-            {i > 0 && (
-              <span className="text-zinc-400 mx-0.5">
-                {filter.logic === "and" ? "et" : "ou"}
+    <>
+      <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-all dark:border-zinc-700 dark:bg-zinc-900">
+        <button
+          onClick={onEdit}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-zinc-700 cursor-pointer dark:text-zinc-300"
+        >
+          {filter.conditions.map((cond, i) => (
+            <span key={i} className="inline-flex items-center gap-1">
+              {i > 0 && (
+                <span className="text-zinc-400 mx-0.5">
+                  {filter.logic === "and" ? "et" : "ou"}
+                </span>
+              )}
+              {renderCondition(cond)}
+            </span>
+          ))}
+        </button>
+        <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+        <button
+          onClick={onToggleLock}
+          aria-label={filter.locked ? "Déverrouiller ce filtre" : "Verrouiller ce filtre"}
+          className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${filter.locked ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-300 hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-400"}`}
+        >
+          {filter.locked ? <Lock size={11} /> : <LockOpen size={11} />}
+        </button>
+        {filter.locked && (
+          <>
+            <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+            <button
+              ref={userBtnRef}
+              onClick={() => setPickerOpen((s) => !s)}
+              title="Partager ce filtre avec des rôles"
+              className={`flex items-center justify-center pr-2 py-1.5 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800
+                ${colRoles.size > 0
+                  ? `${hasBusinessRoles ? "pl-1" : "pl-2"} text-zinc-700 dark:text-zinc-300`
+                  : "pl-2 text-zinc-300 dark:text-zinc-600"}`}
+            >
+              <span className={`relative inline-flex items-center justify-center ${hasBusinessRoles ? "min-w-[24px]" : ""}`}>
+                {hasBusinessRoles ? <Users size={11} /> : <User size={11} />}
+                {hasBusinessRoles && (
+                  <span className="absolute -bottom-0.5 flex items-center gap-[2px]">
+                    {(selectedRoles.length > 3 ? selectedRoles.slice(0, 2) : selectedRoles).map((r) => (
+                      <span key={r.id} className={`w-1.5 h-1.5 rounded-full ${r.dot} ring-1 ring-white dark:ring-zinc-900`} />
+                    ))}
+                    {selectedRoles.length > 3 && (
+                      <span className="text-[7px] font-bold leading-none text-zinc-500 dark:text-zinc-400">+</span>
+                    )}
+                  </span>
+                )}
               </span>
-            )}
-            {renderCondition(cond)}
-          </span>
-        ))}
-      </button>
-      <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-      <button
-        onClick={onRemove}
-        aria-label="Supprimer ce filtre avancé"
-        className="px-1.5 py-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-colors dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-      >
-        <X size={11} />
-      </button>
-    </div>
+            </button>
+          </>
+        )}
+        {!filter.locked && (
+          <>
+            <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+            <button
+              onClick={onRemove}
+              aria-label="Supprimer ce filtre avancé"
+              className="px-1.5 py-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-colors dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            >
+              <X size={11} />
+            </button>
+          </>
+        )}
+      </div>
+      {pickerOpen && (
+        <RolePickerPopover
+          colId={filter.id}
+          colRoles={colRoles}
+          visibleHint={visibleHint}
+          onToggleRole={onToggleRole}
+          onToggleHint={onToggleHint}
+          anchorRef={userBtnRef}
+          onClose={() => setPickerOpen(false)}
+          headerLabel="Partager avec les rôles"
+          toggleLabel="Indiquer que le filtre est actif"
+        />
+      )}
+    </>
   );
 }
 
@@ -2374,7 +2438,7 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
 /* ═══════════════════════════════════════════════════════
    ROLE PICKER POPOVER
    ═══════════════════════════════════════════════════════ */
-function RolePickerPopover({ colId, colRoles, visibleHint, onToggleRole, onToggleHint, anchorRef, onClose }) {
+function RolePickerPopover({ colId, colRoles, visibleHint, onToggleRole, onToggleHint, anchorRef, onClose, headerLabel = "Masquer pour les rôles", toggleLabel = "Indiquer que la colonne est masquée" }) {
   const popRef = useRef(null);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
 
@@ -2398,7 +2462,7 @@ function RolePickerPopover({ colId, colRoles, visibleHint, onToggleRole, onToggl
     >
       {/* Header */}
       <p className="text-[9px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-2.5 pt-1 pb-1.5">
-        Masquer pour les rôles
+        {headerLabel}
       </p>
 
       {/* Role list */}
@@ -2433,7 +2497,7 @@ function RolePickerPopover({ colId, colRoles, visibleHint, onToggleRole, onToggl
           <div className="my-1 mx-2 border-t border-zinc-100 dark:border-zinc-800" />
           <div className="flex items-center gap-2 px-2.5 py-1.5">
             <span className="flex-1 text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight">
-              Indiquer que la colonne est masquée
+              {toggleLabel}
             </span>
             <button
               onClick={(e) => { e.stopPropagation(); onToggleHint(colId); }}
@@ -2500,14 +2564,14 @@ function ColVisItem({
   const isHidden = hiddenColumns.has(col.id);
   const isLocked = lockedHiddenColumns.has(col.id);
   const colRoles = roleHiddenColumns?.get(col.id) || new Set();
-  const hasRoles = colRoles.size > 0;
+
   const visibleHint = roleVisibleHint?.get(col.id) ?? false;
   const selectedRoles = MOCK_ROLES.filter((r) => colRoles.has(r.id));
   const hasBusinessRoles = selectedRoles.some((r) => !r.isSelf);
 
   useEffect(() => {
-    if (!isHidden) setPickerOpen(false);
-  }, [isHidden]);
+    if (!isHidden && !hasBusinessRoles) setPickerOpen(false);
+  }, [isHidden, hasBusinessRoles]);
 
   if (isLocked) {
     return (
@@ -2583,25 +2647,22 @@ function ColVisItem({
         <span className={`flex-1 text-left ${isHidden ? "opacity-40" : ""}`}>
           {col.name}
         </span>
-        {isHidden ? (
-          <EyeOff size={12} className="text-zinc-300 dark:text-zinc-600 flex-shrink-0" />
+        {(isHidden || hasBusinessRoles) ? (
+          <EyeOff size={12} className={`flex-shrink-0 ${isHidden ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400 dark:text-zinc-500"}`} />
         ) : (
           <Eye size={12} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
         )}
 
-        {/* Avatar button — seulement quand la colonne est cachée */}
-        {isHidden && <button
+        {/* Avatar button — quand la colonne est cachée ou des rôles business sont définis */}
+        {(isHidden || hasBusinessRoles) && <button
           ref={avatarBtnRef}
           onClick={(e) => {
             e.stopPropagation();
             setPickerOpen((s) => !s);
           }}
           title="Restreindre par type de compte"
-          className={`relative flex items-center justify-center p-0.5 rounded flex-shrink-0 transition-colors
-            ${hasRoles
-              ? "text-zinc-500 dark:text-zinc-400"
-              : "text-zinc-300 dark:text-zinc-600 opacity-0 group-hover:opacity-100"
-            } hover:text-zinc-700 dark:hover:text-zinc-200`}
+          style={{ color: colRoles.size > 0 ? "#3f3f46" : "#a1a1aa" }}
+          className="relative flex items-center justify-center p-0.5 rounded flex-shrink-0 transition-colors"
         >
           {hasBusinessRoles ? (
             <Users size={12} />
@@ -2610,7 +2671,7 @@ function ColVisItem({
           )}
           {/* Colored dots — tous les rôles sélectionnés si au moins un rôle business */}
           {hasBusinessRoles && (
-            <span className="absolute -bottom-0.5 -right-0.5 flex items-center gap-[2px]">
+            <span className="absolute -bottom-0.5 flex items-center gap-[2px]">
               {(selectedRoles.length > 3 ? selectedRoles.slice(0, 2) : selectedRoles).map((r) => (
                 <span key={r.id} className={`w-1.5 h-1.5 rounded-full ${r.dot} ring-1 ring-white dark:ring-zinc-900`} />
               ))}
@@ -2633,7 +2694,7 @@ function ColVisItem({
           anchorRef={avatarBtnRef}
           onClose={() => {
             setPickerOpen(false);
-            if (colRoles.size === 0) onToggle(col.id);
+            if (isHidden && colRoles.size === 0) onToggle(col.id);
           }}
         />
       )}
@@ -3061,6 +3122,33 @@ export default function DataToolbar() {
   const [lockedHiddenColumns] = useState(new Set(["col_id"]));
   const [roleHiddenColumns, setRoleHiddenColumns] = useState(new Map());
   const toggleRoleForColumn = (colId, roleId) => {
+    const wasSelf = roleId === "self";
+    const currentRoles = roleHiddenColumns.get(colId) || new Set();
+    const willRemove = currentRoles.has(roleId);
+
+    if (wasSelf && willRemove) {
+      // Rendre la colonne visible pour moi, mais garder les rôles business
+      setHiddenColumns((prev) => {
+        const next = new Set(prev);
+        next.delete(colId);
+        return next;
+      });
+      setRoleHiddenColumns((prev) => {
+        const next = new Map(prev);
+        const roles = new Set(next.get(colId) || []);
+        roles.delete("self");
+        if (roles.size === 0) next.delete(colId);
+        else next.set(colId, roles);
+        return next;
+      });
+      return;
+    }
+
+    if (wasSelf && !willRemove) {
+      // Cocher "Moi" → cacher la colonne pour moi
+      setHiddenColumns((prev) => new Set([...prev, colId]));
+    }
+
     setRoleHiddenColumns((prev) => {
       const next = new Map(prev);
       const roles = new Set(next.get(colId) || []);
@@ -3173,7 +3261,7 @@ export default function DataToolbar() {
     } else {
       setAdvancedFilters((prev) => [
         ...prev,
-        { id: `af_${Date.now()}`, logic, conditions },
+        { id: `af_${Date.now()}`, logic, conditions, locked: false },
       ]);
     }
     setAdvBuilderOpen(false);
@@ -3191,7 +3279,38 @@ export default function DataToolbar() {
   };
 
   const removeAdvancedFilter = (id) =>
-    setAdvancedFilters((prev) => prev.filter((f) => f.id !== id));
+    setAdvancedFilters((prev) => prev.filter((f) => f.id !== id || f.locked));
+
+  const toggleAdvancedFilterLock = (id) =>
+    setAdvancedFilters((prev) =>
+      prev.map((f) => {
+        if (f.id !== id) return f;
+        const willLock = !f.locked;
+        return {
+          ...f,
+          locked: willLock,
+          roles: willLock ? new Set(["self"]) : new Set(),
+          visibleHint: willLock,
+        };
+      }),
+    );
+
+  const toggleRoleForFilter = (filterId, roleId) =>
+    setAdvancedFilters((prev) =>
+      prev.map((f) => {
+        if (f.id !== filterId) return f;
+        const roles = new Set(f.roles || []);
+        roles.has(roleId) ? roles.delete(roleId) : roles.add(roleId);
+        return { ...f, roles };
+      }),
+    );
+
+  const toggleHintForFilter = (filterId) =>
+    setAdvancedFilters((prev) =>
+      prev.map((f) =>
+        f.id === filterId ? { ...f, visibleHint: !f.visibleHint } : f,
+      ),
+    );
 
   const createSort = (columnId) => {
     const mock = MOCK_VALUES[columnId];
@@ -3326,6 +3445,9 @@ export default function DataToolbar() {
                     columns={MOCK_COLUMNS}
                     onEdit={() => editAdvancedFilter(af)}
                     onRemove={() => removeAdvancedFilter(af.id)}
+                    onToggleLock={() => toggleAdvancedFilterLock(af.id)}
+                    onToggleRole={toggleRoleForFilter}
+                    onToggleHint={toggleHintForFilter}
                   />
                 ))}
                 <button
