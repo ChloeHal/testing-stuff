@@ -44,7 +44,6 @@ import {
   Key,
   ChevronDown,
   ChevronRight,
-  Search,
   Check,
   Lock,
   Filter,
@@ -2537,10 +2536,39 @@ function ColVisItem({
       className={`group w-full rounded-md ${isDragging ? "opacity-30" : ""}`}
     >
       <div
+        data-colvis-row
+        tabIndex={0}
         onClick={() => !isDragging && onToggle(col.id)}
-        className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle(col.id);
+          } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            const rows = e.currentTarget.closest("[class*='overflow-y-auto']")?.querySelectorAll("[data-colvis-row]");
+            if (rows) {
+              const idx = Array.from(rows).indexOf(e.currentTarget);
+              rows[idx + 1]?.focus();
+            }
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            const rows = e.currentTarget.closest("[class*='overflow-y-auto']")?.querySelectorAll("[data-colvis-row]");
+            if (rows) {
+              const idx = Array.from(rows).indexOf(e.currentTarget);
+              if (idx === 0) {
+                e.currentTarget.closest("[class*='overflow-y-auto']")
+                  ?.closest(".rounded-lg")
+                  ?.querySelector("input")
+                  ?.focus();
+              } else {
+                rows[idx - 1]?.focus();
+              }
+            }
+          }
+        }}
+        className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors outline-none
           ${isHidden ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-600 dark:text-zinc-400"}
-          ${isDragging ? "cursor-grabbing" : "hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer"}`}
+          ${isDragging ? "cursor-grabbing" : "hover:bg-zinc-50 dark:hover:bg-zinc-800 focus:bg-zinc-50 dark:focus:bg-zinc-800 cursor-pointer"}`}
       >
         <span
           {...attributes}
@@ -2677,6 +2705,14 @@ function ColumnVisibilityDropdown({
   onReorder,
 }) {
   const [activeId, setActiveId] = useState(null);
+  const [colSearch, setColSearch] = useState("");
+  const colSearchRef = useRef(null);
+  const colListRef = useRef(null);
+  const filteredColumns = colSearch.trim()
+    ? columns.filter((c) =>
+        c.name.toLowerCase().includes(colSearch.toLowerCase()),
+      )
+    : columns;
   const toggleableColumns = columns.filter(
     (c) => !lockedHiddenColumns.has(c.id),
   );
@@ -2707,6 +2743,32 @@ function ColumnVisibilityDropdown({
         >
           {noneHidden ? "Tout masquer" : "Tout afficher"}
         </button>
+      </div>
+      <div className="flex items-center px-3 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
+        <input
+          ref={colSearchRef}
+          type="text"
+          value={colSearch}
+          onChange={(e) => setColSearch(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              colListRef.current?.querySelector("[data-colvis-row]")?.focus();
+            }
+          }}
+          placeholder="Colonnes…"
+          autoFocus
+          className="flex-1 bg-transparent text-sm outline-none text-zinc-700 placeholder-zinc-300 dark:text-zinc-200 dark:placeholder-zinc-600"
+        />
+        {colSearch && (
+          <button
+            onClick={() => setColSearch("")}
+            aria-label="Effacer la recherche"
+            className="text-zinc-300 hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-400"
+          >
+            <X size={10} />
+          </button>
+        )}
       </div>
       <DndContext
         sensors={sensors}
@@ -2745,8 +2807,8 @@ function ColumnVisibilityDropdown({
         }}
       >
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-          <div className="p-1 max-h-[320px] overflow-y-auto">
-            {columns.map((col) => (
+          <div ref={colListRef} className="p-1 max-h-[320px] overflow-y-auto">
+            {filteredColumns.map((col) => (
               <ColVisItem
                 key={col.id}
                 col={col}
@@ -3040,13 +3102,17 @@ export default function DataToolbar() {
     });
     setRoleHiddenColumns((prev) => {
       const next = new Map(prev);
-      const roles = new Set(next.get(colId) || []);
       if (willHide) {
-        roles.add("self");
+        next.set(colId, new Set(["self"]));
       } else {
-        roles.delete("self");
+        next.delete(colId);
       }
-      roles.size === 0 ? next.delete(colId) : next.set(colId, roles);
+      return next;
+    });
+    setRoleVisibleHint((prev) => {
+      const next = new Map(prev);
+      if (willHide) next.set(colId, true);
+      else next.delete(colId);
       return next;
     });
   };
