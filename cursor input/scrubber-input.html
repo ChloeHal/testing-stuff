@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scrubber Input</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: #efeff3;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      /* ── Workspace ───────────────────────────────────────────── */
+      .workspace {
+        display: flex;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      /* ── Canvas ──────────────────────────────────────────────── */
+      .canvas-area {
+        width: 200px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #e5e5ea;
+        background-image:
+          linear-gradient(45deg, #b8b8bc 25%, transparent 25%),
+          linear-gradient(-45deg, #b8b8bc 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #b8b8bc 75%),
+          linear-gradient(-45deg, transparent 75%, #b8b8bc 75%);
+        background-size: 14px 14px;
+        background-position:
+          0 0,
+          0 7px,
+          7px -7px,
+          -7px 0px;
+      }
+
+      .shape {
+        width: 88px;
+        height: 88px;
+        background: rgba(96, 165, 250, 1);
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+      }
+
+      /* ── Panel ───────────────────────────────────────────────── */
+      .panel {
+        width: 240px;
+        background: #ffffff;
+        border: 1px solid #e4e4e7;
+        border-radius: 10px;
+        box-shadow:
+          0 4px 24px rgba(0, 0, 0, 0.08),
+          0 1px 4px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-bottom: 1px solid #f4f4f5;
+      }
+
+      .panel-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #71717a;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .panel-icon {
+        width: 16px;
+        height: 16px;
+        color: #a1a1aa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .section {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f4f4f5;
+      }
+
+      .section:last-child {
+        border-bottom: none;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+
+      .row:last-child {
+        margin-bottom: 0;
+      }
+
+      .row-label {
+        font-size: 11px;
+        color: #71717a;
+        width: 56px;
+        flex-shrink: 0;
+      }
+
+      /* ── Generic fake input ──────────────────────────────────── */
+      .input {
+        flex: 1;
+        height: 26px;
+        background: #fafafa;
+        border: 1px solid #e4e4e7;
+        border-radius: 5px;
+        padding: 0 7px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #18181b;
+        display: flex;
+        align-items: center;
+        font-family: inherit;
+        letter-spacing: -0.01em;
+      }
+
+      /* ── Select ──────────────────────────────────────────────── */
+      .select {
+        flex: 1;
+        height: 26px;
+        background: #fafafa;
+        border: 1px solid #e4e4e7;
+        border-radius: 5px;
+        padding: 0 7px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #18181b;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: inherit;
+      }
+
+      .select svg {
+        color: #a1a1aa;
+      }
+
+      /* ── Color swatch ────────────────────────────────────────── */
+      .swatch {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+      }
+
+      /* ── Scrubber ────────────────────────────────────────────── */
+      .scrubber {
+        position: relative;
+        width: 60px;
+        height: 26px;
+        cursor: e-resize;
+        user-select: none;
+        -webkit-user-select: none;
+        flex-shrink: 0;
+      }
+
+      .scrubber-box {
+        position: absolute;
+        inset: 0;
+        background: #fafafa;
+        border: 1px solid #e4e4e7;
+        border-radius: 5px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          border-color 120ms ease,
+          box-shadow 120ms ease;
+      }
+
+      .scrubber:focus-visible .scrubber-box {
+        outline: 2px solid #a1a1aa;
+        outline-offset: 2px;
+      }
+
+      .scrubber.is-dragging .scrubber-box {
+        border-color: #a1a1aa;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+      }
+
+      .scrubber.is-editing {
+        cursor: text;
+      }
+
+      .scrubber.is-editing .scrubber-box {
+        border-color: #a1a1aa;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+      }
+
+      .fill-right {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 0;
+        background: rgba(0, 0, 0, 0.07);
+        pointer-events: none;
+      }
+
+      .scrubber.is-editing .fill-right {
+        display: none;
+      }
+
+      .scrubber-label {
+        position: relative;
+        z-index: 1;
+        font-size: 12px;
+        font-weight: 500;
+        color: #18181b;
+        letter-spacing: -0.01em;
+        pointer-events: none;
+        font-family: inherit;
+      }
+
+      .scrubber.is-editing .scrubber-label {
+        visibility: hidden;
+      }
+
+      .thumb {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 12px;
+        background: #18181b;
+        border-radius: 99px;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .scrubber.is-editing .thumb {
+        display: none;
+      }
+
+      .scrubber-input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 500;
+        color: #18181b;
+        font-family: inherit;
+        letter-spacing: -0.01em;
+        outline: none;
+        display: none;
+        z-index: 20;
+        padding: 0;
+        -moz-appearance: textfield;
+        appearance: textfield;
+      }
+
+      .scrubber-input::-webkit-outer-spin-button,
+      .scrubber-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      .scrubber.is-editing .scrubber-input {
+        display: block;
+      }
+
+      /* ── Section header row ──────────────────────────────────── */
+      .row-add {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 2px 0;
+      }
+
+      .row-add-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #18181b;
+      }
+
+      .btn-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #71717a;
+        cursor: pointer;
+      }
+
+      .btn-icon:hover {
+        background: #f4f4f5;
+        color: #18181b;
+      }
+
+      .fill-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .fill-hex {
+        flex: 1;
+        height: 26px;
+        background: #fafafa;
+        border: 1px solid #e4e4e7;
+        border-radius: 5px;
+        padding: 0 7px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #18181b;
+        display: flex;
+        align-items: center;
+        letter-spacing: 0.01em;
+        font-family:
+          ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="workspace">
+      <!-- Canvas preview -->
+      <div class="canvas-area">
+        <div class="shape" id="shape"></div>
+      </div>
+
+      <!-- Properties panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Design</span>
+          <div class="panel-icon">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            >
+              <circle cx="6" cy="6" r="1" />
+              <circle cx="6" cy="2" r="1" />
+              <circle cx="6" cy="10" r="1" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Position & Size -->
+        <div class="section">
+          <div class="row">
+            <span class="row-label">W</span>
+            <div class="input">160</div>
+            <span class="row-label" style="width: 16px; text-align: center"
+              >H</span
+            >
+            <div class="input">90</div>
+          </div>
+          <div class="row">
+            <span class="row-label">X</span>
+            <div class="input">0</div>
+            <span class="row-label" style="width: 16px; text-align: center"
+              >Y</span
+            >
+            <div class="input">0</div>
+          </div>
+          <div class="row">
+            <span class="row-label">↻</span>
+            <div class="input">0°</div>
+            <span class="row-label" style="width: 16px; text-align: center"
+              >⌐</span
+            >
+            <div class="input">8</div>
+          </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="section">
+          <div class="row">
+            <span class="row-label">Opacity</span>
+            <div
+              class="scrubber"
+              id="scrubber-opacity"
+              tabindex="0"
+              role="slider"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-label="Opacity"
+              data-value="100"
+            >
+              <div class="scrubber-box">
+                <div class="fill-right"></div>
+                <span class="scrubber-label"></span>
+                <input class="scrubber-input" type="number" min="0" max="100" />
+              </div>
+              <div class="thumb"></div>
+            </div>
+          </div>
+          <div class="row">
+            <span class="row-label">Blur</span>
+            <div
+              class="scrubber"
+              id="scrubber-blur"
+              tabindex="0"
+              role="slider"
+              aria-valuemin="0"
+              aria-valuemax="40"
+              aria-label="Blur"
+              data-value="0"
+              data-max="40"
+              data-unit="px"
+            >
+              <div class="scrubber-box">
+                <div class="fill-right"></div>
+                <span class="scrubber-label"></span>
+                <input class="scrubber-input" type="number" min="0" max="40" />
+              </div>
+              <div class="thumb"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fill -->
+        <div class="section">
+          <div class="row-add">
+            <span class="row-add-label">Fill</span>
+            <div class="btn-icon">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              >
+                <line x1="5" y1="1" x2="5" y2="9" />
+                <line x1="1" y1="5" x2="9" y2="5" />
+              </svg>
+            </div>
+          </div>
+          <div class="fill-row">
+            <div class="swatch" style="background: #60a5fa"></div>
+            <div class="fill-hex">60A5FA</div>
+            <div
+              class="scrubber"
+              id="scrubber-fill"
+              tabindex="0"
+              role="slider"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-label="Fill opacity"
+              data-value="100"
+            >
+              <div class="scrubber-box">
+                <div class="fill-right"></div>
+                <span class="scrubber-label"></span>
+                <input class="scrubber-input" type="number" min="0" max="100" />
+              </div>
+              <div class="thumb"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stroke -->
+        <div class="section">
+          <div class="row-add">
+            <span class="row-add-label">Stroke</span>
+            <div class="btn-icon">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              >
+                <line x1="5" y1="1" x2="5" y2="9" />
+                <line x1="1" y1="5" x2="9" y2="5" />
+              </svg>
+            </div>
+          </div>
+          <div class="fill-row">
+            <div class="swatch" style="background: #18181b"></div>
+            <div class="fill-hex">18181B</div>
+            <div class="input" style="flex: none; width: 52px">0</div>
+          </div>
+        </div>
+
+        <!-- Effects -->
+        <div class="section">
+          <div class="row-add">
+            <span class="row-add-label">Effects</span>
+            <div class="btn-icon">
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              >
+                <line x1="5" y1="1" x2="5" y2="9" />
+                <line x1="1" y1="5" x2="9" y2="5" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
+      const SNAP_MS = 200;
+
+      function initScrubber(el, onPreview = null) {
+        const fillRight = el.querySelector(".fill-right");
+        const labelEl = el.querySelector(".scrubber-label");
+        const inputEl = el.querySelector(".scrubber-input");
+        const thumbEl = el.querySelector(".thumb");
+        const MIN = 0;
+        const MAX = parseFloat(el.dataset.max ?? 100);
+        const UNIT = el.dataset.unit ?? "%";
+
+        let value = parseFloat(el.dataset.value ?? 0);
+        let isDragging = false;
+        let startX = 0,
+          boxWidth = 0,
+          thumbX = 0;
+        let hasMoved = false;
+
+        function setDisplay(v) {
+          labelEl.textContent = Math.round(v) + UNIT;
+          el.setAttribute("aria-valuenow", Math.round(v));
+        }
+
+        function resetToNeutral() {
+          thumbEl.style.transition = `left ${SNAP_MS}ms ${EASE}`;
+          thumbEl.style.left = "0px";
+          fillRight.style.width = "0";
+          thumbX = 0;
+          setTimeout(() => {
+            thumbEl.style.transition = "none";
+          }, SNAP_MS);
+        }
+
+        function enterEditMode() {
+          el.classList.add("is-editing");
+          inputEl.value = Math.round(value);
+          setTimeout(() => {
+            inputEl.focus();
+            inputEl.select();
+          }, 0);
+        }
+
+        function exitEditMode() {
+          el.classList.remove("is-editing");
+          const parsed = parseFloat(inputEl.value);
+          if (!isNaN(parsed)) {
+            value = Math.max(MIN, Math.min(MAX, parsed));
+            if (onPreview) onPreview(value);
+          }
+          setDisplay(value);
+        }
+
+        // ── Pointer ──────────────────────────────────────────────
+        el.addEventListener("pointerdown", (e) => {
+          if (el.classList.contains("is-editing")) return;
+          const rect = el.getBoundingClientRect();
+          boxWidth = rect.width;
+          startX = e.clientX;
+          thumbX = 0;
+          hasMoved = false;
+          isDragging = true;
+          el.setPointerCapture(e.pointerId);
+          el.classList.add("is-dragging");
+          thumbEl.style.transition = "none";
+          thumbEl.style.left = "0px";
+          fillRight.style.width = "0";
+        });
+
+        el.addEventListener("pointermove", (e) => {
+          if (!isDragging) return;
+          const rawDelta = Math.max(0, e.clientX - startX);
+          if (rawDelta > 4) hasMoved = true;
+          thumbX = Math.min(rawDelta, boxWidth);
+          value = (thumbX / boxWidth) * MAX;
+          thumbEl.style.left = thumbX + "px";
+          fillRight.style.width = thumbX + "px";
+          setDisplay(value);
+          if (onPreview) onPreview(value); // effet en temps réel
+        });
+
+        el.addEventListener("pointerup", () => {
+          if (!isDragging) return;
+          isDragging = false;
+          el.classList.remove("is-dragging");
+          if (!hasMoved) {
+            resetToNeutral();
+            enterEditMode();
+          } else {
+            resetToNeutral();
+          }
+        });
+
+        el.addEventListener("pointercancel", () => {
+          if (!isDragging) return;
+          isDragging = false;
+          el.classList.remove("is-dragging");
+          resetToNeutral();
+        });
+
+        // ── Input (edit mode) ────────────────────────────────────
+        inputEl.addEventListener("blur", exitEditMode);
+        inputEl.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === "Tab") {
+            e.preventDefault();
+            exitEditMode();
+          }
+          if (e.key === "Escape") {
+            inputEl.value = Math.round(value);
+            exitEditMode();
+          }
+        });
+
+        // ── Keyboard (scrubber mode) ─────────────────────────────
+        el.addEventListener("keydown", (e) => {
+          if (el.classList.contains("is-editing")) return;
+          const step = e.shiftKey ? 10 : 1;
+          if (e.key === "ArrowRight") {
+            value = Math.min(MAX, value + step);
+            setDisplay(value);
+            if (onPreview) onPreview(value);
+            e.preventDefault();
+          } else if (e.key === "ArrowLeft") {
+            value = Math.max(MIN, value - step);
+            setDisplay(value);
+            if (onPreview) onPreview(value);
+            e.preventDefault();
+          } else if (e.key === "Home") {
+            value = MIN;
+            setDisplay(value);
+            if (onPreview) onPreview(value);
+            e.preventDefault();
+          } else if (e.key === "End") {
+            value = MAX;
+            setDisplay(value);
+            if (onPreview) onPreview(value);
+            e.preventDefault();
+          } else if (e.key === "Enter" || e.key === "F2") {
+            enterEditMode();
+          }
+        });
+
+        setDisplay(value);
+      }
+
+      const shape = document.getElementById("shape");
+
+      initScrubber(document.getElementById("scrubber-opacity"), (v) => {
+        shape.style.opacity = v / 100;
+      });
+
+      initScrubber(document.getElementById("scrubber-blur"), (v) => {
+        shape.style.filter = `blur(${v}px)`;
+      });
+
+      initScrubber(document.getElementById("scrubber-fill"), (v) => {
+        shape.style.backgroundColor = `rgba(96, 165, 250, ${v / 100})`;
+      });
+    </script>
+  </body>
+</html>
