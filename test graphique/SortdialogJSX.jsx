@@ -62,6 +62,7 @@ import {
   ListOrdered,
   EyeOff,
   Columns2,
+  Users,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════
@@ -214,6 +215,14 @@ const MOCK_COLUMNS = [
   { id: "col_rollup", name: "Budget", type: "rollup" },
   { id: "col_created", name: "Créé le", type: "created_modified" },
   { id: "col_id", name: "Réf.", type: "unique_id" },
+];
+
+const MOCK_ROLES = [
+  { id: "self",             name: "Moi",                color: "#a78bfa", bg: "bg-violet-100 dark:bg-violet-900/30",  dot: "bg-violet-400",  isSelf: true  },
+  { id: "role_client",      name: "Client",             color: "#f87171", bg: "bg-red-100 dark:bg-red-900/30",        dot: "bg-red-400"      },
+  { id: "role_fournisseur", name: "Fournisseur",        color: "#fb923c", bg: "bg-orange-100 dark:bg-orange-900/30",  dot: "bg-orange-400"   },
+  { id: "role_commercial",  name: "Commercial",         color: "#60a5fa", bg: "bg-blue-100 dark:bg-blue-900/30",      dot: "bg-blue-400"     },
+  { id: "role_finance",     name: "Comptable / Finance",color: "#34d399", bg: "bg-emerald-100 dark:bg-emerald-900/30",dot: "bg-emerald-400"  },
 ];
 
 function getOperatorCategory(colType) {
@@ -2364,9 +2373,119 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
 }
 
 /* ═══════════════════════════════════════════════════════
+   ROLE PICKER POPOVER
+   ═══════════════════════════════════════════════════════ */
+function RolePickerPopover({ colId, colRoles, visibleHint, onToggleRole, onToggleHint, anchorRef, onClose }) {
+  const popRef = useRef(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+
+  useLayoutEffect(() => {
+    if (!anchorRef.current) return;
+    const r = anchorRef.current.getBoundingClientRect();
+    setCoords({ top: r.bottom + 4, left: r.right - 180 });
+  }, [anchorRef]);
+
+  return (
+    <>
+      {/* Backdrop : capture le 1er clic extérieur sans déclencher l'action en dessous */}
+      <div
+        style={{ position: "fixed", inset: 0, zIndex: 9998 }}
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+      />
+      <div
+      ref={popRef}
+      style={{ position: "fixed", top: coords.top, left: coords.left, zIndex: 9999 }}
+      className="w-44 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-xl py-1"
+    >
+      {/* Header */}
+      <p className="text-[9px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-2.5 pt-1 pb-1.5">
+        Masquer pour les rôles
+      </p>
+
+      {/* Role list */}
+      {MOCK_ROLES.map((role, i) => {
+        const checked = colRoles.has(role.id);
+        const isLastSelf = role.isSelf && MOCK_ROLES[i + 1] && !MOCK_ROLES[i + 1].isSelf;
+        return (
+          <>
+            <button
+              key={role.id}
+              onClick={() => onToggleRole(colId, role.id)}
+              className="w-full flex items-center gap-2 px-2.5 py-1 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${role.dot}`} />
+              <span className={`flex-1 text-left text-xs ${role.isSelf ? "font-medium text-zinc-700 dark:text-zinc-300" : "text-zinc-600 dark:text-zinc-400"}`}>
+                {role.name}
+              </span>
+              {checked && (
+                <Check size={11} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
+              )}
+            </button>
+            {isLastSelf && (
+              <div key={`${role.id}-sep`} className="my-1 mx-2 border-t border-zinc-100 dark:border-zinc-800" />
+            )}
+          </>
+        );
+      })}
+
+      {/* Divider */}
+      <div className="my-1 mx-2 border-t border-zinc-100 dark:border-zinc-800" />
+
+      {/* Visible-hint toggle */}
+      <div className="flex items-center gap-2 px-2.5 py-1.5">
+        <span className="flex-1 text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight">
+          Indiquer que la colonne est masquée
+        </span>
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleHint(colId); }}
+          style={{
+            position: "relative",
+            width: 28,
+            height: 16,
+            borderRadius: 999,
+            flexShrink: 0,
+            border: "none",
+            cursor: "pointer",
+            transition: "background-color 150ms",
+            backgroundColor: visibleHint ? "#6366f1" : "#d1d5db",
+            padding: 0,
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              top: 2,
+              left: visibleHint ? 14 : 2,
+              width: 12,
+              height: 12,
+              borderRadius: "50%",
+              backgroundColor: "white",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
+              transition: "left 150ms",
+            }}
+          />
+        </button>
+      </div>
+    </div>
+  </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
    COLUMN VISIBILITY DROPDOWN  (dnd-kit)
    ═══════════════════════════════════════════════════════ */
-function ColVisItem({ col, hiddenColumns, lockedHiddenColumns, onToggle }) {
+function ColVisItem({
+  col,
+  hiddenColumns,
+  lockedHiddenColumns,
+  roleHiddenColumns,
+  roleVisibleHint,
+  onToggle,
+  onToggleRole,
+  onToggleHint,
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const avatarBtnRef = useRef(null);
   const {
     setNodeRef,
     attributes,
@@ -2379,6 +2498,15 @@ function ColVisItem({ col, hiddenColumns, lockedHiddenColumns, onToggle }) {
   const CIcon = tc?.icon;
   const isHidden = hiddenColumns.has(col.id);
   const isLocked = lockedHiddenColumns.has(col.id);
+  const colRoles = roleHiddenColumns?.get(col.id) || new Set();
+  const hasRoles = colRoles.size > 0;
+  const visibleHint = roleVisibleHint?.get(col.id) ?? false;
+  const selectedRoles = MOCK_ROLES.filter((r) => colRoles.has(r.id));
+  const hasBusinessRoles = selectedRoles.some((r) => !r.isSelf);
+
+  useEffect(() => {
+    if (!isHidden) setPickerOpen(false);
+  }, [isHidden]);
 
   if (isLocked) {
     return (
@@ -2391,20 +2519,11 @@ function ColVisItem({ col, hiddenColumns, lockedHiddenColumns, onToggle }) {
       >
         <span className="flex-shrink-0 w-0.5 h-3.5" />
         {CIcon && (
-          <CIcon
-            size={13}
-            className="text-zinc-400 dark:text-zinc-500 flex-shrink-0"
-          />
+          <CIcon size={13} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
         )}
         <span className="flex-1 text-left opacity-40">{col.name}</span>
-        <EyeOff
-          size={12}
-          className="text-zinc-300 dark:text-zinc-600 flex-shrink-0"
-        />
-        <Lock
-          size={10}
-          className="text-zinc-300 dark:text-zinc-600 flex-shrink-0"
-        />
+        <EyeOff size={12} className="text-zinc-300 dark:text-zinc-600 flex-shrink-0" />
+        <Lock size={10} className="text-zinc-300 dark:text-zinc-600 flex-shrink-0" />
       </div>
     );
   }
@@ -2413,36 +2532,79 @@ function ColVisItem({ col, hiddenColumns, lockedHiddenColumns, onToggle }) {
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      onClick={() => !isDragging && onToggle(col.id)}
-      className={`group w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors
-        ${isHidden ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-600 dark:text-zinc-400"}
-        ${isDragging ? "opacity-30 cursor-grabbing" : "hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer"}`}
+      className={`group w-full rounded-md ${isDragging ? "opacity-30" : ""}`}
     >
-      <span
-        {...attributes}
-        {...listeners}
-        onClick={(e) => e.stopPropagation()}
-        aria-label={`Déplacer la colonne ${col.name}`}
-        className="flex-shrink-0 w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity"
-      />
-      {CIcon && (
-        <CIcon
-          size={13}
-          className="text-zinc-400 dark:text-zinc-500 flex-shrink-0"
+      <div
+        onClick={() => !isDragging && onToggle(col.id)}
+        className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors
+          ${isHidden ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-600 dark:text-zinc-400"}
+          ${isDragging ? "cursor-grabbing" : "hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer"}`}
+      >
+        <span
+          {...attributes}
+          {...listeners}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Déplacer la colonne ${col.name}`}
+          className="flex-shrink-0 w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity"
         />
-      )}
-      <span className={`flex-1 text-left ${isHidden ? "opacity-40" : ""}`}>
-        {col.name}
-      </span>
-      {isHidden ? (
-        <EyeOff
-          size={12}
-          className="text-zinc-300 dark:text-zinc-600 flex-shrink-0"
-        />
-      ) : (
-        <Eye
-          size={12}
-          className="text-zinc-400 dark:text-zinc-500 flex-shrink-0"
+        {CIcon && (
+          <CIcon size={13} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
+        )}
+        <span className={`flex-1 text-left ${isHidden ? "opacity-40" : ""}`}>
+          {col.name}
+        </span>
+        {isHidden ? (
+          <EyeOff size={12} className="text-zinc-300 dark:text-zinc-600 flex-shrink-0" />
+        ) : (
+          <Eye size={12} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
+        )}
+
+        {/* Avatar button — seulement quand la colonne est cachée */}
+        {isHidden && <button
+          ref={avatarBtnRef}
+          onClick={(e) => {
+            e.stopPropagation();
+            setPickerOpen((s) => !s);
+          }}
+          title="Restreindre par type de compte"
+          className={`relative flex items-center justify-center p-0.5 rounded flex-shrink-0 transition-colors
+            ${hasRoles
+              ? "text-zinc-500 dark:text-zinc-400"
+              : "text-zinc-300 dark:text-zinc-600 opacity-0 group-hover:opacity-100"
+            } hover:text-zinc-700 dark:hover:text-zinc-200`}
+        >
+          {hasBusinessRoles ? (
+            <Users size={12} />
+          ) : (
+            <User size={12} />
+          )}
+          {/* Colored dots — tous les rôles sélectionnés si au moins un rôle business */}
+          {hasBusinessRoles && (
+            <span className="absolute -bottom-0.5 -right-0.5 flex items-center gap-[2px]">
+              {selectedRoles.slice(0, 2).map((r) => (
+                <span key={r.id} className={`w-1.5 h-1.5 rounded-full ${r.dot} ring-1 ring-white dark:ring-zinc-900`} />
+              ))}
+              {selectedRoles.length > 2 && (
+                <span className="text-[7px] font-bold leading-none text-zinc-500 dark:text-zinc-400">+</span>
+              )}
+            </span>
+          )}
+        </button>}
+      </div>
+
+      {/* Floating role picker */}
+      {pickerOpen && (
+        <RolePickerPopover
+          colId={col.id}
+          colRoles={colRoles}
+          visibleHint={visibleHint}
+          onToggleRole={onToggleRole}
+          onToggleHint={onToggleHint}
+          anchorRef={avatarBtnRef}
+          onClose={() => {
+            setPickerOpen(false);
+            if (colRoles.size === 0) onToggle(col.id);
+          }}
         />
       )}
     </div>
@@ -2505,7 +2667,11 @@ function ColumnVisibilityDropdown({
   columns,
   hiddenColumns,
   lockedHiddenColumns,
+  roleHiddenColumns,
+  roleVisibleHint,
   onToggle,
+  onToggleRole,
+  onToggleHint,
   onReorder,
 }) {
   const [activeId, setActiveId] = useState(null);
@@ -2584,7 +2750,11 @@ function ColumnVisibilityDropdown({
                 col={col}
                 hiddenColumns={hiddenColumns}
                 lockedHiddenColumns={lockedHiddenColumns}
+                roleHiddenColumns={roleHiddenColumns}
+                roleVisibleHint={roleVisibleHint}
                 onToggle={onToggle}
+                onToggleRole={onToggleRole}
+                onToggleHint={onToggleHint}
               />
             ))}
           </div>
@@ -2825,6 +2995,25 @@ export default function DataToolbar() {
 
   const [hiddenColumns, setHiddenColumns] = useState(new Set());
   const [lockedHiddenColumns] = useState(new Set(["col_id"]));
+  const [roleHiddenColumns, setRoleHiddenColumns] = useState(new Map());
+  const toggleRoleForColumn = (colId, roleId) => {
+    setRoleHiddenColumns((prev) => {
+      const next = new Map(prev);
+      const roles = new Set(next.get(colId) || []);
+      roles.has(roleId) ? roles.delete(roleId) : roles.add(roleId);
+      if (roles.size === 0) next.delete(colId);
+      else next.set(colId, roles);
+      return next;
+    });
+  };
+  const [roleVisibleHint, setRoleVisibleHint] = useState(new Map());
+  const toggleVisibleHint = (colId) => {
+    setRoleVisibleHint((prev) => {
+      const next = new Map(prev);
+      next.set(colId, !next.get(colId));
+      return next;
+    });
+  };
   const [columnOrder, setColumnOrder] = useState(MOCK_COLUMNS.map((c) => c.id));
   const reorderColumns = (fromId, toId) => {
     setColumnOrder((prev) => {
@@ -2841,13 +3030,21 @@ export default function DataToolbar() {
     .map((id) => MOCK_COLUMNS.find((c) => c.id === id))
     .filter(Boolean);
   const toggleColumnVisibility = (colId, forceHide) => {
+    const willHide = forceHide !== undefined ? forceHide : !hiddenColumns.has(colId);
     setHiddenColumns((prev) => {
       const next = new Set(prev);
-      if (forceHide !== undefined) {
-        forceHide ? next.add(colId) : next.delete(colId);
+      willHide ? next.add(colId) : next.delete(colId);
+      return next;
+    });
+    setRoleHiddenColumns((prev) => {
+      const next = new Map(prev);
+      const roles = new Set(next.get(colId) || []);
+      if (willHide) {
+        roles.add("self");
       } else {
-        next.has(colId) ? next.delete(colId) : next.add(colId);
+        roles.delete("self");
       }
+      roles.size === 0 ? next.delete(colId) : next.set(colId, roles);
       return next;
     });
   };
@@ -3173,7 +3370,11 @@ export default function DataToolbar() {
         columns={orderedColumns}
         hiddenColumns={hiddenColumns}
         lockedHiddenColumns={lockedHiddenColumns}
+        roleHiddenColumns={roleHiddenColumns}
+        roleVisibleHint={roleVisibleHint}
         onToggle={toggleColumnVisibility}
+        onToggleRole={toggleRoleForColumn}
+        onToggleHint={toggleVisibleHint}
         onReorder={reorderColumns}
       />
 
