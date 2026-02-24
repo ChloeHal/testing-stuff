@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useLayoutEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useLayoutEffect, useMemo } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -62,7 +62,9 @@ import {
   ListOrdered,
   EyeOff,
   Columns2,
+  Save,
   Users,
+  Pencil,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════
@@ -217,13 +219,41 @@ const MOCK_COLUMNS = [
   { id: "col_id", name: "Réf.", type: "unique_id" },
 ];
 
-const MOCK_ROLES = [
-  { id: "self",             name: "Moi",                color: "#a78bfa", bg: "bg-violet-100 dark:bg-violet-900/30",  dot: "bg-violet-400",  isSelf: true  },
-  { id: "role_client",      name: "Client",             color: "#f87171", bg: "bg-red-100 dark:bg-red-900/30",        dot: "bg-red-400"      },
-  { id: "role_fournisseur", name: "Fournisseur",        color: "#fb923c", bg: "bg-orange-100 dark:bg-orange-900/30",  dot: "bg-orange-400"   },
-  { id: "role_commercial",  name: "Commercial",         color: "#60a5fa", bg: "bg-blue-100 dark:bg-blue-900/30",      dot: "bg-blue-400"     },
-  { id: "role_finance",     name: "Comptable / Finance",color: "#34d399", bg: "bg-emerald-100 dark:bg-emerald-900/30",dot: "bg-emerald-400"  },
+/* ─── Niveaux d'accès colonnes ─── */
+const COL_ACCESS_LEVELS = [
+  { id: "full", label: "Éditable",         desc: "Peut voir et modifier",                 Icon: Pencil, color: "text-emerald-500", activeBg: "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700" },
+  { id: "view", label: "Lecture seule",    desc: "Peut voir, pas modifier",               Icon: Eye,    color: "text-blue-500",   activeBg: "bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700"            },
+  { id: "ask",  label: "Masqué + demande", desc: "Sait que c'est masqué, peut demander",  Icon: Lock,   color: "text-amber-500",  activeBg: "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"         },
+  { id: "none", label: "Masqué total",     desc: "Invisible, sans notification",          Icon: EyeOff, color: "text-red-400",    activeBg: "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700"               },
 ];
+
+/* ─── Niveaux d'accès filtres ─── */
+const FILTER_ACCESS_LEVELS = [
+  { id: "visible",     label: "Filtre complet", desc: "Colonne + valeur visibles",         Icon: Eye,       color: "text-emerald-500", activeBg: "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700" },
+  { id: "column_only", label: "Colonne seule",  desc: "Sait que la colonne est filtrée",   Icon: EyeOff,    color: "text-blue-400",    activeBg: "bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700"           },
+  { id: "silent",      label: "Silencieux",     desc: "Actif mais invisible",              Icon: Minus,     color: "text-amber-500",   activeBg: "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"       },
+  { id: "hidden",      label: "Non appliqué",   desc: "Le filtre ne s'applique pas",       Icon: Ban,       color: "text-zinc-400",    activeBg: "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600"             },
+];
+
+/* ─── Rôles cibles ─── */
+
+/* ─── Rôles de prévisualisation ─── */
+const PREVIEW_ROLES = [
+  { id: "dev",   label: "Dev",   description: "Accès complet et configuration" },
+  { id: "owner", label: "Owner", description: "Peut imposer des vues aux Users" },
+  { id: "user",  label: "User",  description: "Accès et vues personnels uniquement" },
+];
+
+/* ─── Ordre de restriction (plus l'index est grand, plus c'est restrictif) ─── */
+const COL_ACCESS_ORDER = ["full", "view", "ask", "none"];
+const FILTER_ACCESS_ORDER = ["visible", "column_only", "silent", "hidden"];
+
+function mostRestrictiveCol(a, b) {
+  return COL_ACCESS_ORDER[Math.max(COL_ACCESS_ORDER.indexOf(a), COL_ACCESS_ORDER.indexOf(b))];
+}
+function mostRestrictiveFilter(a, b) {
+  return FILTER_ACCESS_ORDER[Math.max(FILTER_ACCESS_ORDER.indexOf(a), FILTER_ACCESS_ORDER.indexOf(b))];
+}
 
 function getOperatorCategory(colType) {
   if (
@@ -1433,14 +1463,22 @@ function AdvancedFilterBuilder({
 /* ═══════════════════════════════════════════════════════
    ADVANCED FILTER CHIP — inline display of conditions
    ═══════════════════════════════════════════════════════ */
-function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, onToggleRole, onToggleHint }) {
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const userBtnRef = useRef(null);
+function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, devFilterRules, ownerFilterRules, editorRole = "dev", onSetFilterRule }) {
+  const [accessOpen, setAccessOpen] = useState(false);
+  const accessBtnRef = useRef(null);
 
-  const colRoles = filter.roles || new Set();
-  const visibleHint = filter.visibleHint ?? false;
-  const selectedRoles = MOCK_ROLES.filter((r) => colRoles.has(r.id));
-  const hasBusinessRoles = selectedRoles.some((r) => !r.isSelf);
+  // Pire niveau d'accès défini pour ce filtre (indicateur coloré)
+  const filterDevRules = devFilterRules?.get(filter.id) || {};
+  const filterOwnerRules = ownerFilterRules?.get(filter.id) || {};
+  const allRuleValues = editorRole === "dev"
+    ? Object.values(filterDevRules)
+    : Object.values(filterOwnerRules);
+  const worstAccess = allRuleValues.reduce(
+    (worst, rule) => FILTER_ACCESS_ORDER.indexOf(rule) > FILTER_ACCESS_ORDER.indexOf(worst) ? rule : worst,
+    "visible"
+  );
+  const hasRestrictions = worstAccess !== "visible";
+  const worstLevel = FILTER_ACCESS_LEVELS.find((l) => l.id === worstAccess);
 
   const renderCondition = (cond) => {
     const col = columns.find((c) => c.id === cond.columnId);
@@ -1450,12 +1488,9 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, o
     const op = ops.find((o) => o.id === cond.operator);
     const tc = COLUMN_TYPES[col.type];
     const CIcon = tc?.icon;
-
     return (
       <span className="inline-flex items-center gap-1">
-        {CIcon && (
-          <CIcon size={11} className="text-zinc-400 dark:text-zinc-500" />
-        )}
+        {CIcon && <CIcon size={11} className="text-zinc-400 dark:text-zinc-500" />}
         <span className="font-medium">{col.name}</span>
         {op && <span className="text-zinc-400">{op.label}</span>}
         {op && !op.noValue && (
@@ -1470,6 +1505,7 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, o
   return (
     <>
       <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-all dark:border-zinc-700 dark:bg-zinc-900">
+        {/* Condition text */}
         <button
           onClick={onEdit}
           className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-zinc-700 cursor-pointer dark:text-zinc-300"
@@ -1485,42 +1521,38 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, o
             </span>
           ))}
         </button>
+
+        {/* Lock button */}
         <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
         <button
           onClick={onToggleLock}
           aria-label={filter.locked ? "Déverrouiller ce filtre" : "Verrouiller ce filtre"}
+          title={filter.locked ? "Filtre verrouillé — cliquer pour déverrouiller" : "Verrouiller ce filtre"}
           className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${filter.locked ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-300 hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-400"}`}
         >
           {filter.locked ? <Lock size={11} /> : <LockOpen size={11} />}
         </button>
-        {filter.locked && (
+
+        {/* Access rule button — seulement si l'éditeur peut configurer les accès */}
+        {onSetFilterRule && (
           <>
             <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
             <button
-              ref={userBtnRef}
-              onClick={() => setPickerOpen((s) => !s)}
-              title="Partager ce filtre avec des rôles"
-              className={`flex items-center justify-center pr-2 py-1.5 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800
-                ${colRoles.size > 0
-                  ? `${hasBusinessRoles ? "pl-1" : "pl-2"} text-zinc-700 dark:text-zinc-300`
-                  : "pl-2 text-zinc-300 dark:text-zinc-600"}`}
+              ref={accessBtnRef}
+              onClick={() => setAccessOpen((s) => !s)}
+              title={hasRestrictions ? `Visibilité : ${worstLevel?.label}` : "Définir la visibilité par rôle"}
+              className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${
+                hasRestrictions
+                  ? worstLevel?.color
+                  : "text-zinc-300 dark:text-zinc-600 hover:text-zinc-500"
+              }`}
             >
-              <span className={`relative inline-flex items-center justify-center ${hasBusinessRoles ? "min-w-[24px]" : ""}`}>
-                {hasBusinessRoles ? <Users size={11} /> : <User size={11} />}
-                {hasBusinessRoles && (
-                  <span className="absolute -bottom-0.5 flex items-center gap-[2px]">
-                    {(selectedRoles.length > 3 ? selectedRoles.slice(0, 2) : selectedRoles).map((r) => (
-                      <span key={r.id} className={`w-1.5 h-1.5 rounded-full ${r.dot} ring-1 ring-white dark:ring-zinc-900`} />
-                    ))}
-                    {selectedRoles.length > 3 && (
-                      <span className="text-[7px] font-bold leading-none text-zinc-500 dark:text-zinc-400">+</span>
-                    )}
-                  </span>
-                )}
-              </span>
+              <Key size={11} />
             </button>
           </>
         )}
+
+        {/* Delete button (hidden when locked) */}
         {!filter.locked && (
           <>
             <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
@@ -1534,17 +1566,18 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, o
           </>
         )}
       </div>
-      {pickerOpen && (
-        <RolePickerPopover
-          colId={filter.id}
-          colRoles={colRoles}
-          visibleHint={visibleHint}
-          onToggleRole={onToggleRole}
-          onToggleHint={onToggleHint}
-          anchorRef={userBtnRef}
-          onClose={() => setPickerOpen(false)}
-          headerLabel="Partager avec les rôles"
-          toggleLabel="Indiquer que le filtre est actif"
+
+      {/* Filter access rule popover */}
+      {accessOpen && onSetFilterRule && (
+        <AccessRulePopover
+          itemId={filter.id}
+          type="filter"
+          devRules={devFilterRules}
+          ownerRules={ownerFilterRules}
+          editorRole={editorRole}
+          onSetRule={onSetFilterRule}
+          anchorRef={accessBtnRef}
+          onClose={() => setAccessOpen(false)}
         />
       )}
     </>
@@ -1858,9 +1891,22 @@ function ColumnPicker({
 /* ═══════════════════════════════════════════════════════
    FILTER CHIP — button group with icons, dots, avatars
    ═══════════════════════════════════════════════════════ */
-function FilterChip({ filter, columns, onUpdate, onRemove }) {
+function FilterChip({ filter, columns, onUpdate, onRemove, onToggleLock, canEditAccess, devFilterRules, ownerFilterRules, editorRole, onSetFilterRule, lockedDisplay = "visible" }) {
   const operatorPop = usePopover();
   const valuePop = usePopover();
+  const [accessOpen, setAccessOpen] = useState(false);
+  const accessBtnRef = useRef(null);
+
+  // Indicateur de restriction (même logique que AdvancedFilterChip)
+  const filterDevRules   = devFilterRules?.get(filter.id) || {};
+  const filterOwnerRules = ownerFilterRules?.get(filter.id) || {};
+  const allRuleValues    = editorRole === "dev" ? Object.values(filterDevRules) : Object.values(filterOwnerRules);
+  const worstAccess = allRuleValues.reduce(
+    (worst, rule) => FILTER_ACCESS_ORDER.indexOf(rule) > FILTER_ACCESS_ORDER.indexOf(worst) ? rule : worst,
+    "visible"
+  );
+  const hasRestrictions = worstAccess !== "visible";
+  const worstLevel = FILTER_ACCESS_LEVELS.find((l) => l.id === worstAccess);
 
   const column = columns.find((c) => c.id === filter.columnId);
   if (!column) return null;
@@ -1873,27 +1919,30 @@ function FilterChip({ filter, columns, onUpdate, onRemove }) {
   const isLocked = filter.locked;
 
   if (isLocked) {
+    const showFull = lockedDisplay === "visible";
     return (
       <div
         className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
-        title="Filtre imposé par l'administrateur"
+        title={showFull ? "Filtre imposé" : "Filtre actif — détails masqués"}
       >
         <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 text-zinc-500 select-none dark:bg-zinc-800/50 dark:text-zinc-200">
-          {Icon && (
-            <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />
-          )}
+          {Icon && <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />}
           <span className="text-xs font-medium">{column.name}</span>
         </div>
-        <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-        <div className="px-2 py-1 text-xs text-zinc-400 dark:text-zinc-500">
-          {currentOp?.label}
-        </div>
-        {!currentOp?.noValue && filter.value != null && (
+        {showFull && (
           <>
             <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-            <div className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-200">
-              <ValueDisplay columnId={filter.columnId} value={filter.value} />
+            <div className="px-2 py-1 text-xs text-zinc-400 dark:text-zinc-500">
+              {currentOp?.label}
             </div>
+            {!currentOp?.noValue && filter.value != null && (
+              <>
+                <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+                <div className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-200">
+                  <ValueDisplay columnId={filter.columnId} value={filter.value} />
+                </div>
+              </>
+            )}
           </>
         )}
         <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
@@ -1977,6 +2026,28 @@ function FilterChip({ filter, columns, onUpdate, onRemove }) {
         </>
       )}
 
+      {canEditAccess && (
+        <>
+          <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+          <button
+            onClick={onToggleLock}
+            aria-label={filter.locked ? "Déverrouiller ce filtre" : "Verrouiller ce filtre"}
+            title={filter.locked ? "Filtre verrouillé — cliquer pour déverrouiller" : "Verrouiller ce filtre"}
+            className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${filter.locked ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-300 hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-400"}`}
+          >
+            {filter.locked ? <Lock size={11} /> : <LockOpen size={11} />}
+          </button>
+          <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+          <button
+            ref={accessBtnRef}
+            onClick={() => setAccessOpen((s) => !s)}
+            title={hasRestrictions ? `Visibilité : ${worstLevel?.label}` : "Définir la visibilité par rôle"}
+            className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${hasRestrictions ? worstLevel?.color : "text-zinc-300 dark:text-zinc-600 hover:text-zinc-500"}`}
+          >
+            <Key size={11} />
+          </button>
+        </>
+      )}
       <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
       <button
         onClick={onRemove}
@@ -1985,6 +2056,19 @@ function FilterChip({ filter, columns, onUpdate, onRemove }) {
       >
         <X size={12} />
       </button>
+
+      {accessOpen && canEditAccess && (
+        <AccessRulePopover
+          itemId={filter.id}
+          type="filter"
+          devRules={devFilterRules}
+          ownerRules={ownerFilterRules}
+          editorRole={editorRole}
+          onSetRule={onSetFilterRule}
+          anchorRef={accessBtnRef}
+          onClose={() => setAccessOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -2436,103 +2520,90 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   ROLE PICKER POPOVER
+   ACCESS RULE POPOVER  (style Notion / Linear)
+   Permet de définir le niveau d'accès par rôle cible.
+   type = "col" | "filter"
+   editorRole = "dev" (peut régler owner + user) | "owner" (peut régler user seulement)
    ═══════════════════════════════════════════════════════ */
-function RolePickerPopover({ colId, colRoles, visibleHint, onToggleRole, onToggleHint, anchorRef, onClose, headerLabel = "Masquer pour les rôles", toggleLabel = "Indiquer que la colonne est masquée" }) {
+function AccessRulePopover({ itemId, type = "col", devRules, ownerRules, editorRole = "dev", onSetRule, anchorRef, onClose }) {
   const popRef = useRef(null);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
+
+  const levels = type === "col" ? COL_ACCESS_LEVELS : FILTER_ACCESS_LEVELS;
+  const defaultVal = type === "col" ? "full" : "visible";
 
   useLayoutEffect(() => {
     if (!anchorRef.current) return;
     const r = anchorRef.current.getBoundingClientRect();
-    setCoords({ top: r.bottom + 4, left: r.right - 180 });
+    const popWidth = 220;
+    const left = Math.min(r.right - popWidth, window.innerWidth - popWidth - 8);
+    setCoords({ top: r.bottom + 6, left: Math.max(8, left) });
   }, [anchorRef]);
+
+  // Valeur courante : on utilise le premier rôle cible comme référence (owner si dev, user si owner)
+  const currentRule = editorRole === "dev"
+    ? (devRules?.get(itemId)?.owner ?? defaultVal)
+    : (ownerRules?.get(itemId)?.user ?? defaultVal);
+
+  // Appliquer à tous les rôles cibles de l'éditeur (toggle : recliquer enlève la restriction)
+  const applyRule = (levelId) => {
+    const next = levelId === currentRule ? (type === "col" ? "full" : "visible") : levelId;
+    if (editorRole === "dev") {
+      onSetRule(itemId, "owner", next);
+      onSetRule(itemId, "user",  next);
+    } else {
+      onSetRule(itemId, "user", next);
+    }
+  };
+
+  const header = type === "col" ? "Restrictions d'accès" : "Visibilité du filtre";
 
   return (
     <>
-      {/* Backdrop : capture le 1er clic extérieur sans déclencher l'action en dessous */}
       <div
         style={{ position: "fixed", inset: 0, zIndex: 9998 }}
         onClick={(e) => { e.stopPropagation(); onClose(); }}
       />
       <div
-      ref={popRef}
-      style={{ position: "fixed", top: coords.top, left: coords.left, zIndex: 9999 }}
-      className="w-44 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-xl py-1"
-    >
-      {/* Header */}
-      <p className="text-[9px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 px-2.5 pt-1 pb-1.5">
-        {headerLabel}
-      </p>
+        ref={popRef}
+        style={{ position: "fixed", top: coords.top, left: coords.left, zIndex: 9999, width: 220 }}
+        className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-xl overflow-hidden"
+      >
+        {/* Header */}
+        <div className="px-3 pt-2.5 pb-1.5 border-b border-zinc-100 dark:border-zinc-800">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            {header}
+          </p>
+        </div>
 
-      {/* Role list */}
-      {MOCK_ROLES.map((role, i) => {
-        const checked = colRoles.has(role.id);
-        const isLastSelf = role.isSelf && MOCK_ROLES[i + 1] && !MOCK_ROLES[i + 1].isSelf;
-        return (
-          <>
-            <button
-              key={role.id}
-              onClick={() => onToggleRole(colId, role.id)}
-              className="w-full flex items-center gap-2 px-2.5 py-1 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-            >
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${role.dot}`} />
-              <span className={`flex-1 text-left text-xs ${role.isSelf ? "font-medium text-zinc-700 dark:text-zinc-300" : "text-zinc-600 dark:text-zinc-400"}`}>
-                {role.name}
-              </span>
-              {checked && (
-                <Check size={11} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-              )}
-            </button>
-            {isLastSelf && (
-              <div key={`${role.id}-sep`} className="my-1 mx-2 border-t border-zinc-100 dark:border-zinc-800" />
-            )}
-          </>
-        );
-      })}
-
-      {/* Divider + toggle — uniquement si au moins un rôle business sélectionné */}
-      {MOCK_ROLES.some((r) => !r.isSelf && colRoles.has(r.id)) && (
-        <>
-          <div className="my-1 mx-2 border-t border-zinc-100 dark:border-zinc-800" />
-          <div className="flex items-center gap-2 px-2.5 py-1.5">
-            <span className="flex-1 text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight">
-              {toggleLabel}
-            </span>
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleHint(colId); }}
-              style={{
-                position: "relative",
-                width: 28,
-                height: 16,
-                borderRadius: 999,
-                flexShrink: 0,
-                border: "none",
-                cursor: "pointer",
-                transition: "background-color 150ms",
-                backgroundColor: visibleHint ? "#6366f1" : "#d1d5db",
-                padding: 0,
-              }}
-            >
-              <span
-                style={{
-                  position: "absolute",
-                  top: 2,
-                  left: visibleHint ? 14 : 2,
-                  width: 12,
-                  height: 12,
-                  borderRadius: "50%",
-                  backgroundColor: "white",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
-                  transition: "left 150ms",
-                }}
-              />
-            </button>
+        {/* Sélecteur unifié "pour les autres" */}
+        <div className="px-3 py-2.5">
+          <div className="flex gap-1">
+            {levels.map((level) => {
+              const active = currentRule === level.id;
+              const { Icon } = level;
+              return (
+                <button
+                  key={level.id}
+                  title={`${level.label} — ${level.desc}`}
+                  onClick={() => applyRule(level.id)}
+                  className={`flex-1 flex items-center justify-center py-1.5 rounded-md border text-xs transition-all ${
+                    active
+                      ? `${level.color} ${level.activeBg}`
+                      : "border-zinc-200 dark:border-zinc-700 text-zinc-400 dark:text-zinc-600 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-500"
+                  }`}
+                >
+                  <Icon size={12} />
+                </button>
+              );
+            })}
           </div>
-        </>
-      )}
-    </div>
-  </>
+          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1.5 leading-tight">
+            {levels.find((l) => l.id === currentRule)?.desc ?? (type === "col" ? "Accès par défaut — visible et éditable" : "Filtre visible par défaut")}
+          </p>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -2543,35 +2614,44 @@ function ColVisItem({
   col,
   hiddenColumns,
   lockedHiddenColumns,
-  roleHiddenColumns,
-  roleVisibleHint,
   onToggle,
-  onToggleRole,
-  onToggleHint,
+  devColRules,
+  ownerColRules,
+  editorRole = "dev",
+  onSetRule,
+  previewRole = "dev",
+  isForAllView = false,
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const avatarBtnRef = useRef(null);
-  const {
-    setNodeRef,
-    attributes,
-    listeners,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: col.id });
+  const accessBtnRef = useRef(null);
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({ id: col.id });
   const tc = COLUMN_TYPES[col.type];
   const CIcon = tc?.icon;
   const isHidden = hiddenColumns.has(col.id);
   const isLocked = lockedHiddenColumns.has(col.id);
-  const colRoles = roleHiddenColumns?.get(col.id) || new Set();
 
-  const visibleHint = roleVisibleHint?.get(col.id) ?? false;
-  const selectedRoles = MOCK_ROLES.filter((r) => colRoles.has(r.id));
-  const hasBusinessRoles = selectedRoles.some((r) => !r.isSelf);
+  // Pire niveau d'accès défini pour cette colonne (indicateur sur le bouton Key)
+  const colDevRulesForItem = devColRules?.get(col.id) || {};
+  const colOwnerRulesForItem = ownerColRules?.get(col.id) || {};
+  const allRuleValues = editorRole === "dev"
+    ? Object.values(colDevRulesForItem)
+    : Object.values(colOwnerRulesForItem);
+  const worstAccess = allRuleValues.reduce(
+    (worst, rule) => COL_ACCESS_ORDER.indexOf(rule) > COL_ACCESS_ORDER.indexOf(worst) ? rule : worst,
+    "full"
+  );
+  const hasRestrictions = worstAccess !== "full";
+  const worstLevel = COL_ACCESS_LEVELS.find((l) => l.id === worstAccess);
 
-  useEffect(() => {
-    if (!isHidden && !hasBusinessRoles) setPickerOpen(false);
-  }, [isHidden, hasBusinessRoles]);
+  // Accès effectif pour le rôle en cours de prévisualisation
+  const effectiveAccess = previewRole === "dev" ? "full"
+    : previewRole === "owner" ? (devColRules?.get(col.id)?.owner ?? "full")
+    : mostRestrictiveCol(devColRules?.get(col.id)?.user ?? "full", ownerColRules?.get(col.id)?.user ?? "full");
+  const isUserView = previewRole === "user";
+  // Peut configurer les restrictions : accès "full" soi-même ET on est sur vue par défaut ou vue pour tous
+  const canConfigureAccess = !isUserView && effectiveAccess === "full" && isForAllView;
+  // Doit voir "Demander l'accès" : tout rôle non-dev avec accès "ask"
+  const showRequestAccess = previewRole !== "dev" && effectiveAccess === "ask";
 
   if (isLocked) {
     return (
@@ -2583,9 +2663,7 @@ function ColVisItem({
         className="w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-400 dark:text-zinc-600 cursor-default"
       >
         <span className="flex-shrink-0 w-0.5 h-3.5" />
-        {CIcon && (
-          <CIcon size={13} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-        )}
+        {CIcon && <CIcon size={13} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />}
         <span className="flex-1 text-left opacity-40">{col.name}</span>
         <EyeOff size={12} className="text-zinc-300 dark:text-zinc-600 flex-shrink-0" />
         <Lock size={10} className="text-zinc-300 dark:text-zinc-600 flex-shrink-0" />
@@ -2620,10 +2698,7 @@ function ColVisItem({
             if (rows) {
               const idx = Array.from(rows).indexOf(e.currentTarget);
               if (idx === 0) {
-                e.currentTarget.closest("[class*='overflow-y-auto']")
-                  ?.closest(".rounded-lg")
-                  ?.querySelector("input")
-                  ?.focus();
+                e.currentTarget.closest("[class*='overflow-y-auto']")?.closest(".rounded-lg")?.querySelector("input")?.focus();
               } else {
                 rows[idx - 1]?.focus();
               }
@@ -2641,61 +2716,52 @@ function ColVisItem({
           aria-label={`Déplacer la colonne ${col.name}`}
           className="flex-shrink-0 w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity"
         />
-        {CIcon && (
-          <CIcon size={13} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-        )}
-        <span className={`flex-1 text-left ${isHidden ? "opacity-40" : ""}`}>
-          {col.name}
-        </span>
-        {(isHidden || hasBusinessRoles) ? (
-          <EyeOff size={12} className={`flex-shrink-0 ${isHidden ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400 dark:text-zinc-500"}`} />
-        ) : (
-          <Eye size={12} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-        )}
+        {CIcon && <CIcon size={13} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />}
+        <span className={`flex-1 text-left ${isHidden ? "opacity-40" : ""}`}>{col.name}</span>
 
-        {/* Avatar button — quand la colonne est cachée ou des rôles business sont définis */}
-        {(isHidden || hasBusinessRoles) && <button
-          ref={avatarBtnRef}
-          onClick={(e) => {
-            e.stopPropagation();
-            setPickerOpen((s) => !s);
-          }}
-          title="Restreindre par type de compte"
-          style={{ color: colRoles.size > 0 ? "#3f3f46" : "#a1a1aa" }}
-          className="relative flex items-center justify-center p-0.5 rounded flex-shrink-0 transition-colors"
-        >
-          {hasBusinessRoles ? (
-            <Users size={12} />
-          ) : (
-            <User size={12} />
-          )}
-          {/* Colored dots — tous les rôles sélectionnés si au moins un rôle business */}
-          {hasBusinessRoles && (
-            <span className="absolute -bottom-0.5 flex items-center gap-[2px]">
-              {(selectedRoles.length > 3 ? selectedRoles.slice(0, 2) : selectedRoles).map((r) => (
-                <span key={r.id} className={`w-1.5 h-1.5 rounded-full ${r.dot} ring-1 ring-white dark:ring-zinc-900`} />
-              ))}
-              {selectedRoles.length > 3 && (
-                <span className="text-[7px] font-bold leading-none text-zinc-500 dark:text-zinc-400">+</span>
-              )}
-            </span>
-          )}
-        </button>}
+        {/* Œil : visibilité personnelle (Dev) */}
+        {isHidden
+          ? <EyeOff size={12} className="text-zinc-300 dark:text-zinc-600 flex-shrink-0" />
+          : <Eye size={12} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
+        }
+
+        {/* Owner/User : "Demander l'accès" si accès ask */}
+        {showRequestAccess && (
+          <button
+            onClick={(e) => e.stopPropagation()}
+            className="text-[10px] text-amber-600 dark:text-amber-400 underline hover:no-underline flex-shrink-0 transition-colors"
+          >
+            Demander l'accès
+          </button>
+        )}
+        {/* Dev / Owner avec accès full : bouton Key pour configurer les restrictions */}
+        {canConfigureAccess && (
+          <button
+            ref={accessBtnRef}
+            onClick={(e) => { e.stopPropagation(); setPickerOpen((s) => !s); }}
+            title={hasRestrictions ? `Accès restreint : ${worstLevel?.label}` : "Définir les restrictions d'accès"}
+            className={`flex items-center justify-center w-5 h-5 rounded transition-all flex-shrink-0 ${
+              hasRestrictions
+                ? `${worstLevel?.color}`
+                : "text-zinc-300 dark:text-zinc-700 opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <Key size={11} />
+          </button>
+        )}
       </div>
 
-      {/* Floating role picker */}
-      {pickerOpen && (
-        <RolePickerPopover
-          colId={col.id}
-          colRoles={colRoles}
-          visibleHint={visibleHint}
-          onToggleRole={onToggleRole}
-          onToggleHint={onToggleHint}
-          anchorRef={avatarBtnRef}
-          onClose={() => {
-            setPickerOpen(false);
-            if (isHidden && colRoles.size === 0) onToggle(col.id);
-          }}
+      {/* Access rule popover */}
+      {pickerOpen && canConfigureAccess && (
+        <AccessRulePopover
+          itemId={col.id}
+          type="col"
+          devRules={devColRules}
+          ownerRules={ownerColRules}
+          editorRole={editorRole}
+          onSetRule={onSetRule}
+          anchorRef={accessBtnRef}
+          onClose={() => setPickerOpen(false)}
         />
       )}
     </div>
@@ -2758,17 +2824,20 @@ function ColumnVisibilityDropdown({
   columns,
   hiddenColumns,
   lockedHiddenColumns,
-  roleHiddenColumns,
-  roleVisibleHint,
   onToggle,
-  onToggleRole,
-  onToggleHint,
   onReorder,
+  devColRules,
+  ownerColRules,
+  editorRole = "dev",
+  onSetColRule,
+  previewRole = "dev",
+  isForAllView = false,
 }) {
   const [activeId, setActiveId] = useState(null);
   const [colSearch, setColSearch] = useState("");
   const colSearchRef = useRef(null);
   const colListRef = useRef(null);
+  // columns est déjà filtré (sans les colonnes "none") par le parent
   const filteredColumns = colSearch.trim()
     ? columns.filter((c) =>
         c.name.toLowerCase().includes(colSearch.toLowerCase()),
@@ -2875,11 +2944,13 @@ function ColumnVisibilityDropdown({
                 col={col}
                 hiddenColumns={hiddenColumns}
                 lockedHiddenColumns={lockedHiddenColumns}
-                roleHiddenColumns={roleHiddenColumns}
-                roleVisibleHint={roleVisibleHint}
                 onToggle={onToggle}
-                onToggleRole={onToggleRole}
-                onToggleHint={onToggleHint}
+                devColRules={devColRules}
+                ownerColRules={ownerColRules}
+                editorRole={editorRole}
+                onSetRule={onSetColRule}
+                previewRole={previewRole}
+                isForAllView={isForAllView}
               />
             ))}
           </div>
@@ -3083,33 +3154,122 @@ function TableHeader({
 }
 
 /* ═══════════════════════════════════════════════════════
+   VIEW SWITCHER
+   ═══════════════════════════════════════════════════════ */
+function ViewSwitcher({ roleData, onSelectView, onAddView, onDeleteView, onRenameView }) {
+  const [renamingId, setRenamingId] = useState(null);
+  const [renameVal, setRenameVal] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (renamingId && inputRef.current) inputRef.current.focus();
+  }, [renamingId]);
+
+  const startRename = (view) => {
+    if (view.isDefault) return;
+    setRenamingId(view.id);
+    setRenameVal(view.name);
+  };
+  const commitRename = (id) => {
+    onRenameView(id, renameVal.trim() || "Ma vue");
+    setRenamingId(null);
+  };
+
+  const tabs = roleData.views;
+  const canDelete = (tab) => !tab.isDefault && roleData.views.filter(v => !v.isDefault).length > 0;
+
+  return (
+    <div className="font-sans flex items-center bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto flex-shrink-0">
+      {tabs.map(tab => {
+        const isActive = tab.id === roleData.activeViewId;
+        return (
+          <div
+            key={tab.id}
+            onClick={() => onSelectView(tab.id)}
+            onDoubleClick={() => startRename(tab)}
+            className={`group relative flex items-center gap-1 px-3 py-2 text-xs cursor-pointer border-b-2 whitespace-nowrap transition-colors select-none ${
+              isActive
+                ? "border-zinc-800 dark:border-zinc-100 text-zinc-900 dark:text-zinc-50 font-medium"
+                : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+            }`}
+          >
+            {renamingId === tab.id ? (
+              <input
+                ref={inputRef} value={renameVal}
+                onChange={e => setRenameVal(e.target.value)}
+                onBlur={() => commitRename(tab.id)}
+                onKeyDown={e => { if (e.key === "Enter") commitRename(tab.id); if (e.key === "Escape") setRenamingId(null); }}
+                onClick={e => e.stopPropagation()}
+                className="w-24 bg-transparent border-none outline-none text-xs font-medium"
+              />
+            ) : (
+              <>
+                {tab.isShared && <Users size={10} className="flex-shrink-0 text-emerald-500" />}
+                <span>{tab.name}</span>
+              </>
+            )}
+            {canDelete(tab) && (
+              <button onClick={e => { e.stopPropagation(); onDeleteView(tab.id); }} className="ml-0.5 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity">
+                <X size={10} />
+              </button>
+            )}
+          </div>
+        );
+      })}
+      <button onClick={onAddView} title="Nouvelle vue" className="flex items-center justify-center px-2 py-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors flex-shrink-0">
+        <Plus size={13} />
+      </button>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════ */
 export default function DataToolbar() {
-  const [filters, setFilters] = useState([
-    {
-      id: "f1",
-      columnId: "col_status",
-      operator: "is",
-      value: "En cours",
-      locked: false,
+  // ── Vues par rôle ─────────────────────────────────────────────
+  // Chaque vue : { id, name, isDefault, isForOthers, filters, advancedFilters, hiddenColumns, columnOrder }
+  // columnOrder fait partie de la vue mais n'est PAS poussé vers les autres.
+  const INIT_COL_ORDER = MOCK_COLUMNS.map(c => c.id);
+  const [roleViews, setRoleViews] = useState({
+    dev: {
+      views: [{
+        id: "dev_default", name: "Vue par défaut", isDefault: true, isForOthers: false,
+        filters: [
+          { id: "f1", columnId: "col_status", operator: "is", value: "En cours", locked: false },
+          { id: "f2", columnId: "col_price",  operator: "eq", value: 50,          locked: false },
+        ],
+        advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER],
+        colRules: {},
+      }],
+      activeViewId: "dev_default",
     },
-    {
-      id: "f2",
-      columnId: "col_price",
-      operator: "eq",
-      value: 50,
-      locked: false,
+    owner: {
+      views: [{ id: "owner_default", name: "Vue par défaut", isDefault: true, isForOthers: false, filters: [], advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER], colRules: {} }],
+      activeViewId: "owner_default",
     },
-    {
-      id: "f_locked",
-      columnId: "col_priority",
-      operator: "is",
-      value: "Urgent",
-      locked: true,
+    user: {
+      views: [{ id: "user_default", name: "Vue par défaut", isDefault: true, isForOthers: false, filters: [], advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER], colRules: {} }],
+      activeViewId: "user_default",
     },
-  ]);
-  const [advancedFilters, setAdvancedFilters] = useState([]);
+  });
+  // Feedback de sauvegarde
+  const [saveStatus, setSaveStatus] = useState(null); // null | "saved" | "pushed"
+  const [savePopOpen, setSavePopOpen] = useState(false);
+  const [overwriteConfirmOpen, setOverwriteConfirmOpen] = useState(false);
+  const saveBtnRef = useRef(null);
+  const savePopRef = useRef(null);
+  useEffect(() => {
+    if (!savePopOpen) return;
+    const handler = (e) => {
+      if (
+        savePopRef.current && !savePopRef.current.contains(e.target) &&
+        saveBtnRef.current && !saveBtnRef.current.contains(e.target)
+      ) setSavePopOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [savePopOpen]);
   const [sorts, setSorts] = useState([
     { id: "s1", columnId: "col_date", direction: "desc" },
   ]);
@@ -3118,90 +3278,152 @@ export default function DataToolbar() {
   const sortPickerPop = usePopover();
   const columnVisPop = usePopover();
 
-  const [hiddenColumns, setHiddenColumns] = useState(new Set());
-  const [lockedHiddenColumns] = useState(new Set(["col_id"]));
-  const [roleHiddenColumns, setRoleHiddenColumns] = useState(new Map());
-  const toggleRoleForColumn = (colId, roleId) => {
-    const wasSelf = roleId === "self";
-    const currentRoles = roleHiddenColumns.get(colId) || new Set();
-    const willRemove = currentRoles.has(roleId);
+  // ── Helper : mise à jour de la vue active du rôle ────────────
+  const updateActiveView = (role, updater) => {
+    const activeId = roleViews[role]?.activeViewId;
+    if (!activeId) return;
+    setRoleViews(prev => ({
+      ...prev,
+      [role]: {
+        ...prev[role],
+        views: prev[role].views.map(v =>
+          v.id !== activeId ? v : typeof updater === "function" ? updater(v) : { ...v, ...updater }
+        ),
+      },
+    }));
+  };
 
-    if (wasSelf && willRemove) {
-      // Rendre la colonne visible pour moi, mais garder les rôles business
-      setHiddenColumns((prev) => {
-        const next = new Set(prev);
-        next.delete(colId);
-        return next;
-      });
-      setRoleHiddenColumns((prev) => {
+  // ── Rôle de prévisualisation ──────────────────────────────────
+  const [previewRole, setPreviewRole] = useState("dev");
+
+  // ── Règles d'accès colonnes ───────────────────────────────────
+  // Committed : dérivées des vues partagées sauvegardées — ne s'appliquent qu'après un "Vue pour tous"
+  const devColRules = useMemo(() => {
+    const colRulesObjToMap = (obj) => {
+      const m = new Map();
+      for (const [targetRole, colMap] of Object.entries(obj || {})) {
+        for (const [colId, level] of Object.entries(colMap || {})) {
+          m.set(colId, { ...(m.get(colId) || {}), [targetRole]: level });
+        }
+      }
+      return m;
+    };
+    const sharedView = roleViews.dev.views.find(v => v.isShared);
+    return colRulesObjToMap(sharedView?.colRules);
+  }, [roleViews.dev]);
+
+  const ownerColRules = useMemo(() => {
+    const sharedView = roleViews.owner.views.find(v => v.isShared);
+    const m = new Map();
+    for (const [colId, level] of Object.entries(sharedView?.colRules?.user || {})) {
+      m.set(colId, { user: level });
+    }
+    return m;
+  }, [roleViews.owner]);
+
+  // setColRule : écrit dans la vue active (draft), pas dans l'état global
+  const setColRule = (colId, targetRole, level) => {
+    updateActiveView(previewRole, v => {
+      const rules = { ...(v.colRules || {}) };
+      const targetRules = { ...(rules[targetRole] || {}) };
+      if (level === "full") delete targetRules[colId];
+      else targetRules[colId] = level;
+      return { ...v, colRules: { ...rules, [targetRole]: targetRules } };
+    });
+  };
+
+  // ── Règles d'accès filtres ────────────────────────────────────
+  // Map<filterId, { owner?: FilterAccess, user?: FilterAccess }>
+  const [devFilterRules, setDevFilterRules] = useState(new Map());
+  // Map<filterId, { user?: FilterAccess }>
+  const [ownerFilterRules, setOwnerFilterRules] = useState(new Map());
+
+  const setFilterRule = (filterId, targetRole, level) => {
+    if (previewRole === "dev") {
+      setDevFilterRules((prev) => {
         const next = new Map(prev);
-        const roles = new Set(next.get(colId) || []);
-        roles.delete("self");
-        if (roles.size === 0) next.delete(colId);
-        else next.set(colId, roles);
+        const entry = { ...(prev.get(filterId) || {}) };
+        if (level === "visible") { delete entry[targetRole]; }
+        else { entry[targetRole] = level; }
+        if (Object.keys(entry).length === 0) next.delete(filterId);
+        else next.set(filterId, entry);
         return next;
       });
-      return;
+    } else {
+      setOwnerFilterRules((prev) => {
+        const next = new Map(prev);
+        const entry = { ...(prev.get(filterId) || {}) };
+        if (level === "visible") { delete entry[targetRole]; }
+        else { entry[targetRole] = level; }
+        if (Object.keys(entry).length === 0) next.delete(filterId);
+        else next.set(filterId, entry);
+        return next;
+      });
     }
+  };
 
-    if (wasSelf && !willRemove) {
-      // Cocher "Moi" → cacher la colonne pour moi
-      setHiddenColumns((prev) => new Set([...prev, colId]));
+  // ── Accès effectif selon le rôle de prévisualisation ─────────
+  const getEffectiveColAccess = useCallback((colId) => {
+    if (previewRole === "dev") return "full";
+    if (previewRole === "owner") return devColRules.get(colId)?.owner ?? "full";
+    // user : plus restrictif entre Dev et Owner
+    const d = devColRules.get(colId)?.user ?? "full";
+    const o = ownerColRules.get(colId)?.user ?? "full";
+    return mostRestrictiveCol(d, o);
+  }, [previewRole, devColRules, ownerColRules]);
+
+  const getEffectiveFilterAccess = useCallback((filterId) => {
+    if (previewRole === "dev") return "visible";
+    // Dev impose → défaut "silent" (actif mais invisible) ; Owner impose → défaut "visible"
+    if (previewRole === "owner") return devFilterRules.get(filterId)?.owner ?? "silent";
+    const d = devFilterRules.get(filterId)?.user ?? "silent";
+    const o = ownerFilterRules.get(filterId)?.user ?? "visible";
+    return mostRestrictiveFilter(d, o);
+  }, [previewRole, devFilterRules, ownerFilterRules]);
+
+  // ── Valeurs dérivées de la vue active ────────────────────────
+  const activeView = roleViews[previewRole]?.views.find(v => v.id === roleViews[previewRole].activeViewId)
+    ?? roleViews[previewRole]?.views[0];
+
+  const filters         = activeView?.filters ?? [];
+  const advancedFilters = activeView?.advancedFilters ?? [];
+  const hiddenColumns   = activeView?.hiddenColumns ?? new Set();
+  const columnOrder     = activeView?.columnOrder ?? MOCK_COLUMNS.map(c => c.id);
+
+  // Draft : rules de la vue active en cours d'édition (pour l'affichage du panneau colonnes)
+  const draftColRulesMap = useMemo(() => {
+    const m = new Map();
+    for (const [targetRole, colMap] of Object.entries(activeView?.colRules || {})) {
+      for (const [colId, level] of Object.entries(colMap || {})) {
+        m.set(colId, { ...(m.get(colId) || {}), [targetRole]: level });
+      }
     }
+    return m;
+  }, [activeView]);
 
-    setRoleHiddenColumns((prev) => {
-      const next = new Map(prev);
-      const roles = new Set(next.get(colId) || []);
-      roles.has(roleId) ? roles.delete(roleId) : roles.add(roleId);
-      if (roles.size === 0) next.delete(colId);
-      else next.set(colId, roles);
-      return next;
-    });
-  };
-  const [roleVisibleHint, setRoleVisibleHint] = useState(new Map());
-  const toggleVisibleHint = (colId) => {
-    setRoleVisibleHint((prev) => {
-      const next = new Map(prev);
-      next.set(colId, !next.get(colId));
-      return next;
-    });
-  };
-  const [columnOrder, setColumnOrder] = useState(MOCK_COLUMNS.map((c) => c.id));
+  const [lockedHiddenColumns] = useState(new Set(["col_id"]));
+
   const reorderColumns = (fromId, toId) => {
-    setColumnOrder((prev) => {
-      const arr = [...prev];
+    updateActiveView(previewRole, v => {
+      const arr = [...v.columnOrder];
       const fromIdx = arr.indexOf(fromId);
-      const toIdx = arr.indexOf(toId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
+      const toIdx   = arr.indexOf(toId);
+      if (fromIdx === -1 || toIdx === -1) return v;
       arr.splice(fromIdx, 1);
       arr.splice(toIdx, 0, fromId);
-      return arr;
+      return { ...v, columnOrder: arr };
     });
   };
   const orderedColumns = columnOrder
     .map((id) => MOCK_COLUMNS.find((c) => c.id === id))
     .filter(Boolean);
+
   const toggleColumnVisibility = (colId, forceHide) => {
-    const willHide = forceHide !== undefined ? forceHide : !hiddenColumns.has(colId);
-    setHiddenColumns((prev) => {
-      const next = new Set(prev);
+    updateActiveView(previewRole, (v) => {
+      const willHide = forceHide !== undefined ? forceHide : !v.hiddenColumns.has(colId);
+      const next = new Set(v.hiddenColumns);
       willHide ? next.add(colId) : next.delete(colId);
-      return next;
-    });
-    setRoleHiddenColumns((prev) => {
-      const next = new Map(prev);
-      if (willHide) {
-        next.set(colId, new Set(["self"]));
-      } else {
-        next.delete(colId);
-      }
-      return next;
-    });
-    setRoleVisibleHint((prev) => {
-      const next = new Map(prev);
-      if (willHide) next.set(colId, true);
-      else next.delete(colId);
-      return next;
+      return { ...v, hiddenColumns: next };
     });
   };
 
@@ -3231,16 +3453,10 @@ export default function DataToolbar() {
   const hasUserFilters = userFilters.length > 0 || advancedFilters.length > 0;
 
   const addSimpleFilter = ({ id, columnId, operator, value }) => {
-    setFilters((prev) => [
-      ...prev,
-      {
-        id: id || `f_${Date.now()}`,
-        columnId,
-        operator,
-        value,
-        locked: false,
-      },
-    ]);
+    updateActiveView(previewRole, (v) => ({
+      ...v,
+      filters: [...v.filters, { id: id || `f_${Date.now()}`, columnId, operator, value, locked: false }],
+    }));
   };
 
   const handleAdvancedClick = () => {
@@ -3252,18 +3468,12 @@ export default function DataToolbar() {
   };
 
   const handleAdvValidate = ({ logic, conditions }) => {
-    if (editingAdvFilter) {
-      setAdvancedFilters((prev) =>
-        prev.map((f) =>
-          f.id === editingAdvFilter.id ? { ...f, logic, conditions } : f,
-        ),
-      );
-    } else {
-      setAdvancedFilters((prev) => [
-        ...prev,
-        { id: `af_${Date.now()}`, logic, conditions, locked: false },
-      ]);
-    }
+    updateActiveView(previewRole, (v) => ({
+      ...v,
+      advancedFilters: editingAdvFilter
+        ? v.advancedFilters.map((f) => f.id === editingAdvFilter.id ? { ...f, logic, conditions } : f)
+        : [...v.advancedFilters, { id: `af_${Date.now()}`, logic, conditions, locked: false }],
+    }));
     setAdvBuilderOpen(false);
     setEditingAdvFilter(null);
   };
@@ -3279,38 +3489,16 @@ export default function DataToolbar() {
   };
 
   const removeAdvancedFilter = (id) =>
-    setAdvancedFilters((prev) => prev.filter((f) => f.id !== id || f.locked));
+    updateActiveView(previewRole, (v) => ({
+      ...v,
+      advancedFilters: v.advancedFilters.filter((f) => f.id !== id || f.locked),
+    }));
 
   const toggleAdvancedFilterLock = (id) =>
-    setAdvancedFilters((prev) =>
-      prev.map((f) => {
-        if (f.id !== id) return f;
-        const willLock = !f.locked;
-        return {
-          ...f,
-          locked: willLock,
-          roles: willLock ? new Set(["self"]) : new Set(),
-          visibleHint: willLock,
-        };
-      }),
-    );
-
-  const toggleRoleForFilter = (filterId, roleId) =>
-    setAdvancedFilters((prev) =>
-      prev.map((f) => {
-        if (f.id !== filterId) return f;
-        const roles = new Set(f.roles || []);
-        roles.has(roleId) ? roles.delete(roleId) : roles.add(roleId);
-        return { ...f, roles };
-      }),
-    );
-
-  const toggleHintForFilter = (filterId) =>
-    setAdvancedFilters((prev) =>
-      prev.map((f) =>
-        f.id === filterId ? { ...f, visibleHint: !f.visibleHint } : f,
-      ),
-    );
+    updateActiveView(previewRole, (v) => ({
+      ...v,
+      advancedFilters: v.advancedFilters.map((f) => f.id !== id ? f : { ...f, locked: !f.locked }),
+    }));
 
   const createSort = (columnId) => {
     const mock = MOCK_VALUES[columnId];
@@ -3363,12 +3551,36 @@ export default function DataToolbar() {
   };
 
   const updateFilter = useCallback(
-    (u) => setFilters((p) => p.map((f) => (f.id === u.id ? u : f))),
-    [],
+    (u) => {
+      const activeId = roleViews[previewRole]?.activeViewId;
+      if (!activeId) return;
+      setRoleViews(prev => ({
+        ...prev,
+        [previewRole]: {
+          ...prev[previewRole],
+          views: prev[previewRole].views.map(v =>
+            v.id !== activeId ? v : { ...v, filters: v.filters.map(f => f.id === u.id ? u : f) }
+          ),
+        },
+      }));
+    },
+    [previewRole, roleViews],
   );
   const removeFilter = useCallback(
-    (id) => setFilters((p) => p.filter((f) => f.id !== id)),
-    [],
+    (id) => {
+      const activeId = roleViews[previewRole]?.activeViewId;
+      if (!activeId) return;
+      setRoleViews(prev => ({
+        ...prev,
+        [previewRole]: {
+          ...prev[previewRole],
+          views: prev[previewRole].views.map(v =>
+            v.id !== activeId ? v : { ...v, filters: v.filters.filter(f => f.id !== id) }
+          ),
+        },
+      }));
+    },
+    [previewRole, roleViews],
   );
   const updateSort = useCallback(
     (u) => setSorts((p) => p.map((s) => (s.id === u.id ? u : s))),
@@ -3381,6 +3593,188 @@ export default function DataToolbar() {
 
   const hasSorts = sorts.length > 0;
 
+  // ── Sauvegarde de vue ─────────────────────────────────────────
+  const saveForSelf = () => {
+    setSaveStatus("saved");
+    setSavePopOpen(false);
+    setTimeout(() => setSaveStatus(null), 2000);
+  };
+
+  // "Pour tous" : met à jour la vue par défaut des rôles cibles
+  const executeSaveForOthers = (overwriteId = null) => {
+    const src = activeView;
+    const targetRoles = previewRole === "dev" ? ["owner", "user"] : previewRole === "owner" ? ["user"] : [];
+    if (targetRoles.length === 0) return;
+
+    // isColAccessible lit depuis le draft (src.colRules) — ce qui va être appliqué
+    const isColAccessible = (colId, targetRole) => {
+      if (previewRole === "dev") {
+        const level = src.colRules?.[targetRole]?.[colId] ?? "full";
+        return level !== "none" && level !== "ask";
+      } else {
+        const devLevel = devColRules.get(colId)?.user ?? "full"; // committed dev
+        const ownerDraft = src.colRules?.user?.[colId] ?? "full"; // draft owner
+        const access = mostRestrictiveCol(devLevel, ownerDraft);
+        return access !== "none" && access !== "ask";
+      }
+    };
+
+    const sharedViewData = {
+      isDefault: false, isShared: true,
+      filters: [...src.filters], advancedFilters: [...src.advancedFilters],
+      hiddenColumns: new Set(src.hiddenColumns), columnOrder: [...src.columnOrder],
+      colRules: src.colRules || {},   // ← inclus les règles d'accès dans la vue sauvegardée
+    };
+
+    setRoleViews(prev => {
+      const next = { ...prev };
+
+      // Créer ou écraser la vue pour tous dans la liste du rôle actuel
+      if (overwriteId) {
+        next[previewRole] = {
+          views: prev[previewRole].views.map(v =>
+            v.id === overwriteId ? { ...v, ...sharedViewData } : v
+          ),
+          activeViewId: overwriteId,
+        };
+      } else {
+        const newId = `shared_${previewRole}_${Date.now()}`;
+        next[previewRole] = {
+          views: [...prev[previewRole].views, { id: newId, name: "Nouvelle vue", ...sharedViewData }],
+          activeViewId: newId,
+        };
+      }
+
+      // Mettre à jour la vue par défaut de chaque rôle cible
+      for (const targetRole of targetRoles) {
+        next[targetRole] = {
+          ...next[targetRole],
+          views: next[targetRole].views.map(v => {
+            if (!v.isDefault) return v;
+            return {
+              ...v,
+              filters: src.filters.filter(f => isColAccessible(f.columnId, targetRole)),
+              advancedFilters: src.advancedFilters.filter(af => af.conditions.every(c => isColAccessible(c.columnId, targetRole))),
+              hiddenColumns: new Set([...src.hiddenColumns].filter(colId => isColAccessible(colId, targetRole))),
+            };
+          }),
+        };
+      }
+
+      return next;
+    });
+
+    setSaveStatus("pushed");
+    setSavePopOpen(false);
+    setOverwriteConfirmOpen(false);
+    setTimeout(() => setSaveStatus(null), 2000);
+  };
+
+  const handleSaveForOthers = () => {
+    const existingShared = roleViews[previewRole].views.find(v => v.isShared);
+    if (existingShared) {
+      setOverwriteConfirmOpen(true);
+    } else {
+      executeSaveForOthers();
+    }
+  };
+
+  const canSaveForOthers = previewRole === "dev" || previewRole === "owner";
+
+  // Vue par défaut ou vue pour tous : accès à la clé de restriction de colonnes
+  const isForAllView = !!(activeView?.isDefault || activeView?.isShared);
+
+  // ── Gestion des vues ──────────────────────────────────────────
+  const addPersonalView = () => {
+    const id = `personal_${previewRole}_${Date.now()}`;
+    const src = activeView;
+    setRoleViews(prev => ({
+      ...prev,
+      [previewRole]: {
+        views: [...prev[previewRole].views, {
+          id, name: "Nouvelle vue", isDefault: false, isForOthers: false,
+          filters: [...src.filters], advancedFilters: [...src.advancedFilters],
+          hiddenColumns: new Set(src.hiddenColumns), columnOrder: [...src.columnOrder],
+        }],
+        activeViewId: id,
+      },
+    }));
+  };
+
+  const deletePersonalView = (viewId) => {
+    setRoleViews(prev => {
+      const rd = prev[previewRole];
+      const remaining = rd.views.filter(v => v.id !== viewId);
+      const newActiveId = rd.activeViewId === viewId
+        ? (remaining.find(v => v.isDefault)?.id ?? remaining[0]?.id ?? null)
+        : rd.activeViewId;
+      return { ...prev, [previewRole]: { views: remaining, activeViewId: newActiveId } };
+    });
+  };
+
+  const renameView = (viewId, name) => {
+    setRoleViews(prev => ({
+      ...prev,
+      [previewRole]: {
+        ...prev[previewRole],
+        views: prev[previewRole].views.map(v => v.id === viewId ? { ...v, name } : v),
+      },
+    }));
+  };
+
+  // Filtres propres au rôle (non verrouillés) → toujours visibles
+  const visibleSimpleFilters = userFilters;
+
+  // Filtres verrouillés (imposés par un rôle supérieur) : visibilité contrôlée par les règles d'accès
+  // "visible" = filtre complet affiché ; "column_only" = colonne seule, valeur masquée ; "silent/hidden" = non affiché
+  const visibleLockedFilters = previewRole === "dev"
+    ? lockedFilters
+    : lockedFilters.filter((f) => {
+        const a = getEffectiveFilterAccess(f.id);
+        return a === "visible" || a === "column_only";
+      });
+
+  // Filtres avancés : non verrouillés toujours visibles, verrouillés filtrés par règle
+  const visibleAdvancedFilters = previewRole === "dev"
+    ? advancedFilters
+    : advancedFilters.filter((af) => {
+        if (!af.locked) return true;
+        const a = getEffectiveFilterAccess(af.id);
+        return a === "visible" || a === "column_only";
+      });
+
+  // Seul dev/owner peut configurer les accès ; user ne restreint personne
+  const canEditAccess = previewRole !== "user";
+
+  // Colonnes effectivement masquées selon le rôle de prévisualisation
+  // Pour dev : celles masquées dans la vue active
+  // Pour owner/user : union de la vue active ET des restrictions d'accès
+  const effectiveHiddenCols = previewRole === "dev"
+    ? hiddenColumns
+    : new Set([
+        ...hiddenColumns,
+        ...orderedColumns.filter((c) => {
+          const a = getEffectiveColAccess(c.id);
+          return a === "none" || a === "ask";
+        }).map((c) => c.id),
+      ]);
+
+  // Colonnes visibles dans le panel colonnes : exclut "none" (invisible totale)
+  const accessibleColsForPanel = previewRole === "dev"
+    ? orderedColumns
+    : orderedColumns.filter((c) => getEffectiveColAccess(c.id) !== "none");
+
+  // Colonnes sélectionnables dans les pickers (tri, filtre) : exclut none et ask (non visibles)
+  const selectableColumns = previewRole === "dev"
+    ? MOCK_COLUMNS
+    : MOCK_COLUMNS.filter((c) => {
+        const a = getEffectiveColAccess(c.id);
+        return a !== "none" && a !== "ask";
+      });
+
+  // editorRole pour les composants (dev peut tout, owner peut gérer user, user = lecture)
+  const editorRole = previewRole === "user" ? "owner" : previewRole;
+
   return (
     <div className="flex flex-col w-full overflow-hidden">
       {/* Screen-reader live region for filter/sort announcements */}
@@ -3388,96 +3782,215 @@ export default function DataToolbar() {
         {filters.length > 0 && `${filters.length} filtre${filters.length > 1 ? "s" : ""} actif${filters.length > 1 ? "s" : ""}`}
         {sorts.length > 0 && `, ${sorts.length} tri${sorts.length > 1 ? "s" : ""} actif${sorts.length > 1 ? "s" : ""}`}
       </div>
-      <div className="font-sans flex flex-col p-3 gap-2">
-        {/* Row 1: Filter + Colonnes + Dark mode */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Filter section */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {!hasUserFilters ? (
-              <>
-                <button
-                  ref={filterDropdownPop.triggerRef}
-                  onClick={filterDropdownPop.toggle}
-                  aria-expanded={filterDropdownPop.isOpen}
-                  aria-haspopup="listbox"
-                  className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-500 transition-all hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                >
-                  <Filter size={13} />
-                  Filtrer
-                </button>
-                {lockedFilters.map((f) => (
-                  <FilterChip
-                    key={f.id}
-                    filter={f}
-                    columns={MOCK_COLUMNS}
-                    onUpdate={updateFilter}
-                    onRemove={() => {}}
-                  />
-                ))}
-              </>
-            ) : (
-              <>
-                <span className="text-zinc-500 mr-0.5">
-                  <Filter size={13} />
-                </span>
-                {lockedFilters.map((f) => (
-                  <FilterChip
-                    key={f.id}
-                    filter={f}
-                    columns={MOCK_COLUMNS}
-                    onUpdate={updateFilter}
-                    onRemove={() => {}}
-                  />
-                ))}
-                {userFilters.map((f) => (
-                  <FilterChip
-                    key={f.id}
-                    filter={f}
-                    columns={MOCK_COLUMNS}
-                    onUpdate={updateFilter}
-                    onRemove={() => removeFilter(f.id)}
-                  />
-                ))}
-                {advancedFilters.map((af) => (
-                  <AdvancedFilterChip
-                    key={af.id}
-                    filter={af}
-                    columns={MOCK_COLUMNS}
-                    onEdit={() => editAdvancedFilter(af)}
-                    onRemove={() => removeAdvancedFilter(af.id)}
-                    onToggleLock={() => toggleAdvancedFilterLock(af.id)}
-                    onToggleRole={toggleRoleForFilter}
-                    onToggleHint={toggleHintForFilter}
-                  />
-                ))}
-                <button
-                  ref={filterDropdownPop.triggerRef}
-                  onClick={filterDropdownPop.toggle}
-                  aria-expanded={filterDropdownPop.isOpen}
-                  aria-haspopup="listbox"
-                  aria-label="Ajouter un filtre"
-                  className="inline-flex items-center justify-center rounded-md border border-dashed border-zinc-400 w-6 h-6 bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 transition-all dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
-                >
-                  <Plus size={13} />
-                </button>
-              </>
-            )}
+
+      {/* ── Switcher de rôle — style Linear/Notion ── */}
+      <div className="font-sans flex items-center gap-2 px-3 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-600 mr-1">
+          Vue
+        </span>
+        <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800">
+          {PREVIEW_ROLES.map((role) => (
+            <button
+              key={role.id}
+              onClick={() => setPreviewRole(role.id)}
+              title={role.description}
+              className={`relative px-3 py-1 text-xs rounded-md font-medium transition-all ${
+                previewRole === role.id
+                  ? "bg-white dark:bg-zinc-700 text-zinc-800 dark:text-zinc-100 shadow-sm"
+                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+              }`}
+            >
+              {role.label}
+            </button>
+          ))}
+        </div>
+        {previewRole !== "dev" && (
+          <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/25 border border-amber-200 dark:border-amber-700/50 rounded-full px-2.5 py-0.5">
+            Simulation · vue {previewRole === "owner" ? "Owner" : "User"}
+          </span>
+        )}
+      </div>
+
+      {/* ── Switcher de vues ── */}
+      <ViewSwitcher
+        roleData={roleViews[previewRole]}
+        onSelectView={(viewId) =>
+          setRoleViews(prev => ({ ...prev, [previewRole]: { ...prev[previewRole], activeViewId: viewId } }))
+        }
+        onAddView={addPersonalView}
+        onDeleteView={deletePersonalView}
+        onRenameView={renameView}
+      />
+
+      <div className="font-sans flex flex-col p-3 gap-2.5">
+
+        {/* ── Bloc Vue unifié (filtres + colonnes) ── */}
+        <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+
+          {/* En-tête du bloc Vue */}
+          <div className="flex items-center justify-between px-3 py-1.5 border-b bg-zinc-50 dark:bg-zinc-900/80 border-zinc-200 dark:border-zinc-700">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Vue</span>
+            {/* Bouton Enregistrer */}
+            <div className="relative flex items-center gap-2">
+              <button
+                onClick={() => document.documentElement.classList.toggle("dark")}
+                aria-label="Basculer mode clair/sombre"
+                className="inline-flex items-center justify-center rounded-md border border-zinc-200 bg-white w-6 h-6 text-zinc-400 hover:bg-zinc-50 hover:text-zinc-600 transition-all dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500 dark:hover:bg-zinc-700"
+              >
+                <Sun size={12} className="block dark:hidden" />
+                <Moon size={12} className="hidden dark:block" />
+              </button>
+              <button
+                ref={saveBtnRef}
+                onClick={() => setSavePopOpen((v) => !v)}
+                className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-all ${
+                  saveStatus === "saved"
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                    : saveStatus === "pushed"
+                    ? "border-emerald-400 bg-emerald-100 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200"
+                    : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                }`}
+              >
+                <Save size={11} />
+                {saveStatus === "saved" ? "Sauvegardé ✓" : saveStatus === "pushed" ? "Partagée ✓" : "Enregistrer"}
+              </button>
+              {savePopOpen && (
+                <div ref={savePopRef} className="absolute right-0 top-full mt-1 z-50 min-w-[210px] rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900 py-1">
+                  {/* "Enregistrer" (màj) — uniquement si pas sur la vue par défaut */}
+                  {!activeView?.isDefault && (
+                    <button
+                      onClick={saveForSelf}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
+                    >
+                      <Save size={11} className="text-zinc-400" />
+                      Enregistrer
+                    </button>
+                  )}
+                  {/* "Enregistrer une nouvelle vue" — toujours disponible */}
+                  <button
+                    onClick={() => { addPersonalView(); setSavePopOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
+                  >
+                    <Plus size={11} className="text-zinc-400" />
+                    Enregistrer une nouvelle vue
+                  </button>
+                  {/* "Pour tous" — dev/owner uniquement */}
+                  {canSaveForOthers && !overwriteConfirmOpen && (
+                    <button
+                      onClick={handleSaveForOthers}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
+                    >
+                      <Check size={11} className="text-emerald-500" />
+                      Vue pour tous
+                    </button>
+                  )}
+                  {/* Confirmation écrasement vue pour tous existante */}
+                  {overwriteConfirmOpen && (() => {
+                    const existingShared = roleViews[previewRole].views.find(v => v.isShared);
+                    return (
+                      <div className="px-3 py-2 border-t border-zinc-100 dark:border-zinc-800">
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2">
+                          Une vue pour tous existe déjà. Écraser ?
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => executeSaveForOthers(existingShared?.id)}
+                            className="flex-1 text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white rounded-md py-1 transition-colors"
+                          >
+                            Écraser
+                          </button>
+                          <button
+                            onClick={() => setOverwriteConfirmOpen(false)}
+                            className="flex-1 text-[11px] border border-zinc-200 dark:border-zinc-700 rounded-md py-1 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700" />
+          {/* Ligne Filtres */}
+          <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 min-h-[40px] bg-white dark:bg-zinc-900">
+            <Filter size={12} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
+            {visibleLockedFilters.map((f) => (
+              <FilterChip
+                key={f.id} filter={f} columns={MOCK_COLUMNS} onUpdate={updateFilter} onRemove={() => {}}
+                canEditAccess={canEditAccess} devFilterRules={devFilterRules} ownerFilterRules={ownerFilterRules}
+                editorRole={editorRole} onSetFilterRule={canEditAccess ? setFilterRule : undefined}
+                onToggleLock={canEditAccess ? () => updateFilter({ ...f, locked: !f.locked }) : undefined}
+                lockedDisplay={getEffectiveFilterAccess(f.id)}
+              />
+            ))}
+            {visibleSimpleFilters.map((f) => (
+              <FilterChip
+                key={f.id} filter={f} columns={MOCK_COLUMNS} onUpdate={updateFilter}
+                onRemove={() => removeFilter(f.id)}
+                canEditAccess={canEditAccess} devFilterRules={devFilterRules} ownerFilterRules={ownerFilterRules}
+                editorRole={editorRole} onSetFilterRule={setFilterRule}
+                onToggleLock={canEditAccess ? () => updateFilter({ ...f, locked: !f.locked }) : undefined}
+              />
+            ))}
+            {visibleAdvancedFilters.map((af) => (
+              <AdvancedFilterChip
+                key={af.id} filter={af} columns={MOCK_COLUMNS}
+                onEdit={() => editAdvancedFilter(af)}
+                onRemove={() => removeAdvancedFilter(af.id)}
+                onToggleLock={() => toggleAdvancedFilterLock(af.id)}
+                devFilterRules={canEditAccess ? devFilterRules : undefined}
+                ownerFilterRules={canEditAccess ? ownerFilterRules : undefined}
+                editorRole={editorRole} onSetFilterRule={canEditAccess ? setFilterRule : undefined}
+              />
+            ))}
+            <button
+              ref={filterDropdownPop.triggerRef}
+              onClick={filterDropdownPop.toggle}
+              aria-expanded={filterDropdownPop.isOpen}
+              aria-haspopup="listbox"
+              className={`inline-flex items-center gap-1.5 rounded-md border transition-all text-xs font-medium ${
+                !hasUserFilters
+                  ? "border-zinc-200 bg-white px-2.5 py-1 text-zinc-500 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                  : "border-dashed border-zinc-400 w-6 h-6 justify-center bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
+              }`}
+            >
+              {!hasUserFilters ? <><Filter size={12} />Filtrer</> : <Plus size={12} />}
+            </button>
+          </div>
 
-          {/* Dark mode toggle */}
-          <button
-            onClick={() => document.documentElement.classList.toggle("dark")}
-            aria-label="Basculer mode clair/sombre"
-            className="inline-flex items-center justify-center rounded-md border border-zinc-200 bg-white w-7 h-7 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700 transition-all dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          >
-            <Sun size={14} className="block dark:hidden" />
-            <Moon size={14} className="hidden dark:block" />
-          </button>
+          {/* Séparateur interne */}
+          <div className="border-t border-zinc-100 dark:border-zinc-800" />
+
+          {/* Ligne Colonnes */}
+          {(() => {
+            const totalCount = accessibleColsForPanel.length;
+            const hiddenKnown = accessibleColsForPanel.filter(c =>
+              effectiveHiddenCols.has(c.id) || lockedHiddenColumns.has(c.id)
+            ).length;
+            const visibleCount = totalCount - hiddenKnown;
+            return (
+              <div className="flex flex-wrap items-center gap-2 px-3 py-2 bg-white dark:bg-zinc-900">
+                <Columns2 size={12} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
+                <button
+                  ref={columnVisPop.triggerRef}
+                  onClick={columnVisPop.toggle}
+                  aria-expanded={columnVisPop.isOpen}
+                  aria-haspopup="dialog"
+                  className="text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+                >
+                  {hiddenKnown > 0
+                    ? `${visibleCount} / ${totalCount} colonnes visibles`
+                    : "Toutes les colonnes visibles"}
+                </button>
+              </div>
+            );
+          })()}
         </div>
 
-        {/* Row 2: Sort */}
+        {/* ── Tris ── */}
         <div className="flex flex-wrap items-center gap-1.5">
           {!hasSorts ? (
             <button
@@ -3492,17 +4005,11 @@ export default function DataToolbar() {
             </button>
           ) : (
             <>
-              <span className="text-zinc-500 mr-0.5">
+              <span className="text-zinc-500 dark:text-zinc-400 mr-0.5">
                 <ArrowUpDown size={13} />
               </span>
               {sorts.map((s) => (
-                <SortChip
-                  key={s.id}
-                  sort={s}
-                  columns={MOCK_COLUMNS}
-                  onUpdate={updateSort}
-                  onRemove={() => removeSort(s.id)}
-                />
+                <SortChip key={s.id} sort={s} columns={MOCK_COLUMNS} onUpdate={updateSort} onRemove={() => removeSort(s.id)} />
               ))}
               <button
                 ref={sortPickerPop.triggerRef}
@@ -3520,7 +4027,7 @@ export default function DataToolbar() {
             isOpen={sortPickerPop.isOpen}
             coords={sortPickerPop.coords}
             popoverRef={sortPickerPop.popoverRef}
-            columns={MOCK_COLUMNS}
+            columns={selectableColumns}
             usedColumnIds={usedSortColIds}
             onSelect={addSort}
           />
@@ -3532,73 +4039,45 @@ export default function DataToolbar() {
         isOpen={filterDropdownPop.isOpen}
         coords={filterDropdownPop.coords}
         popoverRef={filterDropdownPop.popoverRef}
-        columns={MOCK_COLUMNS}
+        columns={selectableColumns}
         usedColumnIds={usedFilterColIds}
         onAddSimple={addSimpleFilter}
         onUpdate={updateFilter}
         onAdvancedClick={handleAdvancedClick}
         onClose={filterDropdownPop.close}
       />
-
       <AdvancedFilterBuilder
         open={advBuilderOpen}
         coords={advBuilderCoords}
         containerRef={advBuilderRef}
-        columns={MOCK_COLUMNS}
+        columns={selectableColumns}
         editingFilter={editingAdvFilter}
         onValidate={handleAdvValidate}
-        onClose={() => {
-          setAdvBuilderOpen(false);
-          setEditingAdvFilter(null);
-        }}
+        onClose={() => { setAdvBuilderOpen(false); setEditingAdvFilter(null); }}
       />
-
       <ColumnVisibilityDropdown
         isOpen={columnVisPop.isOpen}
         coords={columnVisPop.coords}
         popoverRef={columnVisPop.popoverRef}
-        columns={orderedColumns}
-        hiddenColumns={hiddenColumns}
+        columns={accessibleColsForPanel}
+        hiddenColumns={effectiveHiddenCols}
         lockedHiddenColumns={lockedHiddenColumns}
-        roleHiddenColumns={roleHiddenColumns}
-        roleVisibleHint={roleVisibleHint}
         onToggle={toggleColumnVisibility}
-        onToggleRole={toggleRoleForColumn}
-        onToggleHint={toggleVisibleHint}
         onReorder={reorderColumns}
+        devColRules={previewRole === "dev" ? draftColRulesMap : devColRules}
+        ownerColRules={previewRole === "owner" ? draftColRulesMap : ownerColRules}
+        editorRole={editorRole}
+        onSetColRule={setColRule}
+        previewRole={previewRole}
+        isForAllView={isForAllView}
       />
-
-      <div className="flex justify-end px-3 py-1.5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900">
-        <button
-          ref={columnVisPop.triggerRef}
-          onClick={columnVisPop.toggle}
-          aria-expanded={columnVisPop.isOpen}
-          aria-haspopup="dialog"
-          className={`inline-flex items-center gap-1.5 rounded-md border bg-white px-2.5 py-1 text-xs font-medium transition-all dark:bg-zinc-900 ${
-            hiddenColumns.size + lockedHiddenColumns.size > 0
-              ? "border-zinc-400 text-zinc-600 hover:border-zinc-500 dark:border-zinc-500 dark:text-zinc-300"
-              : "border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          }`}
-        >
-          <Columns2 size={12} />
-          Colonnes
-          {hiddenColumns.size + lockedHiddenColumns.size > 0 && (
-            <span className="text-zinc-400 dark:text-zinc-500">
-              {MOCK_COLUMNS.length -
-                hiddenColumns.size -
-                lockedHiddenColumns.size}
-              /{MOCK_COLUMNS.length}
-            </span>
-          )}
-        </button>
-      </div>
 
       <TableHeader
         columns={orderedColumns}
         sorts={sorts}
         filters={filters}
         onSortToggle={handleHeaderSortToggle}
-        hiddenColumns={hiddenColumns}
+        hiddenColumns={effectiveHiddenCols}
         lockedHiddenColumns={lockedHiddenColumns}
         onReorder={reorderColumns}
       />
