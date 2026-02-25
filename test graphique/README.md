@@ -95,8 +95,7 @@ Chaque rôle dispose de son propre espace de vues indépendant.
 ### Filtres simples
 
 - Un filtre simple est lié à **une seule colonne** avec un opérateur et une valeur.
-- On ne peut pas créer deux filtres simples sur la même colonne (une colonne déjà filtrée n'apparaît plus dans le picker).
-- Opérateurs disponibles selon le type de colonne :
+- Opérateurs disponibles selon le tyjen epe de colonne :
   - **Texte / Email / URL / Téléphone / Lieu / Fichier / Emoji / ID** : est, n'est pas, contient, ne contient pas, commence par, finit par, est vide, n'est pas vide.
   - **Nombre / Formule / Rollup** : égale, différent de, supérieur à, inférieur à, ≥, ≤, est vide, n'est pas vide.
   - **Date / Créé le** : est, est avant, est après, est vide, n'est pas vide.
@@ -206,7 +205,7 @@ Quand un Dev ou Owner sauvegarde une "Vue pour tous" :
 | Action | Disponible quand | Effet |
 |--------|-----------------|-------|
 | **Enregistrer** | Sur une vue personnelle uniquement (pas défaut, pas partagée) | Marque la vue comme sauvegardée (cosmétique — les changements sont déjà en temps réel). |
-| **Enregistrer une nouvelle vue** | Toujours | Crée une copie de la vue active comme nouvelle vue personnelle. |
+| **Enregistrer une nouvelle vue** | Sur la vue par défaut uniquement | Crée une copie de la vue par défaut comme nouvelle vue personnelle. |
 | **Vue pour tous** | Dev ou Owner, quand aucune vue partagée n'existe | Crée une nouvelle vue partagée et met à jour les vues par défaut des rôles inférieurs. |
 | **Mettre à jour pour tous** | Dev ou Owner, quand déjà sur la vue partagée | Met à jour directement la vue partagée et les vues par défaut des rôles inférieurs sans confirmation. |
 | **Vue pour tous** (avec confirmation) | Dev ou Owner, sur une vue NON partagée, quand une vue partagée existe déjà | Demande confirmation avant d'écraser la vue partagée existante. |

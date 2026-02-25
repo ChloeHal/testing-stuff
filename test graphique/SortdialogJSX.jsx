@@ -3878,14 +3878,16 @@ export default function DataToolbar() {
                       Enregistrer
                     </button>
                   )}
-                  {/* "Enregistrer une nouvelle vue" — toujours disponible */}
-                  <button
-                    onClick={() => { addPersonalView(); setSavePopOpen(false); }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
-                  >
-                    <Plus size={11} className="text-zinc-400" />
-                    Enregistrer une nouvelle vue
-                  </button>
+                  {/* "Enregistrer une nouvelle vue" — uniquement depuis la vue par défaut */}
+                  {activeView?.isDefault && (
+                    <button
+                      onClick={() => { addPersonalView(); setSavePopOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
+                    >
+                      <Plus size={11} className="text-zinc-400" />
+                      Enregistrer une nouvelle vue
+                    </button>
+                  )}
                   {/* "Pour tous" — dev/owner uniquement */}
                   {canSaveForOthers && !overwriteConfirmOpen && (
                     <button
