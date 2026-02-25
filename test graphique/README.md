@@ -205,7 +205,7 @@ Quand un Dev ou Owner sauvegarde une "Vue pour tous" :
 | Action | Disponible quand | Effet |
 |--------|-----------------|-------|
 | **Enregistrer** | Sur une vue personnelle uniquement (pas défaut, pas partagée) | Marque la vue comme sauvegardée (cosmétique — les changements sont déjà en temps réel). |
-| **Enregistrer une nouvelle vue** | Sur la vue par défaut uniquement | Crée une copie de la vue par défaut comme nouvelle vue personnelle. |
+| **Enregistrer une nouvelle vue** | Sur la vue par défaut uniquement | Crée une copie de la vue par défaut comme nouvelle vue personnelle et réinitialiser la vue par défaut. |
 | **Vue pour tous** | Dev ou Owner, quand aucune vue partagée n'existe | Crée une nouvelle vue partagée et met à jour les vues par défaut des rôles inférieurs. |
 | **Mettre à jour pour tous** | Dev ou Owner, quand déjà sur la vue partagée | Met à jour directement la vue partagée et les vues par défaut des rôles inférieurs sans confirmation. |
 | **Vue pour tous** (avec confirmation) | Dev ou Owner, sur une vue NON partagée, quand une vue partagée existe déjà | Demande confirmation avant d'écraser la vue partagée existante. |
