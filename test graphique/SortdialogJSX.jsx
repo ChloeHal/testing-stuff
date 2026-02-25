@@ -143,8 +143,8 @@ function FixedPopover({ isOpen, coords, popoverRef, minWidth, children }) {
     <div
       ref={popoverRef}
       onMouseDown={(e) => e.stopPropagation()}
-      className="fixed z-[99999] rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
-      style={{ top, left, minWidth, maxWidth: "calc(100vw - 16px)" }}
+      className="fixed z-[99999] rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900 animate-popover-in"
+      style={{ top, left, minWidth, maxWidth: "calc(100vw - 16px)", transformOrigin: "top left" }}
     >
       {children}
     </div>
@@ -1523,7 +1523,7 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, devFilterRules,
 
   return (
     <>
-      <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-all dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-all dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in">
         {/* Condition text */}
         <button
           onClick={filter.locked ? undefined : onEdit}
@@ -1980,7 +1980,7 @@ function FilterChip({ filter, columns, onUpdate, onRemove, canEditAccess, devFil
   }
 
   return (
-    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in">
       <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 text-zinc-500 select-none dark:bg-zinc-800/50 dark:text-zinc-200">
         {Icon && (
           <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />
@@ -2106,14 +2106,14 @@ function SortOrderItem({ label, idx, vis }) {
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors
-        ${isDragging ? "opacity-30 cursor-grabbing" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"}`}
+      className={`group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-all duration-200
+        ${isDragging ? "opacity-30 scale-[0.98] cursor-grabbing" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"}`}
     >
       <span
         {...attributes}
         {...listeners}
         aria-label={`Déplacer "${label}"`}
-        className="w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity"
+        className="w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
       />
       <span className="text-[10px] text-zinc-300 w-4 text-center flex-shrink-0">
         {idx + 1}
@@ -2132,7 +2132,7 @@ function SortOrderItem({ label, idx, vis }) {
 function SortOrderOverlay({ label, vis }) {
   if (!label) return null;
   return (
-    <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xl cursor-grabbing">
+    <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xl cursor-grabbing scale-[1.02]">
       <span className="w-0.5 h-3.5 rounded-full bg-zinc-400 dark:bg-zinc-500 flex-shrink-0" />
       <span className="text-[10px] text-zinc-300 w-4 text-center flex-shrink-0">
         ·
@@ -2213,7 +2213,7 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
   };
 
   return (
-    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in">
       <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 text-zinc-500 select-none dark:bg-zinc-800/50 dark:text-zinc-200">
         {Icon && (
           <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />
@@ -2692,7 +2692,7 @@ function ColVisItem({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`group w-full rounded-md ${isDragging ? "opacity-30" : ""}`}
+      className={`group w-full rounded-md transition-all duration-200 ${isDragging ? "opacity-30 scale-[0.98]" : ""}`}
     >
       <div
         data-colvis-row
@@ -2731,7 +2731,7 @@ function ColVisItem({
           {...listeners}
           onClick={(e) => e.stopPropagation()}
           aria-label={`Déplacer la colonne ${col.name}`}
-          className="flex-shrink-0 w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity"
+          className="flex-shrink-0 w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
         />
         {CIcon && <CIcon size={13} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />}
         <span className={`flex-1 text-left ${isHidden ? "opacity-40" : ""}`}>{col.name}</span>
@@ -2793,7 +2793,7 @@ function ColVisOverlay({ col, hiddenColumns, lockedHiddenColumns }) {
   const isLocked = lockedHiddenColumns.has(col.id);
   return (
     <div
-      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xl cursor-grabbing min-w-[180px]
+      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xl cursor-grabbing min-w-[180px] scale-[1.02]
       ${isLocked || isHidden ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-600 dark:text-zinc-400"}`}
     >
       <span className="flex-shrink-0 w-0.5 h-3.5 rounded-full bg-zinc-400 dark:bg-zinc-500" />
@@ -3010,14 +3010,14 @@ function ColHeader({ col, sorts, filters, onSortToggle, index }) {
       {...listeners}
       onClick={() => !isDragging && onSortToggle(col.id)}
       aria-label={`Colonne ${col.name}${sort ? `, tri ${sort.direction === "asc" ? "croissant" : "décroissant"}` : ""}`}
-      className={`group flex items-center gap-1.5 pl-1.5 pr-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 flex-shrink-0 border-r border-zinc-100 dark:border-zinc-800 transition-colors
+      className={`group flex items-center gap-1.5 pl-1.5 pr-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 flex-shrink-0 border-r border-zinc-100 dark:border-zinc-800 transition-all duration-200
         ${index === 0 ? "w-48" : "w-36"}
         ${sort ? "bg-zinc-50/60 dark:bg-zinc-800/40" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"}
-        ${isDragging ? "opacity-30 cursor-grabbing" : "cursor-pointer"}`}
+        ${isDragging ? "opacity-30 scale-[0.98] cursor-grabbing" : "cursor-pointer"}`}
     >
       <span
         aria-hidden="true"
-        className="flex-shrink-0 w-0.5 h-3 rounded-full bg-zinc-300 dark:bg-zinc-600 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity"
+        className="flex-shrink-0 w-0.5 h-3 rounded-full bg-zinc-300 dark:bg-zinc-600 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
       />
       {CIcon && (
         <CIcon
@@ -3044,7 +3044,7 @@ function ColHeader({ col, sorts, filters, onSortToggle, index }) {
       ) : (
         <ArrowUpDown
           size={11}
-          className="text-zinc-300 dark:text-zinc-600 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="text-zinc-300 dark:text-zinc-600 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
         />
       )}
     </div>
@@ -3058,7 +3058,7 @@ function ColHeaderOverlay({ col, sorts, filters }) {
   const sort = sorts.find((s) => s.columnId === col.id);
   const isFiltered = filters.some((f) => f.columnId === col.id);
   return (
-    <div className="flex items-center gap-1.5 pl-1.5 pr-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded shadow-xl cursor-grabbing w-36">
+    <div className="flex items-center gap-1.5 pl-1.5 pr-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded shadow-xl cursor-grabbing w-36 scale-[1.02]">
       <span className="flex-shrink-0 w-0.5 h-3 rounded-full bg-zinc-400 dark:bg-zinc-500" />
       {CIcon && (
         <CIcon
@@ -3204,7 +3204,7 @@ function ViewSwitcher({ roleData, onSelectView, onAddView, onDeleteView, onRenam
             key={tab.id}
             onClick={() => onSelectView(tab.id)}
             onDoubleClick={() => startRename(tab)}
-            className={`group relative flex items-center gap-1 px-3 py-2 text-xs cursor-pointer border-b-2 whitespace-nowrap transition-colors select-none ${
+            className={`group relative flex items-center gap-1 px-3 py-2 text-xs cursor-pointer border-b-2 whitespace-nowrap transition-all duration-200 select-none ${
               isActive
                 ? "border-zinc-800 dark:border-zinc-100 text-zinc-900 dark:text-zinc-50 font-medium"
                 : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
@@ -3226,7 +3226,7 @@ function ViewSwitcher({ roleData, onSelectView, onAddView, onDeleteView, onRenam
               </>
             )}
             {canDelete(tab) && (
-              <button onClick={e => { e.stopPropagation(); onDeleteView(tab.id); }} className="ml-0.5 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity">
+              <button onClick={e => { e.stopPropagation(); onDeleteView(tab.id); }} className="ml-0.5 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity duration-150">
                 <X size={10} />
               </button>
             )}
@@ -3957,7 +3957,7 @@ export default function DataToolbar() {
               onClick={filterDropdownPop.toggle}
               aria-expanded={filterDropdownPop.isOpen}
               aria-haspopup="listbox"
-              className={`inline-flex items-center gap-1.5 rounded-md border transition-all text-xs font-medium ${
+              className={`inline-flex items-center gap-1.5 rounded-md border transition-all duration-150 text-xs font-medium active:scale-[0.97] ${
                 !hasUserFilters
                   ? "border-zinc-200 bg-white px-2.5 py-1 text-zinc-500 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
                   : "border-dashed border-zinc-400 w-6 h-6 justify-center bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
@@ -4004,7 +4004,7 @@ export default function DataToolbar() {
               onClick={sortPickerPop.toggle}
               aria-expanded={sortPickerPop.isOpen}
               aria-haspopup="listbox"
-              className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-500 transition-all hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-500 transition-all duration-150 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 active:scale-[0.97] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
             >
               <ArrowUpDown size={13} />
               Ordonner
@@ -4023,7 +4023,7 @@ export default function DataToolbar() {
                 aria-expanded={sortPickerPop.isOpen}
                 aria-haspopup="listbox"
                 aria-label="Ajouter un tri"
-                className="inline-flex items-center justify-center rounded-md border border-dashed border-zinc-400 w-6 h-6 bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 transition-all dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
+                className="inline-flex items-center justify-center rounded-md border border-dashed border-zinc-400 w-6 h-6 bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 transition-all duration-150 active:scale-[0.97] dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
               >
                 <Plus size={13} />
               </button>
