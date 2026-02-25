@@ -46,7 +46,6 @@ import {
   ChevronRight,
   Check,
   Lock,
-  LockOpen,
   Filter,
   Circle,
   Loader,
@@ -229,10 +228,9 @@ const COL_ACCESS_LEVELS = [
 
 /* ─── Niveaux d'accès filtres ─── */
 const FILTER_ACCESS_LEVELS = [
-  { id: "visible",     label: "Filtre complet", desc: "Colonne + valeur visibles",         Icon: Eye,       color: "text-emerald-500", activeBg: "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700" },
-  { id: "column_only", label: "Colonne seule",  desc: "Sait que la colonne est filtrée",   Icon: EyeOff,    color: "text-blue-400",    activeBg: "bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700"           },
-  { id: "silent",      label: "Silencieux",     desc: "Actif mais invisible",              Icon: Minus,     color: "text-amber-500",   activeBg: "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"       },
-  { id: "hidden",      label: "Non appliqué",   desc: "Le filtre ne s'applique pas",       Icon: Ban,       color: "text-zinc-400",    activeBg: "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600"             },
+  { id: "visible", label: "Visible",         desc: "Filtre affiché, non modifiable",       Icon: Eye,  color: "text-emerald-500", activeBg: "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700" },
+  { id: "ask",     label: "Accès restreint", desc: "Masqué, peut demander l'accès",        Icon: Lock, color: "text-amber-500",   activeBg: "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"       },
+  { id: "silent",  label: "Caché",           desc: "Filtre actif, données pré-filtrées",   Icon: EyeOff, color: "text-zinc-400", activeBg: "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600"             },
 ];
 
 /* ─── Rôles cibles ─── */
@@ -246,7 +244,7 @@ const PREVIEW_ROLES = [
 
 /* ─── Ordre de restriction (plus l'index est grand, plus c'est restrictif) ─── */
 const COL_ACCESS_ORDER = ["full", "view", "ask", "none"];
-const FILTER_ACCESS_ORDER = ["visible", "column_only", "silent", "hidden"];
+const FILTER_ACCESS_ORDER = ["visible", "ask", "silent"];
 
 function mostRestrictiveCol(a, b) {
   return COL_ACCESS_ORDER[Math.max(COL_ACCESS_ORDER.indexOf(a), COL_ACCESS_ORDER.indexOf(b))];
@@ -1463,7 +1461,7 @@ function AdvancedFilterBuilder({
 /* ═══════════════════════════════════════════════════════
    ADVANCED FILTER CHIP — inline display of conditions
    ═══════════════════════════════════════════════════════ */
-function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, devFilterRules, ownerFilterRules, editorRole = "dev", onSetFilterRule }) {
+function AdvancedFilterChip({ filter, columns, onEdit, onRemove, devFilterRules, ownerFilterRules, editorRole = "dev", onSetFilterRule, lockedDisplay = "visible" }) {
   const [accessOpen, setAccessOpen] = useState(false);
   const accessBtnRef = useRef(null);
 
@@ -1502,13 +1500,34 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, d
     );
   };
 
+  if (filter.locked && lockedDisplay === "ask") {
+    const askColNames = [...new Set(
+      filter.conditions.map(c => columns.find(col => col.id === c.columnId)?.name).filter(Boolean)
+    )];
+    const askLabel = askColNames.length === 0 ? ""
+      : askColNames.length === 1 ? ` sur ${askColNames[0]}`
+      : ` sur ${askColNames.slice(0, -1).join(", ")} et ${askColNames.at(-1)}`;
+    return (
+      <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="flex items-center gap-1.5 px-2 py-1 text-zinc-400 dark:text-zinc-500 select-none">
+          <Lock size={12} />
+          <span className="text-xs">Filtre restreint{askLabel}</span>
+        </div>
+        <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+        <button className="px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors">
+          Demander l'accès
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-all dark:border-zinc-700 dark:bg-zinc-900">
         {/* Condition text */}
         <button
-          onClick={onEdit}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-zinc-700 cursor-pointer dark:text-zinc-300"
+          onClick={filter.locked ? undefined : onEdit}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-zinc-700 dark:text-zinc-300 ${filter.locked ? "cursor-default" : "cursor-pointer"}`}
         >
           {filter.conditions.map((cond, i) => (
             <span key={i} className="inline-flex items-center gap-1">
@@ -1522,18 +1541,7 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, d
           ))}
         </button>
 
-        {/* Lock button */}
-        <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-        <button
-          onClick={onToggleLock}
-          aria-label={filter.locked ? "Déverrouiller ce filtre" : "Verrouiller ce filtre"}
-          title={filter.locked ? "Filtre verrouillé — cliquer pour déverrouiller" : "Verrouiller ce filtre"}
-          className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${filter.locked ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-300 hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-400"}`}
-        >
-          {filter.locked ? <Lock size={11} /> : <LockOpen size={11} />}
-        </button>
-
-        {/* Access rule button — seulement si l'éditeur peut configurer les accès */}
+        {/* Access rule button */}
         {onSetFilterRule && (
           <>
             <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
@@ -1552,8 +1560,15 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, onToggleLock, d
           </>
         )}
 
-        {/* Delete button (hidden when locked) */}
-        {!filter.locked && (
+        {/* Lock icon (filtre imposé) ou bouton supprimer (filtre personnel) */}
+        {filter.locked ? (
+          <>
+            <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+            <div className="px-1.5 py-1 text-zinc-400 dark:text-zinc-500">
+              <Lock size={11} />
+            </div>
+          </>
+        ) : (
           <>
             <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
             <button
@@ -1891,7 +1906,7 @@ function ColumnPicker({
 /* ═══════════════════════════════════════════════════════
    FILTER CHIP — button group with icons, dots, avatars
    ═══════════════════════════════════════════════════════ */
-function FilterChip({ filter, columns, onUpdate, onRemove, onToggleLock, canEditAccess, devFilterRules, ownerFilterRules, editorRole, onSetFilterRule, lockedDisplay = "visible" }) {
+function FilterChip({ filter, columns, onUpdate, onRemove, canEditAccess, devFilterRules, ownerFilterRules, editorRole, onSetFilterRule, lockedDisplay = "visible" }) {
   const operatorPop = usePopover();
   const valuePop = usePopover();
   const [accessOpen, setAccessOpen] = useState(false);
@@ -1919,30 +1934,41 @@ function FilterChip({ filter, columns, onUpdate, onRemove, onToggleLock, canEdit
   const isLocked = filter.locked;
 
   if (isLocked) {
-    const showFull = lockedDisplay === "visible";
+    // Chip "accès restreint" : cadenas + bouton demander l'accès
+    if (lockedDisplay === "ask") {
+      return (
+        <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="flex items-center gap-1.5 px-2 py-1 text-zinc-400 dark:text-zinc-500 select-none">
+            <Lock size={12} />
+            <span className="text-xs">Filtre restreint sur {column.name}</span>
+          </div>
+          <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+          <button className="px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors">
+            Demander l'accès
+          </button>
+        </div>
+      );
+    }
+    // Chip "visible non modifiable" : chip complet avec cadenas gris
     return (
       <div
         className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
-        title={showFull ? "Filtre imposé" : "Filtre actif — détails masqués"}
+        title="Filtre imposé — non modifiable"
       >
         <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 text-zinc-500 select-none dark:bg-zinc-800/50 dark:text-zinc-200">
           {Icon && <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />}
           <span className="text-xs font-medium">{column.name}</span>
         </div>
-        {showFull && (
+        <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+        <div className="px-2 py-1 text-xs text-zinc-400 dark:text-zinc-500">
+          {currentOp?.label}
+        </div>
+        {!currentOp?.noValue && filter.value != null && (
           <>
             <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-            <div className="px-2 py-1 text-xs text-zinc-400 dark:text-zinc-500">
-              {currentOp?.label}
+            <div className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-200">
+              <ValueDisplay columnId={filter.columnId} value={filter.value} />
             </div>
-            {!currentOp?.noValue && filter.value != null && (
-              <>
-                <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-                <div className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-200">
-                  <ValueDisplay columnId={filter.columnId} value={filter.value} />
-                </div>
-              </>
-            )}
           </>
         )}
         <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
@@ -2026,17 +2052,8 @@ function FilterChip({ filter, columns, onUpdate, onRemove, onToggleLock, canEdit
         </>
       )}
 
-      {canEditAccess && (
+      {onSetFilterRule && (
         <>
-          <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-          <button
-            onClick={onToggleLock}
-            aria-label={filter.locked ? "Déverrouiller ce filtre" : "Verrouiller ce filtre"}
-            title={filter.locked ? "Filtre verrouillé — cliquer pour déverrouiller" : "Verrouiller ce filtre"}
-            className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${filter.locked ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-300 hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-400"}`}
-          >
-            {filter.locked ? <Lock size={11} /> : <LockOpen size={11} />}
-          </button>
           <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
           <button
             ref={accessBtnRef}
@@ -3235,10 +3252,7 @@ export default function DataToolbar() {
     dev: {
       views: [{
         id: "dev_default", name: "Vue par défaut", isDefault: true, isForOthers: false,
-        filters: [
-          { id: "f1", columnId: "col_status", operator: "is", value: "En cours", locked: false },
-          { id: "f2", columnId: "col_price",  operator: "eq", value: 50,          locked: false },
-        ],
+        filters: [],
         advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER],
         colRules: {},
       }],
@@ -3374,9 +3388,9 @@ export default function DataToolbar() {
 
   const getEffectiveFilterAccess = useCallback((filterId) => {
     if (previewRole === "dev") return "visible";
-    // Dev impose → défaut "silent" (actif mais invisible) ; Owner impose → défaut "visible"
-    if (previewRole === "owner") return devFilterRules.get(filterId)?.owner ?? "silent";
-    const d = devFilterRules.get(filterId)?.user ?? "silent";
+    // Par défaut "visible" : un filtre verrouillé est affiché sauf si une règle explicite dit autrement
+    if (previewRole === "owner") return devFilterRules.get(filterId)?.owner ?? "visible";
+    const d = devFilterRules.get(filterId)?.user ?? "visible";
     const o = ownerFilterRules.get(filterId)?.user ?? "visible";
     return mostRestrictiveFilter(d, o);
   }, [previewRole, devFilterRules, ownerFilterRules]);
@@ -3401,7 +3415,7 @@ export default function DataToolbar() {
     return m;
   }, [activeView]);
 
-  const [lockedHiddenColumns] = useState(new Set(["col_id"]));
+  const [lockedHiddenColumns] = useState(new Set());
 
   const reorderColumns = (fromId, toId) => {
     updateActiveView(previewRole, v => {
@@ -3448,9 +3462,7 @@ export default function DataToolbar() {
   const usedFilterColIds = filters.map((f) => f.columnId);
   const usedSortColIds = sorts.map((s) => s.columnId);
 
-  const lockedFilters = filters.filter((f) => f.locked);
-  const userFilters = filters.filter((f) => !f.locked);
-  const hasUserFilters = userFilters.length > 0 || advancedFilters.length > 0;
+  const hasUserFilters = filters.some((f) => !f.locked) || advancedFilters.length > 0;
 
   const addSimpleFilter = ({ id, columnId, operator, value }) => {
     updateActiveView(previewRole, (v) => ({
@@ -3494,11 +3506,6 @@ export default function DataToolbar() {
       advancedFilters: v.advancedFilters.filter((f) => f.id !== id || f.locked),
     }));
 
-  const toggleAdvancedFilterLock = (id) =>
-    updateActiveView(previewRole, (v) => ({
-      ...v,
-      advancedFilters: v.advancedFilters.map((f) => f.id !== id ? f : { ...f, locked: !f.locked }),
-    }));
 
   const createSort = (columnId) => {
     const mock = MOCK_VALUES[columnId];
@@ -3653,8 +3660,8 @@ export default function DataToolbar() {
             if (!v.isDefault) return v;
             return {
               ...v,
-              filters: src.filters.filter(f => isColAccessible(f.columnId, targetRole)),
-              advancedFilters: src.advancedFilters.filter(af => af.conditions.every(c => isColAccessible(c.columnId, targetRole))),
+              filters: src.filters.filter(f => isColAccessible(f.columnId, targetRole)).map(f => ({ ...f, locked: true })),
+              advancedFilters: src.advancedFilters.filter(af => af.conditions.every(c => isColAccessible(c.columnId, targetRole))).map(af => ({ ...af, locked: true })),
               hiddenColumns: new Set([...src.hiddenColumns].filter(colId => isColAccessible(colId, targetRole))),
             };
           }),
@@ -3673,7 +3680,13 @@ export default function DataToolbar() {
   const handleSaveForOthers = () => {
     const existingShared = roleViews[previewRole].views.find(v => v.isShared);
     if (existingShared) {
-      setOverwriteConfirmOpen(true);
+      if (activeView?.isShared) {
+        // Déjà sur la vue pour tous — on sauvegarde directement sans confirmation
+        executeSaveForOthers(existingShared.id);
+      } else {
+        // Sur une autre vue — on demande confirmation avant d'écraser
+        setOverwriteConfirmOpen(true);
+      }
     } else {
       executeSaveForOthers();
     }
@@ -3722,26 +3735,25 @@ export default function DataToolbar() {
     }));
   };
 
-  // Filtres propres au rôle (non verrouillés) → toujours visibles
-  const visibleSimpleFilters = userFilters;
+  // Tous les filtres (simples + avancés) triés par ordre de création (timestamp extrait de l'id)
+  const getFilterTs = (id) => parseInt(id.split("_").pop()) || 0;
 
-  // Filtres verrouillés (imposés par un rôle supérieur) : visibilité contrôlée par les règles d'accès
-  // "visible" = filtre complet affiché ; "column_only" = colonne seule, valeur masquée ; "silent/hidden" = non affiché
-  const visibleLockedFilters = previewRole === "dev"
-    ? lockedFilters
-    : lockedFilters.filter((f) => {
+  const allVisibleFilters = [
+    ...filters
+      .filter((f) => {
+        if (!f.locked) return true;
         const a = getEffectiveFilterAccess(f.id);
-        return a === "visible" || a === "column_only";
-      });
-
-  // Filtres avancés : non verrouillés toujours visibles, verrouillés filtrés par règle
-  const visibleAdvancedFilters = previewRole === "dev"
-    ? advancedFilters
-    : advancedFilters.filter((af) => {
+        return previewRole === "dev" || a === "visible" || a === "ask";
+      })
+      .map((f) => ({ ...f, _kind: "simple" })),
+    ...advancedFilters
+      .filter((af) => {
         if (!af.locked) return true;
         const a = getEffectiveFilterAccess(af.id);
-        return a === "visible" || a === "column_only";
-      });
+        return previewRole === "dev" || a === "visible" || a === "ask";
+      })
+      .map((af) => ({ ...af, _kind: "advanced" })),
+  ].sort((a, b) => getFilterTs(a.id) - getFilterTs(b.id));
 
   // Seul dev/owner peut configurer les accès ; user ne restreint personne
   const canEditAccess = previewRole !== "user";
@@ -3856,8 +3868,8 @@ export default function DataToolbar() {
               </button>
               {savePopOpen && (
                 <div ref={savePopRef} className="absolute right-0 top-full mt-1 z-50 min-w-[210px] rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900 py-1">
-                  {/* "Enregistrer" (màj) — uniquement si pas sur la vue par défaut */}
-                  {!activeView?.isDefault && (
+                  {/* "Enregistrer" (màj) — uniquement si pas sur la vue par défaut et pas sur la vue partagée */}
+                  {!activeView?.isDefault && !activeView?.isShared && (
                     <button
                       onClick={saveForSelf}
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
@@ -3881,7 +3893,7 @@ export default function DataToolbar() {
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
                     >
                       <Check size={11} className="text-emerald-500" />
-                      Vue pour tous
+                      {activeView?.isShared ? "Mettre à jour pour tous" : "Vue pour tous"}
                     </button>
                   )}
                   {/* Confirmation écrasement vue pour tous existante */}
@@ -3917,35 +3929,27 @@ export default function DataToolbar() {
           {/* Ligne Filtres */}
           <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 min-h-[40px] bg-white dark:bg-zinc-900">
             <Filter size={12} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-            {visibleLockedFilters.map((f) => (
-              <FilterChip
-                key={f.id} filter={f} columns={MOCK_COLUMNS} onUpdate={updateFilter} onRemove={() => {}}
-                canEditAccess={canEditAccess} devFilterRules={devFilterRules} ownerFilterRules={ownerFilterRules}
-                editorRole={editorRole} onSetFilterRule={canEditAccess ? setFilterRule : undefined}
-                onToggleLock={canEditAccess ? () => updateFilter({ ...f, locked: !f.locked }) : undefined}
-                lockedDisplay={getEffectiveFilterAccess(f.id)}
-              />
-            ))}
-            {visibleSimpleFilters.map((f) => (
-              <FilterChip
-                key={f.id} filter={f} columns={MOCK_COLUMNS} onUpdate={updateFilter}
-                onRemove={() => removeFilter(f.id)}
-                canEditAccess={canEditAccess} devFilterRules={devFilterRules} ownerFilterRules={ownerFilterRules}
-                editorRole={editorRole} onSetFilterRule={setFilterRule}
-                onToggleLock={canEditAccess ? () => updateFilter({ ...f, locked: !f.locked }) : undefined}
-              />
-            ))}
-            {visibleAdvancedFilters.map((af) => (
-              <AdvancedFilterChip
-                key={af.id} filter={af} columns={MOCK_COLUMNS}
-                onEdit={() => editAdvancedFilter(af)}
-                onRemove={() => removeAdvancedFilter(af.id)}
-                onToggleLock={() => toggleAdvancedFilterLock(af.id)}
-                devFilterRules={canEditAccess ? devFilterRules : undefined}
-                ownerFilterRules={canEditAccess ? ownerFilterRules : undefined}
-                editorRole={editorRole} onSetFilterRule={canEditAccess ? setFilterRule : undefined}
-              />
-            ))}
+            {allVisibleFilters.map((f) =>
+              f._kind === "simple" ? (
+                <FilterChip
+                  key={f.id} filter={f} columns={MOCK_COLUMNS} onUpdate={updateFilter}
+                  onRemove={f.locked ? () => {} : () => removeFilter(f.id)}
+                  canEditAccess={canEditAccess} devFilterRules={devFilterRules} ownerFilterRules={ownerFilterRules}
+                  editorRole={editorRole} onSetFilterRule={canEditAccess && isForAllView ? setFilterRule : undefined}
+                  lockedDisplay={f.locked ? getEffectiveFilterAccess(f.id) : "visible"}
+                />
+              ) : (
+                <AdvancedFilterChip
+                  key={f.id} filter={f} columns={MOCK_COLUMNS}
+                  onEdit={() => editAdvancedFilter(f)}
+                  onRemove={() => removeAdvancedFilter(f.id)}
+                  devFilterRules={canEditAccess ? devFilterRules : undefined}
+                  ownerFilterRules={canEditAccess ? ownerFilterRules : undefined}
+                  editorRole={editorRole} onSetFilterRule={canEditAccess && isForAllView ? setFilterRule : undefined}
+                  lockedDisplay={f.locked ? getEffectiveFilterAccess(f.id) : "visible"}
+                />
+              )
+            )}
             <button
               ref={filterDropdownPop.triggerRef}
               onClick={filterDropdownPop.toggle}
@@ -4075,7 +4079,7 @@ export default function DataToolbar() {
       <TableHeader
         columns={orderedColumns}
         sorts={sorts}
-        filters={filters}
+        filters={filters.filter(f => !f.locked || getEffectiveFilterAccess(f.id) !== "silent")}
         onSortToggle={handleHeaderSortToggle}
         hiddenColumns={effectiveHiddenCols}
         lockedHiddenColumns={lockedHiddenColumns}
