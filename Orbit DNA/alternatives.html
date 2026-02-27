@@ -130,21 +130,19 @@
         position: absolute;
         border-radius: 50%;
         width: var(--ball-size);
-        height: var(--ball-size);
+        aspect-ratio: 1;
         left: 50%; top: 50%;
         background: #FFF;
         box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       }
 
       .ball-a {
-        translate: -50% -50% calc(var(--rod-length) / 2);
-        animation: counter-rotate 6s linear infinite;
+        animation: orbit-a 6s linear infinite;
         animation-delay: var(--delay);
       }
 
       .ball-b {
-        translate: -50% -50% calc(var(--rod-length) / -2);
-        animation: counter-rotate 6s linear infinite;
+        animation: orbit-b 6s linear infinite;
         animation-delay: var(--delay);
       }
 
@@ -153,9 +151,14 @@
         to   { transform: rotateY(360deg); }
       }
 
-      @keyframes counter-rotate {
-        from { transform: rotateY(0deg); }
-        to   { transform: rotateY(-360deg); }
+      @keyframes orbit-a {
+        from { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) / 2)) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) / 2)) rotateY(-360deg); }
+      }
+
+      @keyframes orbit-b {
+        from { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) / -2)) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) / -2)) rotateY(-360deg); }
       }
 
       /* Pause */
@@ -173,27 +176,46 @@
       .multi .rod { width: calc(var(--rod-length) * 1.125); }
       .multi .ball { box-shadow: none; }
 
-      .multi .ball-a1 { width: var(--ball-size); height: var(--ball-size); translate: -50% -50% calc(var(--rod-length) * 0.5); }
-      .multi .ball-a2 { width: calc(var(--ball-size) * 0.55); height: calc(var(--ball-size) * 0.55); translate: -50% -50% calc(var(--rod-length) * 0.31); }
-      .multi .ball-a3 { width: calc(var(--ball-size) * 0.33); height: calc(var(--ball-size) * 0.33); translate: -50% -50% calc(var(--rod-length) * 0.16); }
+      .multi .ball-a1 { width: var(--ball-size); animation: m-orbit-a1 6s linear infinite; animation-delay: var(--delay); }
+      .multi .ball-a2 { width: calc(var(--ball-size) * 0.55); animation: m-orbit-a2 6s linear infinite; animation-delay: var(--delay); }
+      .multi .ball-a3 { width: calc(var(--ball-size) * 0.33); animation: m-orbit-a3 6s linear infinite; animation-delay: var(--delay); }
 
-      .multi .ball-b1 { width: var(--ball-size); height: var(--ball-size); translate: -50% -50% calc(var(--rod-length) * -0.5); }
-      .multi .ball-b2 { width: calc(var(--ball-size) * 0.55); height: calc(var(--ball-size) * 0.55); translate: -50% -50% calc(var(--rod-length) * -0.31); }
-      .multi .ball-b3 { width: calc(var(--ball-size) * 0.33); height: calc(var(--ball-size) * 0.33); translate: -50% -50% calc(var(--rod-length) * -0.16); }
+      .multi .ball-b1 { width: var(--ball-size); animation: m-orbit-b1 6s linear infinite; animation-delay: var(--delay); }
+      .multi .ball-b2 { width: calc(var(--ball-size) * 0.55); animation: m-orbit-b2 6s linear infinite; animation-delay: var(--delay); }
+      .multi .ball-b3 { width: calc(var(--ball-size) * 0.33); animation: m-orbit-b3 6s linear infinite; animation-delay: var(--delay); }
 
-      .multi .ball-a1, .multi .ball-a2, .multi .ball-a3,
-      .multi .ball-b1, .multi .ball-b2, .multi .ball-b3 {
-        animation: counter-rotate 6s linear infinite;
-        animation-delay: var(--delay);
+      @keyframes m-orbit-a1 {
+        from { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * 0.5)) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * 0.5)) rotateY(-360deg); }
+      }
+      @keyframes m-orbit-b1 {
+        from { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * -0.5)) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * -0.5)) rotateY(-360deg); }
+      }
+      @keyframes m-orbit-a2 {
+        from { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * 0.31)) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * 0.31)) rotateY(-360deg); }
+      }
+      @keyframes m-orbit-b2 {
+        from { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * -0.31)) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * -0.31)) rotateY(-360deg); }
+      }
+      @keyframes m-orbit-a3 {
+        from { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * 0.16)) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * 0.16)) rotateY(-360deg); }
+      }
+      @keyframes m-orbit-b3 {
+        from { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * -0.16)) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(calc(var(--rod-length) * -0.16)) rotateY(-360deg); }
       }
 
       /* ══ 3. DEPTH FADE ═════════════════════════════ */
       .depth .ball-a {
-        animation: counter-rotate 6s linear infinite, fade-front 6s linear infinite;
+        animation: orbit-a 6s linear infinite, fade-front 6s linear infinite;
         animation-delay: var(--delay), var(--delay);
       }
       .depth .ball-b {
-        animation: counter-rotate 6s linear infinite, fade-back 6s linear infinite;
+        animation: orbit-b 6s linear infinite, fade-back 6s linear infinite;
         animation-delay: var(--delay), var(--delay);
       }
 
@@ -205,12 +227,12 @@
       }
 
       /* ══ 4. THICK BARS ═════════════════════════════ */
-      .thick .rod { height: calc(var(--rod-height) * 2.5); }
+      .thick .rod { height: calc(var(--rod-height) + 3px); }
 
-      /* ══ 5. STRONG PERSPECTIVE ═════════════════════ */
-      .persp { perspective: calc(var(--perspective) * 0.3); }
+      /* ══ 5. STRONG DEPTH ════════════════════════════ */
+      .persp { perspective: calc(var(--perspective) * 0.35); }
 
-      /* ══ 6. UNIFORM ════════════════════════════════ */
+      /* ══ 6. UNIFORM (no depth) ════════════════════ */
       .uniform { perspective: none; }
       .uniform .rung { perspective: var(--perspective); }
     </style>
@@ -246,7 +268,7 @@
       </div>
       <div class="control">
         <label>Perspective</label>
-        <input type="range" min="100" max="2000" value="800" oninput="setVar('--perspective',this.value+'px',this)">
+        <input type="range" min="150" max="2000" value="800" oninput="setVar('--perspective',this.value+'px',this)">
         <span class="val">800px</span>
       </div>
     </div>
@@ -316,7 +338,7 @@
             <div class="rung" data-base="-1.5" style="--mult:2;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
           </div>
         </div>
-        <span class="variant-label">Strong persp.</span>
+        <span class="variant-label">Strong depth</span>
       </div>
 
       <div class="variant">
