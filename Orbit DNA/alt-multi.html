@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DNA – Multi-balls</title>
+    <style>
+      body { margin: 0; background: #FFF; display: flex; align-items: center; justify-content: center; height: 100vh; }
+
+      .scene {
+        perspective: 800px;
+        display: flex; align-items: center; justify-content: center;
+        width: 200px; height: 200px;
+        background: black; border-radius: 20%;
+      }
+      .dna { position: relative; transform-style: preserve-3d; }
+
+      .rung {
+        position: absolute; transform-style: preserve-3d;
+        translate: 0 var(--y) 0;
+        animation: spin 6s linear infinite;
+        animation-delay: var(--delay);
+      }
+
+      .rod {
+        position: absolute; width: 90px; height: 2px;
+        background: #FFF; border-radius: 1px; opacity: 0.4;
+        left: 50%; top: 50%;
+        transform: translate(-50%, -50%) rotateY(90deg);
+      }
+
+      .ball {
+        position: absolute; border-radius: 50%;
+        left: 50%; top: 50%;
+        background: #FFF;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+
+      /* 3 tailles de boules : extrémité, milieu, centre */
+      .ball-a1 { width: 16px; height: 16px; animation: cs-a1 6s linear infinite; animation-delay: var(--delay); }
+      .ball-a2 { width: 10px; height: 10px; animation: cs-a2 6s linear infinite; animation-delay: var(--delay); opacity: 0.7; }
+      .ball-a3 { width:  6px; height:  6px; animation: cs-a3 6s linear infinite; animation-delay: var(--delay); opacity: 0.4; }
+
+      .ball-b1 { width: 16px; height: 16px; animation: cs-b1 6s linear infinite; animation-delay: var(--delay); }
+      .ball-b2 { width: 10px; height: 10px; animation: cs-b2 6s linear infinite; animation-delay: var(--delay); opacity: 0.7; }
+      .ball-b3 { width:  6px; height:  6px; animation: cs-b3 6s linear infinite; animation-delay: var(--delay); opacity: 0.4; }
+
+      @keyframes spin {
+        from { transform: rotateY(0deg); }
+        to   { transform: rotateY(360deg); }
+      }
+
+      /* Extrémités (±45px) */
+      @keyframes cs-a1 {
+        from { transform: translate(-50%,-50%) translateZ(45px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(45px) rotateY(-360deg); }
+      }
+      @keyframes cs-b1 {
+        from { transform: translate(-50%,-50%) translateZ(-45px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(-45px) rotateY(-360deg); }
+      }
+
+      /* Milieu (±28px) */
+      @keyframes cs-a2 {
+        from { transform: translate(-50%,-50%) translateZ(28px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(28px) rotateY(-360deg); }
+      }
+      @keyframes cs-b2 {
+        from { transform: translate(-50%,-50%) translateZ(-28px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(-28px) rotateY(-360deg); }
+      }
+
+      /* Intérieur (±14px) */
+      @keyframes cs-a3 {
+        from { transform: translate(-50%,-50%) translateZ(14px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(14px) rotateY(-360deg); }
+      }
+      @keyframes cs-b3 {
+        from { transform: translate(-50%,-50%) translateZ(-14px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(-14px) rotateY(-360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <div class="dna">
+        <div class="rung" style="--y: -48px; --delay: -4.5s">
+          <div class="rod"></div>
+          <div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div>
+          <div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div>
+        </div>
+        <div class="rung" style="--y: -24px; --delay: -5.25s">
+          <div class="rod"></div>
+          <div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div>
+          <div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div>
+        </div>
+        <div class="rung" style="--y: 0px; --delay: 0s">
+          <div class="rod"></div>
+          <div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div>
+          <div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div>
+        </div>
+        <div class="rung" style="--y: 24px; --delay: -0.75s">
+          <div class="rod"></div>
+          <div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div>
+          <div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div>
+        </div>
+        <div class="rung" style="--y: 48px; --delay: -1.5s">
+          <div class="rod"></div>
+          <div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div>
+          <div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

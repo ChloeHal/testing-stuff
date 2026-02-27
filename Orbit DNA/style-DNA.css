@@ -1,0 +1,78 @@
+.scene {
+  perspective: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  height: 200px;
+  background: black;
+    border-radius: 20%;
+    width: 200px;
+    height: 200px;
+
+}
+
+.dna {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+/* ── Rung (each horizontal bar + 2 balls) ────────── */
+.rung {
+  position: absolute;
+  transform-style: preserve-3d;
+  translate: 0 var(--y) 0;
+  animation: spin 6s linear infinite;
+  animation-delay: var(--delay);
+}
+
+/* ── Rod ─────────────────────────────────────────── */
+.rod {
+  position: absolute;
+  width: 80px;
+  height: 2px;
+  background: #FFF;
+  border-radius: 1px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotateY(90deg);
+  opacity: 0.6;
+}
+
+/* ── Balls ────────────────────────────────────────── */
+.ball {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  background: #FFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ball-a {
+  animation: counter-spin-a 6s linear infinite;
+  animation-delay: var(--delay);
+}
+
+.ball-b {
+  animation: counter-spin-b 6s linear infinite;
+  animation-delay: var(--delay);
+}
+
+/* ── Spin ─────────────────────────────────────────── */
+@keyframes spin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+@keyframes counter-spin-a {
+  from { transform: translate(-50%, -50%) translateZ(40px) rotateY(0deg); }
+  to   { transform: translate(-50%, -50%) translateZ(40px) rotateY(-360deg); }
+}
+
+@keyframes counter-spin-b {
+  from { transform: translate(-50%, -50%) translateZ(-40px) rotateY(0deg); }
+  to   { transform: translate(-50%, -50%) translateZ(-40px) rotateY(-360deg); }
+}

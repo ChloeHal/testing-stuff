@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DNA – Alternatives</title>
+    <style>
+      body {
+        margin: 0;
+        background: #FFF;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 32px;
+        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+      }
+
+      /* ── Icon size (scale down to ~96px app icon) ─── */
+      .variant.icon .scene {
+        transform: scale(0.375);
+        margin: -62px;
+      }
+
+      .variant {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .variant-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #71717a;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      /* ── Base DNA ──────────────────────────────────── */
+      .scene {
+        perspective: 800px;
+        display: flex; align-items: center; justify-content: center;
+        width: 200px; height: 200px;
+        background: black; border-radius: 20%;
+      }
+
+      .dna { position: relative; transform-style: preserve-3d; }
+
+      .rung {
+        position: absolute; transform-style: preserve-3d;
+        translate: 0 var(--y) 0;
+        animation: spin 6s linear infinite;
+        animation-delay: var(--delay);
+      }
+
+      .rod {
+        position: absolute; width: 80px; height: 2px;
+        background: #FFF; border-radius: 1px; opacity: 0.5;
+        left: 50%; top: 50%;
+        transform: translate(-50%, -50%) rotateY(90deg);
+      }
+
+      .ball {
+        position: absolute; border-radius: 50%;
+        left: 50%; top: 50%;
+        background: #FFF;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+
+      @keyframes spin {
+        from { transform: rotateY(0deg); }
+        to   { transform: rotateY(360deg); }
+      }
+
+      /* ══════════════════════════════════════════════════
+         1. ORIGINAL
+         ══════════════════════════════════════════════════ */
+      .original .ball { width: 18px; height: 18px; }
+      .original .ball-a { animation: cs-a 6s linear infinite; animation-delay: var(--delay); }
+      .original .ball-b { animation: cs-b 6s linear infinite; animation-delay: var(--delay); }
+
+      @keyframes cs-a {
+        from { transform: translate(-50%,-50%) translateZ(40px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(40px) rotateY(-360deg); }
+      }
+      @keyframes cs-b {
+        from { transform: translate(-50%,-50%) translateZ(-40px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(-40px) rotateY(-360deg); }
+      }
+
+      /* ══════════════════════════════════════════════════
+         2. MULTI-BALLS
+         ══════════════════════════════════════════════════ */
+      .multi .rod { width: 90px; opacity: 0.4; }
+      .multi .ball { box-shadow: none; }
+
+      .multi .ball-a1 { width: 16px; height: 16px; animation: m-a1 6s linear infinite; animation-delay: var(--delay); }
+      .multi .ball-a2 { width: 10px; height: 10px; animation: m-a2 6s linear infinite; animation-delay: var(--delay); }
+      .multi .ball-a3 { width:  6px; height:  6px; animation: m-a3 6s linear infinite; animation-delay: var(--delay); }
+      .multi .ball-b1 { width: 16px; height: 16px; animation: m-b1 6s linear infinite; animation-delay: var(--delay); }
+      .multi .ball-b2 { width: 10px; height: 10px; animation: m-b2 6s linear infinite; animation-delay: var(--delay); }
+      .multi .ball-b3 { width:  6px; height:  6px; animation: m-b3 6s linear infinite; animation-delay: var(--delay); }
+
+      @keyframes m-a1 {
+        from { transform: translate(-50%,-50%) translateZ(45px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(45px) rotateY(-360deg); }
+      }
+      @keyframes m-b1 {
+        from { transform: translate(-50%,-50%) translateZ(-45px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(-45px) rotateY(-360deg); }
+      }
+      @keyframes m-a2 {
+        from { transform: translate(-50%,-50%) translateZ(28px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(28px) rotateY(-360deg); }
+      }
+      @keyframes m-b2 {
+        from { transform: translate(-50%,-50%) translateZ(-28px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(-28px) rotateY(-360deg); }
+      }
+      @keyframes m-a3 {
+        from { transform: translate(-50%,-50%) translateZ(14px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(14px) rotateY(-360deg); }
+      }
+      @keyframes m-b3 {
+        from { transform: translate(-50%,-50%) translateZ(-14px) rotateY(0deg); }
+        to   { transform: translate(-50%,-50%) translateZ(-14px) rotateY(-360deg); }
+      }
+
+      /* ══════════════════════════════════════════════════
+         3. DEPTH FADE
+         ══════════════════════════════════════════════════ */
+      .depth .ball { width: 18px; height: 18px; }
+      .depth .ball-a {
+        animation: cs-a 6s linear infinite, fade-front 6s linear infinite;
+        animation-delay: var(--delay), var(--delay);
+      }
+      .depth .ball-b {
+        animation: cs-b 6s linear infinite, fade-back 6s linear infinite;
+        animation-delay: var(--delay), var(--delay);
+      }
+
+      @keyframes fade-front {
+        0%   { opacity: 1; }
+        25%  { opacity: 0.6; }
+        50%  { opacity: 0.15; }
+        75%  { opacity: 0.6; }
+        100% { opacity: 1; }
+      }
+      @keyframes fade-back {
+        0%   { opacity: 0.15; }
+        25%  { opacity: 0.6; }
+        50%  { opacity: 1; }
+        75%  { opacity: 0.6; }
+        100% { opacity: 0.15; }
+      }
+
+      /* ══════════════════════════════════════════════════
+         4. THICK BARS
+         ══════════════════════════════════════════════════ */
+      .thick .rod { height: 4px; opacity: 0.7; }
+      .thick .ball { width: 18px; height: 18px; }
+      .thick .ball-a { animation: cs-a 6s linear infinite; animation-delay: var(--delay); }
+      .thick .ball-b { animation: cs-b 6s linear infinite; animation-delay: var(--delay); }
+
+      /* ══════════════════════════════════════════════════
+         5. STRONG PERSPECTIVE
+         ══════════════════════════════════════════════════ */
+      .persp { perspective: 250px; }
+      .persp .ball { width: 18px; height: 18px; }
+      .persp .ball-a { animation: cs-a 6s linear infinite; animation-delay: var(--delay); }
+      .persp .ball-b { animation: cs-b 6s linear infinite; animation-delay: var(--delay); }
+    </style>
+  </head>
+  <body>
+
+    <div class="row">
+
+    <!-- 1. Original -->
+    <div class="variant">
+      <div class="scene original">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+        </div>
+      </div>
+      <span class="variant-label">Original</span>
+    </div>
+
+    <!-- 2. Multi-balls -->
+    <div class="variant">
+      <div class="scene multi">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+        </div>
+      </div>
+      <span class="variant-label">Multi-balls</span>
+    </div>
+
+    <!-- 3. Depth fade -->
+    <div class="variant">
+      <div class="scene depth">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+        </div>
+      </div>
+      <span class="variant-label">Depth fade</span>
+    </div>
+
+    <!-- 4. Thick bars -->
+    <div class="variant">
+      <div class="scene thick">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+        </div>
+      </div>
+      <span class="variant-label">Thick bars</span>
+    </div>
+
+    <!-- 5. Strong perspective -->
+    <div class="variant">
+      <div class="scene persp">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+        </div>
+      </div>
+      <span class="variant-label">Strong persp.</span>
+    </div>
+
+    </div><!-- /row -->
+
+    <!-- ── Icon-size row ──────────────────────────────── -->
+    <div class="row">
+
+    <div class="variant icon">
+      <div class="scene original">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant icon">
+      <div class="scene multi">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a1"></div><div class="ball ball-a2"></div><div class="ball ball-a3"></div><div class="ball ball-b1"></div><div class="ball ball-b2"></div><div class="ball ball-b3"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant icon">
+      <div class="scene depth">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant icon">
+      <div class="scene thick">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="variant icon">
+      <div class="scene persp">
+        <div class="dna">
+          <div class="rung" style="--y:-48px;--delay:-4.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:-24px;--delay:-5.25s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:0px;--delay:0s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:24px;--delay:-0.75s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+          <div class="rung" style="--y:48px;--delay:-1.5s"><div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div></div>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /row icons -->
+
+  </body>
+</html>

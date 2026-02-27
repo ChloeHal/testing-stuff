@@ -137,13 +137,26 @@ function ddStyle(top, left, minW) {
 }
 
 function FixedPopover({ isOpen, coords, popoverRef, minWidth, children }) {
-  if (!isOpen) return null;
+  const [visible, setVisible] = useState(false);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setVisible(true);
+      setAnimating(false);
+    } else if (visible) {
+      setAnimating(true);
+    }
+  }, [isOpen]);
+
+  if (!visible) return null;
   const { top, left } = clampPos(coords.top, coords.left, minWidth);
   return (
     <div
       ref={popoverRef}
       onMouseDown={(e) => e.stopPropagation()}
-      className="fixed z-[99999] rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900 animate-popover-in"
+      onAnimationEnd={() => { if (animating) { setVisible(false); setAnimating(false); } }}
+      className={`fixed z-[99999] rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900 will-change-transform ${animating ? "animate-popover-out" : "animate-popover-in"}`}
       style={{ top, left, minWidth, maxWidth: "calc(100vw - 16px)", transformOrigin: "top left" }}
     >
       {children}
@@ -1523,7 +1536,7 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, devFilterRules,
 
   return (
     <>
-      <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-all dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in">
+      <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-all dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in will-change-transform">
         {/* Condition text */}
         <button
           onClick={filter.locked ? undefined : onEdit}
@@ -1980,7 +1993,7 @@ function FilterChip({ filter, columns, onUpdate, onRemove, canEditAccess, devFil
   }
 
   return (
-    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in">
+    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in will-change-transform">
       <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 text-zinc-500 select-none dark:bg-zinc-800/50 dark:text-zinc-200">
         {Icon && (
           <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />
@@ -2132,7 +2145,7 @@ function SortOrderItem({ label, idx, vis }) {
 function SortOrderOverlay({ label, vis }) {
   if (!label) return null;
   return (
-    <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xl cursor-grabbing scale-[1.02]">
+    <div className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xl cursor-grabbing scale-[1.02] will-change-transform">
       <span className="w-0.5 h-3.5 rounded-full bg-zinc-400 dark:bg-zinc-500 flex-shrink-0" />
       <span className="text-[10px] text-zinc-300 w-4 text-center flex-shrink-0">
         ·
@@ -2213,7 +2226,7 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
   };
 
   return (
-    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in">
+    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in will-change-transform">
       <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 text-zinc-500 select-none dark:bg-zinc-800/50 dark:text-zinc-200">
         {Icon && (
           <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />
@@ -2793,7 +2806,7 @@ function ColVisOverlay({ col, hiddenColumns, lockedHiddenColumns }) {
   const isLocked = lockedHiddenColumns.has(col.id);
   return (
     <div
-      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xl cursor-grabbing min-w-[180px] scale-[1.02]
+      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xl cursor-grabbing min-w-[180px] scale-[1.02] will-change-transform
       ${isLocked || isHidden ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-600 dark:text-zinc-400"}`}
     >
       <span className="flex-shrink-0 w-0.5 h-3.5 rounded-full bg-zinc-400 dark:bg-zinc-500" />
@@ -3058,7 +3071,7 @@ function ColHeaderOverlay({ col, sorts, filters }) {
   const sort = sorts.find((s) => s.columnId === col.id);
   const isFiltered = filters.some((f) => f.columnId === col.id);
   return (
-    <div className="flex items-center gap-1.5 pl-1.5 pr-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded shadow-xl cursor-grabbing w-36 scale-[1.02]">
+    <div className="flex items-center gap-1.5 pl-1.5 pr-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded shadow-xl cursor-grabbing w-36 scale-[1.02] will-change-transform">
       <span className="flex-shrink-0 w-0.5 h-3 rounded-full bg-zinc-400 dark:bg-zinc-500" />
       {CIcon && (
         <CIcon
@@ -3957,7 +3970,7 @@ export default function DataToolbar() {
               onClick={filterDropdownPop.toggle}
               aria-expanded={filterDropdownPop.isOpen}
               aria-haspopup="listbox"
-              className={`inline-flex items-center gap-1.5 rounded-md border transition-all duration-150 text-xs font-medium active:scale-[0.97] ${
+              className={`inline-flex items-center gap-1.5 rounded-md border transition-all duration-150 text-xs font-medium active:scale-[0.97] will-change-transform ${
                 !hasUserFilters
                   ? "border-zinc-200 bg-white px-2.5 py-1 text-zinc-500 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
                   : "border-dashed border-zinc-400 w-6 h-6 justify-center bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
@@ -4004,7 +4017,7 @@ export default function DataToolbar() {
               onClick={sortPickerPop.toggle}
               aria-expanded={sortPickerPop.isOpen}
               aria-haspopup="listbox"
-              className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-500 transition-all duration-150 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 active:scale-[0.97] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-500 transition-all duration-150 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 active:scale-[0.97] will-change-transform dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
             >
               <ArrowUpDown size={13} />
               Ordonner
@@ -4023,7 +4036,7 @@ export default function DataToolbar() {
                 aria-expanded={sortPickerPop.isOpen}
                 aria-haspopup="listbox"
                 aria-label="Ajouter un tri"
-                className="inline-flex items-center justify-center rounded-md border border-dashed border-zinc-400 w-6 h-6 bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 transition-all duration-150 active:scale-[0.97] dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
+                className="inline-flex items-center justify-center rounded-md border border-dashed border-zinc-400 w-6 h-6 bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 transition-all duration-150 active:scale-[0.97] will-change-transform dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
               >
                 <Plus size={13} />
               </button>
