@@ -193,8 +193,7 @@
     <!-- ── Controls ───────────────────────────────────── -->
     <div class="controls">
       <div class="pause-btns">
-        <button onclick="play()" id="btn-play" class="active">Play</button>
-        <button onclick="pause()" id="btn-pause">Pause</button>
+        <button onclick="togglePlay()" id="btn-play">Pause</button>
         <button onclick="pauseAt(0)" id="btn-0">0°</button>
         <button onclick="pauseAt(90)" id="btn-90">90°</button>
       </div>
@@ -241,8 +240,8 @@
     </div>
     <div class="control">
       <label>Échelle icône</label>
-      <input type="range" min="10" max="100" value="30" oninput="document.getElementById('icon-scene').style.transform='scale('+this.value/100+')'; this.closest('.control').querySelector('.val').textContent=this.value+'%'">
-      <span class="val">30%</span>
+      <input type="range" min="10" max="100" value="30" oninput="setIconScale(this.value)">
+      <span class="val" id="icon-scale-val">30%</span>
     </div>
 
     <script>
@@ -323,28 +322,29 @@
         document.getElementById(id).classList.add('active');
       }
 
-      function play() {
-        if (currentPauseAngle === 'free') {
-          // Resume from where we are
-          document.querySelector('.scene').classList.remove('paused');
+      function togglePlay() {
+        if (currentPauseAngle === null) {
+          // Currently playing → pause
+          currentPauseAngle = 'free';
+          document.querySelectorAll('.scene').forEach(s => s.classList.add('paused'));
+          document.getElementById('btn-play').textContent = 'Play';
         } else {
-          // Restore base delays and restart
-          document.querySelectorAll('.rung').forEach(rung => {
-            rung.style.setProperty('--delay', rung.dataset.base + 's');
-          });
-          document.body.classList.add('reset-anim');
-          void document.body.offsetWidth;
-          document.body.classList.remove('reset-anim');
-          document.querySelector('.scene').classList.remove('paused');
+          // Currently paused → play
+          if (currentPauseAngle === 'free') {
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('paused'));
+          } else {
+            document.querySelectorAll('.rung').forEach(rung => {
+              rung.style.setProperty('--delay', rung.dataset.base + 's');
+            });
+            document.body.classList.add('reset-anim');
+            void document.body.offsetWidth;
+            document.body.classList.remove('reset-anim');
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('paused'));
+          }
+          currentPauseAngle = null;
+          document.getElementById('btn-play').textContent = 'Pause';
         }
-        currentPauseAngle = null;
         setActiveBtn('btn-play');
-      }
-
-      function pause() {
-        currentPauseAngle = 'free';
-        document.querySelector('.scene').classList.add('paused');
-        setActiveBtn('btn-pause');
       }
 
       function pauseAt(angle) {
@@ -354,19 +354,30 @@
           const base = parseFloat(rung.dataset.base);
           rung.style.setProperty('--delay', (base + shift) + 's');
         });
-        // Reset animations
-        document.querySelector('.scene').classList.remove('paused');
+        document.querySelectorAll('.scene').forEach(s => s.classList.remove('paused'));
         document.body.classList.add('reset-anim');
         void document.body.offsetWidth;
-        // Restart paused at exact position
         document.body.classList.remove('reset-anim');
-        document.querySelector('.scene').classList.add('paused');
+        document.querySelectorAll('.scene').forEach(s => s.classList.add('paused'));
+        document.getElementById('btn-play').textContent = 'Play';
         setActiveBtn('btn-' + angle);
+      }
+
+      /* ── Icon scale ────────────────────────────────── */
+      function setIconScale(val) {
+        const s = val / 100;
+        const scene = document.getElementById('icon-scene');
+        scene.style.transform = `scale(${s})`;
+        const orig = scene.offsetWidth; // layout size (square)
+        const margin = orig * (s - 1) / 2;
+        scene.style.margin = `${margin}px`;
+        document.getElementById('icon-scale-val').textContent = val + '%';
       }
 
       /* ── Init ────────────────────────────────────────── */
       buildKeyframes();
       buildRungs(5);
+      setIconScale(30);
     </script>
   </body>
 </html>
