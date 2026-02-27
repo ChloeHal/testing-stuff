@@ -22,7 +22,7 @@
   position: absolute;
   transform-style: preserve-3d;
   translate: 0 var(--y) 0;
-  animation: spin 6s linear infinite;
+  animation: spin 6s linear ;
   animation-delay: var(--delay);
 }
 
