@@ -11,6 +11,7 @@
         --rod-length: 80px;
         --spacing: 24px;
         --perspective: 400px;
+        --rung-count: 5;
       }
 
       body {
@@ -50,7 +51,49 @@
         font-weight: 600;
       }
 
-      .control input[type="range"] { width: 100px; }
+      .control input[type="range"] {
+        width: 100px;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 8px;
+        background: #e4e4e7;
+        border-radius: 9999px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      .control input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 9999px;
+        background: #18181b;
+        border: 2px solid #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: box-shadow 0.15s;
+      }
+
+      .control input[type="range"]::-webkit-slider-thumb:hover {
+        box-shadow: 0 0 0 4px rgba(24, 24, 27, 0.1);
+      }
+
+      .control input[type="range"]::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 9999px;
+        background: #18181b;
+        border: 2px solid #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+      }
+
+      .control input[type="range"]::-moz-range-track {
+        height: 8px;
+        background: #e4e4e7;
+        border-radius: 9999px;
+      }
 
       .control .val {
         font-size: 11px;
@@ -78,8 +121,13 @@
       .scene {
         perspective: none;
         display: flex; align-items: center; justify-content: center;
-        width: 200px; height: 200px;
+        --scene-w: calc(var(--rod-length) + var(--ball-size) * 2 + 60px);
+        --scene-h: calc((var(--rung-count) - 1) * var(--spacing) + var(--ball-size) * 2 + 60px);
+        --scene-size: max(var(--scene-w), var(--scene-h));
+        width: var(--scene-size);
+        height: var(--scene-size);
         background: black; border-radius: 20%;
+        transition: width 0.3s, height 0.3s;
       }
 
       .dna { position: relative; transform-style: preserve-3d; }
@@ -146,6 +194,7 @@
     <div class="controls">
       <div class="pause-btns">
         <button onclick="play()" id="btn-play" class="active">Play</button>
+        <button onclick="pause()" id="btn-pause">Pause</button>
         <button onclick="pauseAt(0)" id="btn-0">0°</button>
         <button onclick="pauseAt(90)" id="btn-90">90°</button>
       </div>
@@ -161,7 +210,7 @@
       </div>
       <div class="control">
         <label>Épaisseur</label>
-        <input type="range" min="1" max="8" value="2" step="0.5" oninput="setVar('--rod-height',this.value+'px',this)">
+        <input type="range" min="0" max="8" value="2" step="0.5" oninput="setVar('--rod-height',this.value+'px',this)">
         <span class="val">2px</span>
       </div>
       <div class="control">
@@ -192,14 +241,15 @@
 
       /* ── Build rung elements ─────────────────────────── */
       function buildRungs(count) {
+        document.documentElement.style.setProperty('--rung-count', count);
         const dna = document.getElementById('dna');
         dna.innerHTML = '';
         const step = 180 / (count - 1);
 
         for (let i = 0; i < count; i++) {
           const k = i - (count - 1) / 2;          // position from center
-          const angle = k * step;                   // helical twist angle
-          const delay = -(angle / 360) * DURATION;  // animation delay
+          const angle = k * step;                                    // helical twist angle
+          const delay = -(((angle % 360) + 360) % 360) / 360 * DURATION; // always negative
 
           const rung = document.createElement('div');
           rung.className = 'rung';
@@ -262,15 +312,27 @@
       }
 
       function play() {
+        if (currentPauseAngle === 'free') {
+          // Resume from where we are
+          document.querySelector('.scene').classList.remove('paused');
+        } else {
+          // Restore base delays and restart
+          document.querySelectorAll('.rung').forEach(rung => {
+            rung.style.setProperty('--delay', rung.dataset.base + 's');
+          });
+          document.body.classList.add('reset-anim');
+          void document.body.offsetWidth;
+          document.body.classList.remove('reset-anim');
+          document.querySelector('.scene').classList.remove('paused');
+        }
         currentPauseAngle = null;
-        document.querySelectorAll('.rung').forEach(rung => {
-          rung.style.setProperty('--delay', rung.dataset.base + 's');
-        });
-        document.body.classList.add('reset-anim');
-        void document.body.offsetWidth;
-        document.body.classList.remove('reset-anim');
-        document.querySelector('.scene').classList.remove('paused');
         setActiveBtn('btn-play');
+      }
+
+      function pause() {
+        currentPauseAngle = 'free';
+        document.querySelector('.scene').classList.add('paused');
+        setActiveBtn('btn-pause');
       }
 
       function pauseAt(angle) {
@@ -280,13 +342,13 @@
           const base = parseFloat(rung.dataset.base);
           rung.style.setProperty('--delay', (base + shift) + 's');
         });
-        document.body.classList.add('reset-anim');
+        // Reset animations
         document.querySelector('.scene').classList.remove('paused');
+        document.body.classList.add('reset-anim');
         void document.body.offsetWidth;
+        // Restart paused at exact position
         document.body.classList.remove('reset-anim');
-        requestAnimationFrame(() => {
-          document.querySelector('.scene').classList.add('paused');
-        });
+        document.querySelector('.scene').classList.add('paused');
         setActiveBtn('btn-' + angle);
       }
 
