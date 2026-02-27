@@ -225,7 +225,7 @@
       </div>
       <div class="control">
         <label>Perspective</label>
-        <input type="range" min="80" max="1500" value="400" oninput="setVar('--perspective',this.value+'px',this)">
+        <input type="range" min="75" max="750" value="400" oninput="setVar('--perspective',this.value+'px',this)">
         <span class="val">400px</span>
       </div>
     </div>
@@ -235,6 +235,16 @@
       <div class="dna" id="dna"></div>
     </div>
 
+    <!-- ── Icon preview ────────────────────────────────── -->
+    <div class="scene" id="icon-scene" style="transform: scale(0.3); transform-origin: center center;">
+      <div class="dna" id="dna-icon"></div>
+    </div>
+    <div class="control">
+      <label>Échelle icône</label>
+      <input type="range" min="10" max="100" value="30" oninput="document.getElementById('icon-scene').style.transform='scale('+this.value/100+')'; this.closest('.control').querySelector('.val').textContent=this.value+'%'">
+      <span class="val">30%</span>
+    </div>
+
     <script>
       const DURATION = 6;
       let currentPauseAngle = null; // null = playing
@@ -242,8 +252,8 @@
       /* ── Build rung elements ─────────────────────────── */
       function buildRungs(count) {
         document.documentElement.style.setProperty('--rung-count', count);
-        const dna = document.getElementById('dna');
-        dna.innerHTML = '';
+        const targets = [document.getElementById('dna'), document.getElementById('dna-icon')];
+        targets.forEach(dna => { dna.innerHTML = ''; });
         const step = 180 / (count - 1);
 
         for (let i = 0; i < count; i++) {
@@ -251,13 +261,15 @@
           const angle = k * step;                                    // helical twist angle
           const delay = -(((angle % 360) + 360) % 360) / 360 * DURATION; // always negative
 
-          const rung = document.createElement('div');
-          rung.className = 'rung';
-          rung.dataset.base = delay.toFixed(4);
-          rung.style.setProperty('--mult', k);
-          rung.style.setProperty('--delay', delay.toFixed(4) + 's');
-          rung.innerHTML = '<div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div>';
-          dna.appendChild(rung);
+          targets.forEach(dna => {
+            const rung = document.createElement('div');
+            rung.className = 'rung';
+            rung.dataset.base = delay.toFixed(4);
+            rung.style.setProperty('--mult', k);
+            rung.style.setProperty('--delay', delay.toFixed(4) + 's');
+            rung.innerHTML = '<div class="rod"></div><div class="ball ball-a"></div><div class="ball ball-b"></div>';
+            dna.appendChild(rung);
+          });
         }
 
         // Re-apply pause if needed
