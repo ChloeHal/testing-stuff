@@ -330,17 +330,14 @@
           document.getElementById('btn-play').textContent = 'Play';
         } else {
           // Currently paused → play
-          if (currentPauseAngle === 'free') {
-            document.querySelectorAll('.scene').forEach(s => s.classList.remove('paused'));
-          } else {
-            document.querySelectorAll('.rung').forEach(rung => {
-              rung.style.setProperty('--delay', rung.dataset.base + 's');
-            });
-            document.body.classList.add('reset-anim');
-            void document.body.offsetWidth;
-            document.body.classList.remove('reset-anim');
-            document.querySelectorAll('.scene').forEach(s => s.classList.remove('paused'));
-          }
+          // Restore base delays (in case pauseAt shifted them)
+          document.querySelectorAll('.rung').forEach(rung => {
+            rung.style.setProperty('--delay', rung.dataset.base + 's');
+          });
+          document.body.classList.add('reset-anim');
+          void document.body.offsetWidth;
+          document.body.classList.remove('reset-anim');
+          document.querySelectorAll('.scene').forEach(s => s.classList.remove('paused'));
           currentPauseAngle = null;
           document.getElementById('btn-play').textContent = 'Pause';
         }
