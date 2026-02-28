@@ -1,0 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --background: hsl(0 0% 96%);
+  --foreground: hsl(0 0% 9%);
+  --card: hsl(0 0% 100%);
+  --border: hsl(0 0% 85%);
+  --ring: hsl(0 0% 9%);
+  --primary: hsl(0 0% 9%);
+  --primary-foreground: hsl(0 0% 98%);
+  --muted: hsl(0 0% 92%);
+  --muted-foreground: hsl(0 0% 45%);
+  --radius: 6px;
+  --cell-size: 28px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.palette-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin-right: 2px;
+}
+
+.tool-btn {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tool-btn:hover {
+  background: var(--muted);
+}
+
+.tool-btn.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+/* Swatches */
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  padding: 0;
+}
+
+.swatch:hover {
+  box-shadow: 0 0 0 2px var(--muted-foreground);
+}
+
+.swatch.active {
+  box-shadow: 0 0 0 2px var(--ring);
+  border-color: var(--ring);
+}
+
+input[type="color"] {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  padding: 1px;
+  background: var(--card);
+}
+
+/* Editor area */
+.editor {
+  position: relative;
+  display: inline-block;
+  margin: 24px;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1px dashed hsl(0 0% 90%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.cell:hover {
+  background: hsl(0 0% 95%);
+}
+
+/* Bead */
+.bead {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Wire canvas overlay */
+#wire-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#wire-canvas.active {
+  pointer-events: auto;
+}

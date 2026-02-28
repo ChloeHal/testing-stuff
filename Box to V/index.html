@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morph Checkbox</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+
+    <div class="header">
+      <h1>Morph Checkbox</h1>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Task</h2>
+      </div>
+      <div class="card-content">
+        <div class="task-row" data-task>
+          <div class="checkbox-wrap">
+            <svg viewBox="0 0 28 28" width="22" height="22"></svg>
+          </div>
+          <span class="task-label">
+            Push to staging branch
+            <span class="strike"></span>
+          </span>
+        </div>
+        <div class="task-row" data-task>
+          <div class="checkbox-wrap">
+            <svg viewBox="0 0 28 28" width="22" height="22"></svg>
+          </div>
+          <span class="task-label">
+            Write ReadMe
+            <span class="strike"></span>
+          </span>
+        </div>
+        <div class="task-row" data-task>
+          <div class="checkbox-wrap">
+            <svg viewBox="0 0 28 28" width="22" height="22"></svg>
+          </div>
+          <span class="task-label">
+            Update documentation
+            <span class="strike"></span>
+          </span>
+        </div>
+        <div class="task-row" data-task>
+          <div class="checkbox-wrap">
+            <svg viewBox="0 0 28 28" width="22" height="22"></svg>
+          </div>
+          <span class="task-label">
+            Review pull request
+            <span class="strike"></span>
+          </span>
+        </div>
+        <div class="divider"></div>
+        <div class="switch-row">
+          <label for="slow-switch">Slow motion</label>
+          <button class="switch" id="slow-switch">
+            <span class="thumb"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

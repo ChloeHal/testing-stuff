@@ -1,0 +1,182 @@
+body {
+  margin: 0;
+  background: #e5e9f1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  gap: 24px;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* ── Header ──────────────────────────────────── */
+.header {
+  text-align: center;
+  max-width: 320px;
+}
+
+.header .tag {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  margin-bottom: 8px;
+  font-family: ui-monospace, monospace;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #18181b;
+  margin: 0;
+}
+
+.header p {
+  font-size: 14px;
+  color: #71717a;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+/* ── Card ────────────────────────────────────── */
+.card {
+  width: 100%;
+  max-width: 320px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.card-header {
+  padding: 20px 20px 12px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #71717a;
+  margin: 0;
+}
+
+.card-content {
+  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Task row ────────────────────────────────── */
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-wrap {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.checkbox-wrap svg {
+  display: block;
+  overflow: visible;
+}
+
+.task-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #18181b;
+  position: relative;
+  transition: color 0.3s 0.35s;
+}
+
+.task-label.done {
+  color: #a1a1aa;
+}
+
+.task-label .strike {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 1px;
+  width: 100%;
+  background: #a1a1aa;
+  pointer-events: none;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 0.4s 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.task-label.done .strike {
+  transform: scaleX(1);
+}
+
+/* Slow motion timing overrides */
+.slow .task-label {
+  transition: color 0.4s 1.2s;
+}
+
+.slow .task-label .strike {
+  transition: transform 0.8s 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Divider ─────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: #f4f4f5;
+}
+
+/* ── Switch row ──────────────────────────────── */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.switch-row label {
+  font-size: 12px;
+  color: #71717a;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ── Toggle switch (shadcn-like) ─────────────── */
+.switch {
+  width: 36px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #e4e4e7;
+  cursor: pointer;
+  position: relative;
+  border: none;
+  padding: 0;
+  transition: background 0.2s;
+}
+
+.switch.on {
+  background: #18181b;
+}
+
+.switch .thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s;
+}
+
+.switch.on .thumb {
+  transform: translateX(16px);
+}

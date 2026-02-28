@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Éditeur de patrons de fleurs en perles</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button class="tool-btn active" data-tool="bead">Perle</button>
+      <button class="tool-btn" data-tool="wire">Fil</button>
+      <button class="tool-btn" data-tool="eraser">Gomme</button>
+    </div>
+
+    <div class="toolbar-group" id="bead-palette">
+      <span class="palette-label">Perle :</span>
+      <button class="swatch active" data-color="#ffffff" style="background:#ffffff"></button>
+      <button class="swatch" data-color="#e11d48" style="background:#e11d48"></button>
+      <button class="swatch" data-color="#f472b6" style="background:#f472b6"></button>
+      <button class="swatch" data-color="#facc15" style="background:#facc15"></button>
+      <button class="swatch" data-color="#3b82f6" style="background:#3b82f6"></button>
+      <button class="swatch" data-color="#22c55e" style="background:#22c55e"></button>
+      <button class="swatch" data-color="#a855f7" style="background:#a855f7"></button>
+      <button class="swatch" data-color="#f97316" style="background:#f97316"></button>
+      <button class="swatch" data-color="#171717" style="background:#171717"></button>
+      <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
+      <input type="color" id="bead-custom-color" value="#e11d48" title="Couleur personnalisée">
+    </div>
+
+    <div class="toolbar-group" id="wire-palette">
+      <span class="palette-label">Fil :</span>
+      <button class="swatch active" data-color="#000000" style="background:#000000"></button>
+      <button class="swatch" data-color="#ffffff" style="background:#ffffff"></button>
+      <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
+      <button class="swatch" data-color="#a8a8a8" style="background:#a8a8a8"></button>
+      <input type="color" id="wire-custom-color" value="#000000" title="Couleur fil personnalisée">
+    </div>
+  </div>
+
+  <div class="editor">
+    <div class="grid" id="grid"></div>
+    <canvas id="wire-canvas"></canvas>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
