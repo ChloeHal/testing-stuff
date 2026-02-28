@@ -1,41 +1,154 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Éditeur de patrons de fleurs en perles</title>
+  <title>Bead Flower Pattern Editor</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z'/><path d='M15 3v5a1 1 0 0 0 1 1h5'/><path d='M8 13h.01'/><path d='M16 13h.01'/><path d='M10 16s.8 1 2 1c1.3 0 2-1 2-1'/></svg>">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="header-logo-wrap">
+          <svg class="header-logo" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z"/>
+            <path d="M15 3v5a1 1 0 0 0 1 1h5"/>
+            <path d="M8 13h.01"/>
+            <path d="M16 13h.01"/>
+            <path d="M10 16s.8 1 2 1c1.3 0 2-1 2-1"/>
+          </svg>
+        </div>
+        <div class="header-text">
+          <h1 class="header-title">Bead Flower</h1>
+          <span class="header-subtitle">Pattern Editor</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="header-deco">
+          <span class="deco-bead" style="--c:#e11d48"></span>
+          <span class="deco-wire"></span>
+          <span class="deco-bead" style="--c:#3b82f6"></span>
+          <span class="deco-wire"></span>
+          <span class="deco-bead" style="--c:#eab308"></span>
+          <span class="deco-wire"></span>
+          <span class="deco-bead" style="--c:#22c55e"></span>
+          <span class="deco-wire"></span>
+          <span class="deco-bead" style="--c:#a855f7"></span>
+          <span class="deco-wire"></span>
+          <span class="deco-bead" style="--c:#f59e0b"></span>
+        </div>
+        <div class="header-credits">
+          <span class="credit-name"><a href="https://chlohal.com" target="_blank" rel="noopener" class="credit-link" title="portfolio">@chlohal</a></span>
+          <div class="credit-links">
+            <a href="https://github.com/chloehal" target="_blank" rel="noopener" class="credit-link" title="GitHub">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            </a>
+            <a href="https://x.com/chlohal" target="_blank" rel="noopener" class="credit-link" title="X">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
   <div class="toolbar">
-    <div class="toolbar-group">
-      <button class="tool-btn active" data-tool="bead">Perle</button>
-      <button class="tool-btn" data-tool="wire">Fil</button>
-      <button class="tool-btn" data-tool="eraser">Gomme</button>
+    <div class="toolbar-row">
+      <div class="toolbar-group">
+        <button class="tool-btn active" data-tool="bead">Bead</button>
+        <button class="tool-btn" data-tool="wire">Wire</button>
+        <button class="tool-btn" data-tool="loop">Loop</button>
+        <button class="tool-btn" data-tool="torsade">Twist</button>
+        <button class="tool-btn" data-tool="rotate">Rotate</button>
+        <button class="tool-btn" data-tool="move">Move</button>
+        <button class="tool-btn" data-tool="eraser">Eraser</button>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="toolbar-group option-group" id="loop-options">
+        <label class="option-label">Beads:</label>
+        <input type="number" id="loop-count" value="6" min="3" max="24" class="num-input">
+      </div>
+
+      <div class="toolbar-group option-group" id="torsade-options">
+        <label class="option-label">Twists:</label>
+        <button class="twist-btn active" data-twists="3">3x</button>
+        <button class="twist-btn" data-twists="7">7x</button>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="toolbar-group">
+        <button class="action-btn" id="btn-undo" title="Ctrl+Z">&larr; Undo</button>
+        <button class="action-btn" id="btn-redo" title="Ctrl+Shift+Z">Redo &rarr;</button>
+        <button class="action-btn danger" id="btn-reset">Reset</button>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="toolbar-group">
+        <button class="action-btn" id="btn-colorblind">Colorblind</button>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="toolbar-group">
+        <button class="export-btn" id="export-grid">PNG + grid</button>
+        <button class="export-btn" id="export-no-grid">PNG</button>
+      </div>
     </div>
 
-    <div class="toolbar-group" id="bead-palette">
-      <span class="palette-label">Perle :</span>
-      <button class="swatch active" data-color="#ffffff" style="background:#ffffff"></button>
-      <button class="swatch" data-color="#e11d48" style="background:#e11d48"></button>
-      <button class="swatch" data-color="#f472b6" style="background:#f472b6"></button>
-      <button class="swatch" data-color="#facc15" style="background:#facc15"></button>
-      <button class="swatch" data-color="#3b82f6" style="background:#3b82f6"></button>
-      <button class="swatch" data-color="#22c55e" style="background:#22c55e"></button>
-      <button class="swatch" data-color="#a855f7" style="background:#a855f7"></button>
-      <button class="swatch" data-color="#f97316" style="background:#f97316"></button>
-      <button class="swatch" data-color="#171717" style="background:#171717"></button>
-      <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
-      <input type="color" id="bead-custom-color" value="#e11d48" title="Couleur personnalisée">
-    </div>
+    <div class="toolbar-row">
+      <div class="toolbar-group" id="bead-palette">
+        <span class="palette-label">Bead:</span>
+        <button class="swatch active" data-color="#ffffff" style="background:#ffffff"></button>
+        <button class="swatch" data-color="#d4d4d4" style="background:#d4d4d4"></button>
+        <button class="swatch" data-color="#737373" style="background:#737373"></button>
+        <button class="swatch" data-color="#171717" style="background:#171717"></button>
+        <button class="swatch" data-color="#ef4444" style="background:#ef4444"></button>
+        <button class="swatch" data-color="#e11d48" style="background:#e11d48"></button>
+        <button class="swatch" data-color="#fb7185" style="background:#fb7185"></button>
+        <button class="swatch" data-color="#ec4899" style="background:#ec4899"></button>
+        <button class="swatch" data-color="#d946ef" style="background:#d946ef"></button>
+        <button class="swatch" data-color="#a855f7" style="background:#a855f7"></button>
+        <button class="swatch" data-color="#8b5cf6" style="background:#8b5cf6"></button>
+        <button class="swatch" data-color="#6366f1" style="background:#6366f1"></button>
+        <button class="swatch" data-color="#3b82f6" style="background:#3b82f6"></button>
+        <button class="swatch" data-color="#0ea5e9" style="background:#0ea5e9"></button>
+        <button class="swatch" data-color="#06b6d4" style="background:#06b6d4"></button>
+        <button class="swatch" data-color="#14b8a6" style="background:#14b8a6"></button>
+        <button class="swatch" data-color="#22c55e" style="background:#22c55e"></button>
+        <button class="swatch" data-color="#84cc16" style="background:#84cc16"></button>
+        <button class="swatch" data-color="#eab308" style="background:#eab308"></button>
+        <button class="swatch" data-color="#f59e0b" style="background:#f59e0b"></button>
+        <button class="swatch" data-color="#f97316" style="background:#f97316"></button>
+        <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
+        <input type="color" id="bead-custom-color" value="#ef4444" title="Custom color">
+      </div>
 
-    <div class="toolbar-group" id="wire-palette">
-      <span class="palette-label">Fil :</span>
-      <button class="swatch active" data-color="#000000" style="background:#000000"></button>
-      <button class="swatch" data-color="#ffffff" style="background:#ffffff"></button>
-      <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
-      <button class="swatch" data-color="#a8a8a8" style="background:#a8a8a8"></button>
-      <input type="color" id="wire-custom-color" value="#000000" title="Couleur fil personnalisée">
+      <div class="separator"></div>
+
+      <div class="toolbar-group" id="wire-palette">
+        <span class="palette-label">Wire:</span>
+        <button class="swatch active" data-color="#171717" style="background:#171717"></button>
+        <button class="swatch" data-color="#ffffff" style="background:#ffffff"></button>
+        <button class="swatch" data-color="#737373" style="background:#737373"></button>
+        <button class="swatch" data-color="#ef4444" style="background:#ef4444"></button>
+        <button class="swatch" data-color="#ec4899" style="background:#ec4899"></button>
+        <button class="swatch" data-color="#d946ef" style="background:#d946ef"></button>
+        <button class="swatch" data-color="#3b82f6" style="background:#3b82f6"></button>
+        <button class="swatch" data-color="#06b6d4" style="background:#06b6d4"></button>
+        <button class="swatch" data-color="#22c55e" style="background:#22c55e"></button>
+        <button class="swatch" data-color="#eab308" style="background:#eab308"></button>
+        <button class="swatch" data-color="#f97316" style="background:#f97316"></button>
+        <button class="swatch" data-color="#8b5cf6" style="background:#8b5cf6"></button>
+        <button class="swatch" data-color="#78350f" style="background:#78350f"></button>
+        <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
+        <button class="swatch" data-color="#a8a8a8" style="background:#a8a8a8"></button>
+        <input type="color" id="wire-custom-color" value="#171717" title="Custom wire color">
+      </div>
     </div>
   </div>
 

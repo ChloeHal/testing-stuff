@@ -4,71 +4,269 @@
   --background: hsl(0 0% 96%);
   --foreground: hsl(0 0% 9%);
   --card: hsl(0 0% 100%);
-  --border: hsl(0 0% 85%);
+  --border: hsl(0 0% 87%);
   --ring: hsl(0 0% 9%);
   --primary: hsl(0 0% 9%);
   --primary-foreground: hsl(0 0% 98%);
-  --muted: hsl(0 0% 92%);
+  --muted: hsl(0 0% 93%);
   --muted-foreground: hsl(0 0% 45%);
   --radius: 6px;
   --cell-size: 28px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: 'Inter', sans-serif;
   background: var(--background);
   color: var(--foreground);
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* Toolbar */
-.toolbar {
+/* ─── Header ──────────────────────────────────────────── */
+
+.app-header {
+  background: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(260 20% 14%) 50%, hsl(330 15% 12%) 100%);
+  color: #fff;
+  flex-shrink: 0;
+  padding: 0 16px;
+  overflow: hidden;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  max-width: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo-wrap {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.header-logo {
+  display: block;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.header-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.header-subtitle {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.55;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* Header right side */
+.header-right {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 10px 16px;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
 }
 
-.toolbar-group {
+/* Decorative bead chain */
+.header-deco {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  opacity: 0.45;
+}
+
+.deco-bead {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+  flex-shrink: 0;
+  box-shadow: 0 0 4px rgba(255,255,255,0.15);
+}
+
+.deco-wire {
+  width: 14px;
+  height: 0;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+/* Credits */
+.header-credits {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.credit-name {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.credit-links {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.palette-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  margin-right: 2px;
+.credit-link {
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.15s, transform 0.15s;
+  display: flex;
+  align-items: center;
+}
+.credit-link:hover {
+  color: #fff;
+  transform: scale(1.15);
 }
 
+@media (max-width: 600px) {
+  .header-deco { display: none; }
+}
+
+/* ─── Toolbar ──────────────────────────────────────────── */
+
+.toolbar {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  flex-shrink: 0;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toolbar-row + .toolbar-row { margin-top: 8px; }
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.separator {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.palette-label,
+.option-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* Buttons */
 .tool-btn {
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
   color: var(--foreground);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
-
-.tool-btn:hover {
-  background: var(--muted);
-}
-
+.tool-btn:hover { background: var(--muted); }
 .tool-btn.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.twist-btn {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.twist-btn:hover { background: var(--muted); }
+.twist-btn.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.num-input {
+  font-family: inherit;
+  font-size: 12px;
+  width: 48px;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  text-align: center;
+}
+
+.action-btn,
+.export-btn {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.action-btn:hover,
+.export-btn:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+.action-btn.danger { color: hsl(0 60% 50%); border-color: hsl(0 40% 80%); }
+.action-btn.danger:hover { background: hsl(0 60% 96%); color: hsl(0 60% 40%); }
+.action-btn.toggle-on {
   background: var(--primary);
   color: var(--primary-foreground);
   border-color: var(--primary);
@@ -76,27 +274,41 @@ body {
 
 /* Swatches */
 .swatch {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 2px solid var(--border);
+  border: 1.5px solid var(--border);
   cursor: pointer;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition: box-shadow 0.12s, border-color 0.12s;
   padding: 0;
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: transparent;
+  overflow: hidden;
 }
+.swatch:hover { box-shadow: 0 0 0 2px var(--muted-foreground); }
+.swatch.active { box-shadow: 0 0 0 2px var(--ring); border-color: var(--ring); }
 
-.swatch:hover {
-  box-shadow: 0 0 0 2px var(--muted-foreground);
+/* Wire swatch dash indicator (colorblind) */
+.swatch .wire-dash {
+  position: absolute;
+  inset: 0;
+  display: none;
 }
-
-.swatch.active {
-  box-shadow: 0 0 0 2px var(--ring);
-  border-color: var(--ring);
+.swatch .wire-dash svg {
+  width: 100%;
+  height: 100%;
 }
 
 input[type="color"] {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
@@ -104,55 +316,61 @@ input[type="color"] {
   background: var(--card);
 }
 
-/* Editor area */
+.option-group { display: none; }
+.option-group.visible { display: flex; align-items: center; gap: 5px; }
+
+/* ─── Editor / Grid ────────────────────────────────────── */
+
 .editor {
   position: relative;
-  display: inline-block;
-  margin: 24px;
+  flex: 1;
+  overflow: hidden;
 }
 
-/* Grid */
 .grid {
   display: grid;
   position: relative;
   z-index: 1;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
   background: var(--card);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .cell {
   width: var(--cell-size);
   height: var(--cell-size);
-  border: 1px dashed hsl(0 0% 90%);
-  cursor: pointer;
+  border: 1px solid hsl(0 0% 93%);
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
 }
+.cell:hover { background: hsl(0 0% 96%); }
 
-.cell:hover {
-  background: hsl(0 0% 95%);
-}
-
-/* Bead */
+/* Bead — flat */
 .bead {
   width: 22px;
   height: 22px;
   border-radius: 50%;
   pointer-events: none;
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Wire canvas overlay */
+.bead-symbol {
+  font-size: 11px;
+  line-height: 1;
+  pointer-events: none;
+  font-weight: 600;
+}
+
+/* Canvas overlay */
 #wire-canvas {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 2;
   pointer-events: none;
-}
-
-#wire-canvas.active {
-  pointer-events: auto;
 }
