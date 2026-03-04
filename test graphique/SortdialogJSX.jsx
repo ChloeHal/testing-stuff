@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useLayoutEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   DndContext,
   DragOverlay,
@@ -139,28 +140,36 @@ function ddStyle(top, left, minW) {
 function FixedPopover({ isOpen, coords, popoverRef, minWidth, children }) {
   const [visible, setVisible] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const [entered, setEntered] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setVisible(true);
       setAnimating(false);
+      setEntered(false);
     } else if (visible) {
       setAnimating(true);
+      setEntered(false);
     }
   }, [isOpen]);
 
   if (!visible) return null;
   const { top, left } = clampPos(coords.top, coords.left, minWidth);
-  return (
+  const showAnim = animating ? "animate-popover-out" : entered ? "" : "animate-popover-in";
+  return createPortal(
     <div
       ref={popoverRef}
       onMouseDown={(e) => e.stopPropagation()}
-      onAnimationEnd={() => { if (animating) { setVisible(false); setAnimating(false); } }}
-      className={`fixed z-[99999] rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900 will-change-transform ${animating ? "animate-popover-out" : "animate-popover-in"}`}
+      onAnimationEnd={() => {
+        if (animating) { setVisible(false); setAnimating(false); }
+        else { setEntered(true); }
+      }}
+      className={`fixed z-[99999] rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900 ${!entered && !animating ? "will-change-transform" : ""} ${showAnim}`}
       style={{ top, left, minWidth, maxWidth: "calc(100vw - 16px)", transformOrigin: "top left" }}
     >
       {children}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -2118,15 +2127,15 @@ function SortOrderItem({ label, idx, vis }) {
   return (
     <div
       ref={setNodeRef}
+      {...attributes}
+      {...listeners}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-all duration-200
+      className={`group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-grab touch-none
         ${isDragging ? "opacity-30 scale-[0.98] cursor-grabbing" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"}`}
     >
       <span
-        {...attributes}
-        {...listeners}
-        aria-label={`Déplacer "${label}"`}
-        className="w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+        aria-hidden="true"
+        className="w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity duration-150"
       />
       <span className="text-[10px] text-zinc-300 w-4 text-center flex-shrink-0">
         {idx + 1}
@@ -3184,6 +3193,193 @@ function TableHeader({
 }
 
 /* ═══════════════════════════════════════════════════════
+   TABLE BODY  (données fictives)
+   ═══════════════════════════════════════════════════════ */
+const MOCK_ROWS = [
+  { col_name: "Refonte page d'accueil", col_price: 4500, col_date: "2025-06-15", col_done: true, col_status: "Terminé", col_priority: "Haute", col_tags: ["Design", "Frontend"], col_email: "lea@studio.fr", col_phone: "+33 6 12 34 56 78", col_url: "https://figma.com/file/abc", col_location: "Paris", col_relation: "Site vitrine", col_formula: 5400, col_user: "Léa M.", col_file: "maquette-v3.fig", col_emoji: "🎨", col_rollup: 12000, col_created: "2025-03-10", col_id: "REF-001" },
+  { col_name: "API paiement Stripe", col_price: 8200, col_date: "2025-07-01", col_done: false, col_status: "En cours", col_priority: "Urgent", col_tags: ["Backend", "Paiement"], col_email: "marc@dev.io", col_phone: "+33 7 98 76 54 32", col_url: "https://stripe.com/docs", col_location: "Lyon", col_relation: "E-commerce", col_formula: 9840, col_user: "Marc D.", col_file: "spec-api.pdf", col_emoji: "💳", col_rollup: 25000, col_created: "2025-04-02", col_id: "REF-002" },
+  { col_name: "Migration base de données", col_price: 3200, col_date: "2025-05-20", col_done: true, col_status: "Terminé", col_priority: "Normale", col_tags: ["Infra", "Backend"], col_email: "sophie@ops.dev", col_phone: "+33 6 55 44 33 22", col_url: "https://postgresql.org", col_location: "Remote", col_relation: "Infrastructure", col_formula: 3840, col_user: "Sophie R.", col_file: "migration-plan.sql", col_emoji: "🗄️", col_rollup: 8500, col_created: "2025-02-18", col_id: "REF-003" },
+  { col_name: "Tests E2E Cypress", col_price: 2800, col_date: "2025-08-10", col_done: false, col_status: "À faire", col_priority: "Basse", col_tags: ["QA", "Tests"], col_email: "julien@test.co", col_phone: "+33 6 11 22 33 44", col_url: "https://cypress.io", col_location: "Bordeaux", col_relation: "E-commerce", col_formula: 3360, col_user: "Julien P.", col_file: "test-plan.md", col_emoji: "🧪", col_rollup: 6000, col_created: "2025-05-01", col_id: "REF-004" },
+  { col_name: "Design system composants", col_price: 6100, col_date: "2025-06-30", col_done: false, col_status: "En cours", col_priority: "Haute", col_tags: ["Design", "UI"], col_email: "nina@ux.studio", col_phone: "+33 7 66 55 44 33", col_url: "https://storybook.js.org", col_location: "Paris", col_relation: "Design System", col_formula: 7320, col_user: "Nina K.", col_file: "tokens.json", col_emoji: "🧩", col_rollup: 18000, col_created: "2025-03-25", col_id: "REF-005" },
+  { col_name: "Audit accessibilité RGAA", col_price: 3900, col_date: "2025-09-15", col_done: false, col_status: "À faire", col_priority: "Normale", col_tags: ["A11y", "Audit"], col_email: "paul@a11y.fr", col_phone: "+33 6 77 88 99 00", col_url: "https://accessibilite.numerique.gouv.fr", col_location: "Nantes", col_relation: "Site vitrine", col_formula: 4680, col_user: "Paul V.", col_file: "rapport-rgaa.pdf", col_emoji: "♿", col_rollup: 9200, col_created: "2025-04-15", col_id: "REF-006" },
+  { col_name: "Optimisation SEO technique", col_price: 2100, col_date: "2025-07-20", col_done: false, col_status: "En cours", col_priority: "Normale", col_tags: ["SEO", "Frontend"], col_email: "emma@growth.io", col_phone: "+33 6 22 33 44 55", col_url: "https://search.google.com/console", col_location: "Remote", col_relation: "Site vitrine", col_formula: 2520, col_user: "Emma L.", col_file: "seo-audit.xlsx", col_emoji: "🔍", col_rollup: 5500, col_created: "2025-05-12", col_id: "REF-007" },
+  { col_name: "Newsletter automatisée", col_price: 1800, col_date: "2025-08-01", col_done: false, col_status: "À faire", col_priority: "Basse", col_tags: ["Marketing", "Email"], col_email: "clara@mail.dev", col_phone: "+33 7 11 22 33 44", col_url: "https://resend.com", col_location: "Toulouse", col_relation: "Marketing", col_formula: 2160, col_user: "Clara B.", col_file: "template-nl.html", col_emoji: "📧", col_rollup: 4200, col_created: "2025-06-01", col_id: "REF-008" },
+  { col_name: "Chatbot support client", col_price: 7600, col_date: "2025-09-01", col_done: false, col_status: "En cours", col_priority: "Urgent", col_tags: ["IA", "Backend"], col_email: "ali@ai-lab.dev", col_phone: "+33 6 33 44 55 66", col_url: "https://openai.com/api", col_location: "Paris", col_relation: "E-commerce", col_formula: 9120, col_user: "Ali H.", col_file: "prompt-specs.md", col_emoji: "🤖", col_rollup: 22000, col_created: "2025-05-20", col_id: "REF-009" },
+  { col_name: "Intégration CRM Hubspot", col_price: 5400, col_date: "2025-07-15", col_done: false, col_status: "À faire", col_priority: "Haute", col_tags: ["Intégration", "CRM"], col_email: "lucie@sales.fr", col_phone: "+33 7 55 66 77 88", col_url: "https://developers.hubspot.com", col_location: "Lyon", col_relation: "Marketing", col_formula: 6480, col_user: "Lucie T.", col_file: "crm-mapping.xlsx", col_emoji: "🔗", col_rollup: 15000, col_created: "2025-04-10", col_id: "REF-010" },
+  { col_name: "App mobile React Native", col_price: 12000, col_date: "2025-10-30", col_done: false, col_status: "En cours", col_priority: "Urgent", col_tags: ["Mobile", "Frontend"], col_email: "thomas@app.dev", col_phone: "+33 6 44 55 66 77", col_url: "https://reactnative.dev", col_location: "Bordeaux", col_relation: "E-commerce", col_formula: 14400, col_user: "Thomas G.", col_file: "wireframes.fig", col_emoji: "📱", col_rollup: 35000, col_created: "2025-03-01", col_id: "REF-011" },
+  { col_name: "Monitoring Datadog", col_price: 2900, col_date: "2025-06-20", col_done: true, col_status: "Terminé", col_priority: "Normale", col_tags: ["Infra", "DevOps"], col_email: "kevin@devops.io", col_phone: "+33 6 88 99 00 11", col_url: "https://datadoghq.com", col_location: "Remote", col_relation: "Infrastructure", col_formula: 3480, col_user: "Kevin S.", col_file: "dashboards.json", col_emoji: "📊", col_rollup: 7800, col_created: "2025-02-25", col_id: "REF-012" },
+  { col_name: "SSO SAML entreprise", col_price: 4800, col_date: "2025-08-20", col_done: false, col_status: "À faire", col_priority: "Haute", col_tags: ["Sécurité", "Auth"], col_email: "ines@sec.dev", col_phone: "+33 7 22 33 44 55", col_url: "https://auth0.com", col_location: "Nantes", col_relation: "Infrastructure", col_formula: 5760, col_user: "Inès A.", col_file: "sso-flow.pdf", col_emoji: "🔐", col_rollup: 11000, col_created: "2025-05-08", col_id: "REF-013" },
+  { col_name: "Export PDF rapports", col_price: 1500, col_date: "2025-06-10", col_done: true, col_status: "Terminé", col_priority: "Basse", col_tags: ["Backend", "PDF"], col_email: "remi@tools.fr", col_phone: "+33 6 99 88 77 66", col_url: "https://pdfkit.org", col_location: "Toulouse", col_relation: "Site vitrine", col_formula: 1800, col_user: "Rémi F.", col_file: "template-rapport.html", col_emoji: "📄", col_rollup: 3500, col_created: "2025-04-20", col_id: "REF-014" },
+  { col_name: "Tableau de bord analytics", col_price: 5800, col_date: "2025-09-10", col_done: false, col_status: "En cours", col_priority: "Haute", col_tags: ["Data", "Frontend"], col_email: "chloe@data.io", col_phone: "+33 6 11 00 99 88", col_url: "https://recharts.org", col_location: "Paris", col_relation: "E-commerce", col_formula: 6960, col_user: "Chloé D.", col_file: "dashboard-specs.fig", col_emoji: "📈", col_rollup: 16500, col_created: "2025-06-05", col_id: "REF-015" },
+  { col_name: "Gestion des rôles RBAC", col_price: 3600, col_date: "2025-07-25", col_done: false, col_status: "À faire", col_priority: "Normale", col_tags: ["Sécurité", "Backend"], col_email: "omar@auth.dev", col_phone: "+33 7 44 33 22 11", col_url: "https://casl.js.org", col_location: "Lyon", col_relation: "Infrastructure", col_formula: 4320, col_user: "Omar N.", col_file: "rbac-matrix.md", col_emoji: "🛡️", col_rollup: 8800, col_created: "2025-05-15", col_id: "REF-016" },
+  { col_name: "Recherche full-text Algolia", col_price: 4200, col_date: "2025-08-15", col_done: false, col_status: "En cours", col_priority: "Normale", col_tags: ["Search", "Frontend"], col_email: "maya@search.co", col_phone: "+33 6 55 44 33 22", col_url: "https://algolia.com", col_location: "Remote", col_relation: "E-commerce", col_formula: 5040, col_user: "Maya J.", col_file: "index-config.json", col_emoji: "🔎", col_rollup: 10200, col_created: "2025-04-28", col_id: "REF-017" },
+  { col_name: "CI/CD pipeline GitHub Actions", col_price: 2200, col_date: "2025-06-05", col_done: true, col_status: "Terminé", col_priority: "Haute", col_tags: ["DevOps", "CI/CD"], col_email: "axel@ops.dev", col_phone: "+33 7 88 77 66 55", col_url: "https://github.com/features/actions", col_location: "Remote", col_relation: "Infrastructure", col_formula: 2640, col_user: "Axel R.", col_file: "workflows.yml", col_emoji: "⚙️", col_rollup: 5000, col_created: "2025-03-15", col_id: "REF-018" },
+  { col_name: "Formulaire multi-étapes", col_price: 3100, col_date: "2025-07-10", col_done: false, col_status: "En cours", col_priority: "Normale", col_tags: ["Frontend", "UX"], col_email: "sara@ux.studio", col_phone: "+33 6 77 66 55 44", col_url: "https://react-hook-form.com", col_location: "Bordeaux", col_relation: "Site vitrine", col_formula: 3720, col_user: "Sara M.", col_file: "form-flow.fig", col_emoji: "📝", col_rollup: 7200, col_created: "2025-05-25", col_id: "REF-019" },
+  { col_name: "Localisation i18n", col_price: 2600, col_date: "2025-10-01", col_done: false, col_status: "À faire", col_priority: "Basse", col_tags: ["i18n", "Frontend"], col_email: "yuki@intl.dev", col_phone: "+33 7 33 22 11 00", col_url: "https://i18next.com", col_location: "Paris", col_relation: "E-commerce", col_formula: 3120, col_user: "Yuki T.", col_file: "translations-fr.json", col_emoji: "🌍", col_rollup: 6400, col_created: "2025-06-10", col_id: "REF-020" },
+];
+
+function applyFilter(row, f) {
+  const val = row[f.columnId];
+  const fv = f.value;
+  if (fv == null || fv === "") return true;
+  switch (f.operator) {
+    case "is": return String(val) === String(fv);
+    case "is_not": return String(val) !== String(fv);
+    case "contains": return String(val ?? "").toLowerCase().includes(String(fv).toLowerCase());
+    case "not_contains": return !String(val ?? "").toLowerCase().includes(String(fv).toLowerCase());
+    case "starts_with": return String(val ?? "").toLowerCase().startsWith(String(fv).toLowerCase());
+    case "ends_with": return String(val ?? "").toLowerCase().endsWith(String(fv).toLowerCase());
+    case "is_empty": return val == null || val === "" || (Array.isArray(val) && val.length === 0);
+    case "is_not_empty": return val != null && val !== "" && !(Array.isArray(val) && val.length === 0);
+    case "gt": return Number(val) > Number(fv);
+    case "lt": return Number(val) < Number(fv);
+    case "gte": return Number(val) >= Number(fv);
+    case "lte": return Number(val) <= Number(fv);
+    case "is_checked": return !!val;
+    case "is_unchecked": return !val;
+    default: return true;
+  }
+}
+
+function applySorts(rows, sorts) {
+  if (!sorts.length) return rows;
+  return [...rows].sort((a, b) => {
+    for (const s of sorts) {
+      const dir = s.direction === "asc" ? 1 : -1;
+      if (s.customOrder) {
+        const ai = s.customOrder.indexOf(a[s.columnId]);
+        const bi = s.customOrder.indexOf(b[s.columnId]);
+        const aIdx = ai === -1 ? 999 : ai;
+        const bIdx = bi === -1 ? 999 : bi;
+        if (aIdx !== bIdx) return (aIdx - bIdx) * dir;
+        continue;
+      }
+      const av = a[s.columnId];
+      const bv = b[s.columnId];
+      if (av == null && bv == null) continue;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === "boolean") {
+        if (av !== bv) return (av ? 1 : -1) * dir;
+        continue;
+      }
+      if (typeof av === "number" && typeof bv === "number") {
+        if (av !== bv) return (av - bv) * dir;
+        continue;
+      }
+      const cmp = String(av).localeCompare(String(bv), "fr");
+      if (cmp !== 0) return cmp * dir;
+    }
+    return 0;
+  });
+}
+
+function TableBody({ columns, hiddenColumns, lockedHiddenColumns, sorts, filters }) {
+  const visibleColumns = columns.filter(
+    (c) => !hiddenColumns.has(c.id) && !lockedHiddenColumns.has(c.id),
+  );
+
+  const filteredRows = useMemo(() => {
+    let rows = MOCK_ROWS;
+    if (filters.length) {
+      rows = rows.filter((row) => filters.every((f) => applyFilter(row, f)));
+    }
+    if (sorts.length) {
+      rows = applySorts(rows, sorts);
+    }
+    return rows;
+  }, [filters, sorts]);
+
+  const renderCell = (row, col, idx) => {
+    const val = row[col.id];
+    if (val == null) return <span className="text-zinc-300 dark:text-zinc-600">—</span>;
+
+    switch (col.type) {
+      case "checkbox":
+        return val
+          ? <CheckSquare size={14} className="text-zinc-700 dark:text-zinc-300" />
+          : <span className="w-3.5 h-3.5 rounded border border-zinc-300 dark:border-zinc-600 inline-block" />;
+      case "number":
+      case "formula":
+      case "rollup":
+        return <span className="tabular-nums">{typeof val === "number" ? val.toLocaleString("fr-FR") : val}</span>;
+      case "date":
+      case "created_modified":
+        return <span className="tabular-nums">{val}</span>;
+      case "select": {
+        const mock = MOCK_VALUES[col.id];
+        const item = mock?.items?.find((i) => (typeof i === "object" ? i.label : i) === val);
+        const color = typeof item === "object" ? item.color : "bg-zinc-400";
+        return (
+          <span className="inline-flex items-center gap-1.5">
+            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${color}`} />
+            {val}
+          </span>
+        );
+      }
+      case "status": {
+        const mock = MOCK_VALUES[col.id];
+        const item = mock?.items?.find((i) => (typeof i === "object" ? i.label : i) === val);
+        const color = typeof item === "object" ? item.color : "bg-zinc-400";
+        return (
+          <span className="inline-flex items-center gap-1.5">
+            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${color}`} />
+            {val}
+          </span>
+        );
+      }
+      case "tags":
+        return (
+          <div className="flex flex-wrap gap-1">
+            {(Array.isArray(val) ? val : [val]).map((t) => (
+              <span key={t} className="px-1.5 py-0.5 text-[10px] rounded bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">{t}</span>
+            ))}
+          </div>
+        );
+      case "url":
+        return <span className="text-blue-500 underline truncate">{val.replace(/^https?:\/\//, "")}</span>;
+      case "email":
+        return <span className="text-zinc-600 dark:text-zinc-400">{val}</span>;
+      case "emoji":
+        return <span className="text-base">{val}</span>;
+      default:
+        return <span className="truncate">{String(val)}</span>;
+    }
+  };
+
+  return (
+    <div className="font-sans">
+      {filteredRows.length === 0 ? (
+        <div className="flex items-center justify-center py-12 text-sm text-zinc-400 dark:text-zinc-500">
+          Aucun résultat ne correspond aux filtres actifs
+        </div>
+      ) : filteredRows.map((row, rowIdx) => (
+        <div
+          key={row.col_id}
+          className={`flex border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors ${rowIdx % 2 === 0 ? "" : "bg-zinc-50/30 dark:bg-zinc-900/50"}`}
+        >
+          <div className="w-10 flex-shrink-0 flex items-center justify-center text-[10px] text-zinc-300 dark:text-zinc-600 border-r border-zinc-100 dark:border-zinc-800 tabular-nums">
+            {rowIdx + 1}
+          </div>
+          {visibleColumns.map((col, i) => (
+            <div
+              key={col.id}
+              className={`flex items-center px-2 py-2 text-xs text-zinc-700 dark:text-zinc-300 flex-shrink-0 border-r border-zinc-100 dark:border-zinc-800 overflow-hidden ${i === 0 ? "w-48 font-medium" : "w-36"}`}
+            >
+              {renderCell(row, col, i)}
+            </div>
+          ))}
+        </div>
+      ))}
+      <div className="flex items-center justify-between px-3 py-2 text-[11px] text-zinc-400 dark:text-zinc-500 border-t border-zinc-200 dark:border-zinc-700">
+        <span>{filteredRows.length} résultat{filteredRows.length > 1 ? "s" : ""}{filters.length > 0 ? ` (${MOCK_ROWS.length} total)` : ""}</span>
+        <span className="tabular-nums">{sorts.length > 0 ? `Trié par ${sorts.length} colonne${sorts.length > 1 ? "s" : ""}` : ""}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
    VIEW SWITCHER
    ═══════════════════════════════════════════════════════ */
 function ViewSwitcher({ roleData, onSelectView, onAddView, onDeleteView, onRenameView }) {
@@ -3299,6 +3495,7 @@ export default function DataToolbar() {
   }, [savePopOpen]);
   const [sorts, setSorts] = useState([
     { id: "s1", columnId: "col_date", direction: "desc" },
+    { id: "s2", columnId: "col_priority", direction: "asc", customOrder: ["Urgent", "Haute", "Normale", "Basse"] },
   ]);
 
   const filterDropdownPop = usePopover();
@@ -4099,6 +4296,13 @@ export default function DataToolbar() {
         hiddenColumns={effectiveHiddenCols}
         lockedHiddenColumns={lockedHiddenColumns}
         onReorder={reorderColumns}
+      />
+      <TableBody
+        columns={orderedColumns}
+        hiddenColumns={effectiveHiddenCols}
+        lockedHiddenColumns={lockedHiddenColumns}
+        sorts={sorts}
+        filters={filters}
       />
     </div>
   );

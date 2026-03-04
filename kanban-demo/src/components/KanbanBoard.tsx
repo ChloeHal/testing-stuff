@@ -313,7 +313,7 @@ export default function KanbanBoard() {
                   return s + num;
                 }, 0);
                 return (
-                  <div key={col.id} className="flex w-52 flex-shrink-0 flex-col">
+                  <div key={col.id} className="flex w-52 shrink-0 flex-col">
                     <div className="mb-2.5 flex items-center gap-2 px-1">
                       <span className={`h-2 w-2 rounded-full ${col.color}`} />
                       <span className="text-xs font-semibold text-slate-950">
@@ -626,7 +626,7 @@ function DealCard({
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <span
-            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
             style={{ backgroundColor: `hsl(${deal.hue}, 55%, 50%)` }}
           >
             {deal.contact}
@@ -638,7 +638,7 @@ function DealCard({
             <p className="text-[10px] text-slate-400">{deal.amount}</p>
           </div>
         </div>
-        <Badge className={`${PRIORITY_STYLES[deal.priority]} flex-shrink-0`}>
+        <Badge className={`${PRIORITY_STYLES[deal.priority]} shrink-0`}>
           {deal.priority === "haute" ? "↑" : deal.priority === "moyenne" ? "→" : "↓"}
         </Badge>
       </div>
@@ -660,24 +660,27 @@ function DealCard({
 
       {/* Row 3: Next action */}
       <div className="mt-2 flex items-center gap-1.5">
-        <svg className="h-3 w-3 flex-shrink-0 text-slate-300" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="h-3 w-3 shrink-0 text-slate-300" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" stroke="currentColor" />
           <path d="M12 6v6l4 2" stroke="currentColor" />
         </svg>
         <span className="text-[10px] text-slate-500 truncate">{deal.nextAction}</span>
       </div>
 
-      {/* Row 4: Deadline + Assignee */}
-      <div className="mt-2 flex items-center justify-between">
-        <span className="text-[10px] text-slate-400">{deal.deadline}</span>
-        <div className="flex items-center gap-1">
-          {deal.tags.slice(0, 2).map((t) => (
-            <Badge key={t} className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0">
+      {/* Row 4: Deadline + Tags + Assignee */}
+      <div className="mt-2 flex items-center justify-between gap-1.5 overflow-hidden">
+        <span className="shrink-0 text-[10px] text-slate-400 whitespace-nowrap">{deal.deadline}</span>
+        <div className="flex items-center gap-1 min-w-0 justify-end overflow-hidden">
+          {deal.tags.slice(0, 1).map((t) => (
+            <Badge key={t} className="bg-slate-100 text-slate-400 text-[9px] px-1.5 py-0 whitespace-nowrap shrink-0">
               {t}
             </Badge>
           ))}
+          {deal.tags.length > 1 && (
+            <span className="shrink-0 text-[9px] text-slate-300">+{deal.tags.length - 1}</span>
+          )}
           <span
-            className="flex h-4.5 w-4.5 items-center justify-center rounded-full text-[8px] font-bold text-white"
+            className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white"
             style={{ backgroundColor: `hsl(${deal.assigneeHue}, 55%, 50%)` }}
           >
             {deal.assignee}
