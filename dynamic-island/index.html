@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Island — Emoji Sender</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Gooey SVG filter -->
+  <svg style="position:absolute;width:0;height:0">
+    <defs>
+      <filter id="gooey">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+        <feColorMatrix in="blur" mode="matrix"
+          values="1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 19 -9" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="page">
+    <header class="header">
+      <h1 class="title">Send good vibes</h1>
+      <p class="subtitle">Pick an emoji and send it through the Dynamic Island</p>
+    </header>
+
+    <div class="layout">
+
+      <!-- Emoji buttons on the side -->
+      <div class="emoji-panel" id="emoji-grid">
+        <button class="emoji-btn" data-emoji="❤️" data-msg="love">
+          <span class="emoji-icon">❤️</span>
+          <span class="emoji-label">Love</span>
+        </button>
+        <button class="emoji-btn" data-emoji="💪" data-msg="strength">
+          <span class="emoji-icon">💪</span>
+          <span class="emoji-label">Strength</span>
+        </button>
+        <button class="emoji-btn" data-emoji="🍀" data-msg="luck">
+          <span class="emoji-icon">🍀</span>
+          <span class="emoji-label">Luck</span>
+        </button>
+        <button class="emoji-btn" data-emoji="🔥" data-msg="fire">
+          <span class="emoji-icon">🔥</span>
+          <span class="emoji-label">Fire</span>
+        </button>
+      </div>
+
+      <!-- Phone top mockup (bottom clipped) -->
+      <div class="phone-clip">
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <div class="island-wrap" id="island-wrap">
+              <div class="island" id="island">
+                <div class="island-inner" id="island-inner"></div>
+              </div>
+              <div class="phrase-box" id="phrase-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

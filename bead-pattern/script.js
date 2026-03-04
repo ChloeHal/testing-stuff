@@ -21,6 +21,11 @@ const gridEl = document.getElementById("grid");
 const canvas = document.getElementById("wire-canvas");
 const ctx = canvas.getContext("2d");
 
+const marqueeEl = document.createElement("div");
+marqueeEl.className = "selection-marquee";
+marqueeEl.style.display = "none";
+document.querySelector(".editor").appendChild(marqueeEl);
+
 // ─── Colorblind maps ────────────────────────────────────────
 
 const BEAD_SYMBOLS = {
@@ -77,7 +82,9 @@ const CURSORS = {
   rotate: svgCursor(`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><path d='M12 4a8 8 0 1 1-5.5 2.5' fill='none' stroke='black' stroke-width='2'/><polygon points='4,3 6.5,7.5 9.5,4' fill='black'/></svg>`),
   move: svgCursor(`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2'/><path d='M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2'/><path d='M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8'/><path d='M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'/></svg>`),
   moveGrab: svgCursor(`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 11.5V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1.4'/><path d='M14 10V8a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2'/><path d='M10 9.9V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v5'/><path d='M6 14a2 2 0 0 0-2-2a2 2 0 0 0-2 2'/><path d='M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8 2 2 0 1 1 4 0'/></svg>`),
+  arrow: svgCursor(`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6 L15 12 L9 18'/></svg>`),
   eraser: svgCursor(`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21'/><path d='m5.082 11.09 8.828 8.828'/></svg>`, 12, 18),
+  select: svgCursor(`<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='4' y='4' width='16' height='16' rx='1' stroke-dasharray='4 2'/></svg>`),
 };
 
 function updateCursor() {
@@ -92,7 +99,7 @@ let historyIdx = -1;
 function snapshot() {
   return {
     beads: new Map(state.beads),
-    wires: state.wires.map(w => ({ from: [...w.from], to: [...w.to], color: w.color })),
+    wires: state.wires.map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow })),
     torsades: state.torsades.map(t => ({ from: [...t.from], to: [...t.to], color: t.color, twists: t.twists })),
   };
 }
@@ -105,8 +112,9 @@ function pushHistory() {
 }
 
 function restoreSnapshot(snap) {
+  clearSelection();
   state.beads = new Map(snap.beads);
-  state.wires = snap.wires.map(w => ({ from: [...w.from], to: [...w.to], color: w.color }));
+  state.wires = snap.wires.map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow }));
   state.torsades = snap.torsades.map(t => ({ from: [...t.from], to: [...t.to], color: t.color, twists: t.twists }));
   state.wireStart = null;
   refreshAllBeads();
@@ -134,6 +142,7 @@ function setTool(tool) {
   if (btn) btn.classList.add("active");
   state.tool = tool;
   state.wireStart = null;
+  clearSelection();
   redrawAll();
   updateToolOptions();
   updateCursor();
@@ -148,6 +157,7 @@ function computeGridSize() {
 }
 
 function buildGrid() {
+  clearSelection();
   gridEl.style.gridTemplateColumns = `repeat(${state.gridCols}, var(--cell-size))`;
   gridEl.innerHTML = "";
   for (let r = 0; r < state.gridRows; r++) {
@@ -411,6 +421,29 @@ function redrawAll() {
     const ty = to.y + (off ? off.toOff.y : 0);
     drawTorsade(ctx, { x: fx, y: fy }, { x: tx, y: ty }, t.color, t.twists);
   }
+
+  // Draw arrowheads on wires
+  drawWireArrows(ctx, offsets);
+}
+
+function drawWireArrows(c, offsets) {
+  for (let i = 0; i < state.wires.length; i++) {
+    const w = state.wires[i];
+    if (!w.arrow) continue;
+    const from = cellCenter(w.from[0], w.from[1]);
+    const to = cellCenter(w.to[0], w.to[1]);
+    const off = offsets.wire.get(i);
+    let fOff = { x: 0, y: 0 }, tOff = { x: 0, y: 0 };
+    if (off) { fOff = off.fromOff; tOff = off.toOff; }
+    const fx = from.x + fOff.x, fy = from.y + fOff.y;
+    const tx = to.x + tOff.x, ty = to.y + tOff.y;
+    const mx = (fx + tx) / 2, my = (fy + ty) / 2;
+    const color = state.colorblind ? hexToRgba(w.color, 0.6) : w.color;
+    const angle = w.arrow === "end"
+      ? Math.atan2(ty - fy, tx - fx)
+      : Math.atan2(fy - ty, fx - tx);
+    drawChevron(c, mx, my, angle, color);
+  }
 }
 
 function drawChain(c, points, color, offsets) {
@@ -569,6 +602,34 @@ function convertWireToTorsade(mx, my) {
   }
 }
 
+function toggleArrow(mx, my) {
+  const { idx, dist, type } = findNearestSegment(mx, my);
+  if (idx < 0 || dist >= 10 || type !== "wire") return;
+  const w = state.wires[idx];
+  const cycle = [undefined, "end", "start"];
+  const cur = cycle.indexOf(w.arrow);
+  w.arrow = cycle[(cur + 1) % cycle.length];
+  redrawAll();
+  pushHistory();
+}
+
+function drawChevron(c, cx, cy, angle, color, size) {
+  size = size || 5;
+  c.save();
+  c.translate(cx, cy);
+  c.rotate(angle);
+  c.beginPath();
+  c.moveTo(-size, -size);
+  c.lineTo(size * 0.4, 0);
+  c.lineTo(-size, size);
+  c.strokeStyle = color;
+  c.lineWidth = 2.2;
+  c.lineCap = "round";
+  c.lineJoin = "round";
+  c.stroke();
+  c.restore();
+}
+
 // ─── Connected component + rotation ─────────────────────────
 
 function findComponent(startKey) {
@@ -630,7 +691,7 @@ function rotateComponent(r, c) {
     if (inBounds(nr, nc)) state.beads.set(`${nr},${nc}`, color);
   }
   for (const w of compWires) {
-    state.wires.push({ from: rot(w.from[0], w.from[1]), to: rot(w.to[0], w.to[1]), color: w.color });
+    state.wires.push({ from: rot(w.from[0], w.from[1]), to: rot(w.to[0], w.to[1]), color: w.color, arrow: w.arrow });
   }
   for (const t of compTorsades) {
     state.torsades.push({ from: rot(t.from[0], t.from[1]), to: rot(t.to[0], t.to[1]), color: t.color, twists: t.twists });
@@ -648,11 +709,36 @@ let movingComp = null;   // {comp: Set, anchorR, anchorC, lastDR, lastDC, beadSn
 let isDragging = false;
 let dragChanged = false;
 
+// ─── Selection state ─────────────────────────────────────────
+let selectionRect = null;
+let selectionBeads = null;
+let selectionSnap = null;
+let selectionAnchor = null;
+let selectionLastDelta = null;
+let selectionPhase = "idle"; // "idle" | "selecting" | "selected" | "dragging"
+
 function handleDrag(e) {
   const cell = e.target.closest(".cell");
   if (!cell) return;
   const r = parseInt(cell.dataset.row), c = parseInt(cell.dataset.col);
   const key = `${r},${c}`;
+
+  if (state.tool === "select") {
+    if (selectionPhase === "selecting" && selectionRect) {
+      selectionRect.endR = r;
+      selectionRect.endC = c;
+      updateMarquee(selectionRect.startR, selectionRect.startC, r, c);
+    } else if (selectionPhase === "dragging" && selectionAnchor) {
+      const dr = r - selectionAnchor.r;
+      const dc = c - selectionAnchor.c;
+      if (dr !== selectionLastDelta.dr || dc !== selectionLastDelta.dc) {
+        moveSelection(dr, dc);
+        selectionLastDelta = { dr, dc };
+        dragChanged = true;
+      }
+    }
+    return;
+  }
 
   if (state.tool === "move") {
     if (movingComp) {
@@ -722,7 +808,7 @@ function snapshotComponent(comp) {
   for (const key of comp) if (state.beads.has(key)) beads.set(key, state.beads.get(key));
   const wires = state.wires.filter(w =>
     comp.has(`${w.from[0]},${w.from[1]}`) || comp.has(`${w.to[0]},${w.to[1]}`)
-  ).map(w => ({ from: [...w.from], to: [...w.to], color: w.color }));
+  ).map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow }));
   const torsades = state.torsades.filter(t =>
     comp.has(`${t.from[0]},${t.from[1]}`) || comp.has(`${t.to[0]},${t.to[1]}`)
   ).map(t => ({ from: [...t.from], to: [...t.to], color: t.color, twists: t.twists }));
@@ -750,7 +836,7 @@ function moveComponent(mc, dr, dc) {
     }
   }
   for (const w of mc.wireSnap) {
-    const nw = { from: [w.from[0] + dr, w.from[1] + dc], to: [w.to[0] + dr, w.to[1] + dc], color: w.color };
+    const nw = { from: [w.from[0] + dr, w.from[1] + dc], to: [w.to[0] + dr, w.to[1] + dc], color: w.color, arrow: w.arrow };
     state.wires.push(nw);
   }
   for (const t of mc.torsadeSnap) {
@@ -764,6 +850,105 @@ function moveComponent(mc, dr, dc) {
   redrawAll();
 }
 
+// ─── Selection tool helpers ──────────────────────────────────
+
+function clearSelection() {
+  selectionBeads = null;
+  selectionSnap = null;
+  selectionAnchor = null;
+  selectionLastDelta = null;
+  selectionPhase = "idle";
+  selectionRect = null;
+  marqueeEl.style.display = "none";
+  document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
+}
+
+function updateMarquee(startR, startC, endR, endC) {
+  const minR = Math.min(startR, endR), maxR = Math.max(startR, endR);
+  const minC = Math.min(startC, endC), maxC = Math.max(startC, endC);
+  const w = (maxC - minC + 1) * CELL_SIZE;
+  const h = (maxR - minR + 1) * CELL_SIZE;
+  marqueeEl.style.display = "block";
+  marqueeEl.style.left = (minC * CELL_SIZE) + "px";
+  marqueeEl.style.top = (minR * CELL_SIZE) + "px";
+  marqueeEl.style.width = w + "px";
+  marqueeEl.style.height = h + "px";
+  const rx = 4;
+  marqueeEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 ${w + 4} ${h + 4}">
+    <rect class="marquee-glow" x="0" y="0" width="${w}" height="${h}" rx="${rx}"/>
+    <rect class="marquee-fill" x="0" y="0" width="${w}" height="${h}" rx="${rx}"/>
+    <rect class="marquee-border" x="0" y="0" width="${w}" height="${h}" rx="${rx}"/>
+  </svg>`;
+}
+
+function finalizeSelection(startR, startC, endR, endC) {
+  const minR = Math.min(startR, endR), maxR = Math.max(startR, endR);
+  const minC = Math.min(startC, endC), maxC = Math.max(startC, endC);
+  const selected = new Set();
+  for (let r = minR; r <= maxR; r++) {
+    for (let c = minC; c <= maxC; c++) {
+      const key = `${r},${c}`;
+      if (state.beads.has(key)) selected.add(key);
+    }
+  }
+  if (selected.size === 0) { clearSelection(); return; }
+  selectionBeads = selected;
+  selectionPhase = "selected";
+  marqueeEl.style.display = "none";
+  for (const key of selectionBeads) {
+    const [r, c] = key.split(",").map(Number);
+    const cell = getCell(r, c);
+    if (cell) cell.classList.add("selected");
+  }
+  selectionSnap = snapshotSelection(selectionBeads);
+}
+
+function snapshotSelection(selected) {
+  const beads = new Map();
+  for (const key of selected) if (state.beads.has(key)) beads.set(key, state.beads.get(key));
+  const wires = state.wires.filter(w =>
+    selected.has(`${w.from[0]},${w.from[1]}`) && selected.has(`${w.to[0]},${w.to[1]}`)
+  ).map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow }));
+  const torsades = state.torsades.filter(t =>
+    selected.has(`${t.from[0]},${t.from[1]}`) && selected.has(`${t.to[0]},${t.to[1]}`)
+  ).map(t => ({ from: [...t.from], to: [...t.to], color: t.color, twists: t.twists }));
+  return { beads, wires, torsades };
+}
+
+function moveSelection(dr, dc) {
+  for (const key of selectionBeads) state.beads.delete(key);
+  state.wires = state.wires.filter(w =>
+    !(selectionBeads.has(`${w.from[0]},${w.from[1]}`) && selectionBeads.has(`${w.to[0]},${w.to[1]}`))
+  );
+  state.torsades = state.torsades.filter(t =>
+    !(selectionBeads.has(`${t.from[0]},${t.from[1]}`) && selectionBeads.has(`${t.to[0]},${t.to[1]}`))
+  );
+  const newSelected = new Set();
+  for (const [key, color] of selectionSnap.beads) {
+    const [or, oc] = key.split(",").map(Number);
+    const nr = or + dr, nc = oc + dc;
+    if (inBounds(nr, nc)) {
+      state.beads.set(`${nr},${nc}`, color);
+      newSelected.add(`${nr},${nc}`);
+    }
+  }
+  for (const w of selectionSnap.wires) {
+    state.wires.push({ from: [w.from[0] + dr, w.from[1] + dc], to: [w.to[0] + dr, w.to[1] + dc], color: w.color, arrow: w.arrow });
+  }
+  for (const t of selectionSnap.torsades) {
+    state.torsades.push({ from: [t.from[0] + dr, t.from[1] + dc], to: [t.to[0] + dr, t.to[1] + dc], color: t.color, twists: t.twists });
+  }
+  document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
+  selectionBeads = newSelected;
+  for (const key of selectionBeads) {
+    const [r, c] = key.split(",").map(Number);
+    const cell = getCell(r, c);
+    if (cell) cell.classList.add("selected");
+  }
+  refreshAllBeads();
+  redrawAll();
+}
+
 function findNearestWireEndpoint(mx, my) {
   // Find the nearest wire/torsade endpoint to a pixel position (for clicking on a wire to grab the component)
   const { idx, dist, type } = findNearestSegment(mx, my);
@@ -773,12 +958,31 @@ function findNearestWireEndpoint(mx, my) {
 }
 
 gridEl.addEventListener("mousedown", (e) => {
-  if (state.tool !== "bead" && state.tool !== "eraser" && state.tool !== "move") return;
+  if (state.tool !== "bead" && state.tool !== "eraser" && state.tool !== "move" && state.tool !== "select") return;
 
   const cell = e.target.closest(".cell");
   if (!cell) return;
   const r = parseInt(cell.dataset.row), c = parseInt(cell.dataset.col);
   const key = `${r},${c}`;
+
+  if (state.tool === "select") {
+    if (selectionPhase === "selected" && selectionBeads && selectionBeads.has(key)) {
+      selectionPhase = "dragging";
+      selectionAnchor = { r, c };
+      selectionLastDelta = { dr: 0, dc: 0 };
+      isDragging = true;
+      dragChanged = false;
+      gridEl.style.cursor = CURSORS.moveGrab;
+    } else {
+      clearSelection();
+      selectionRect = { startR: r, startC: c, endR: r, endC: c };
+      selectionPhase = "selecting";
+      isDragging = true;
+      dragChanged = false;
+      updateMarquee(r, c, r, c);
+    }
+    return;
+  }
 
   if (state.tool === "move") {
     // Clicking on a bead → move just that bead (wires follow)
@@ -842,6 +1046,21 @@ gridEl.addEventListener("mousemove", (e) => {
 });
 
 document.addEventListener("mouseup", () => {
+  if (state.tool === "select" && isDragging) {
+    if (selectionPhase === "selecting" && selectionRect) {
+      finalizeSelection(selectionRect.startR, selectionRect.startC, selectionRect.endR, selectionRect.endC);
+      selectionRect = null;
+    } else if (selectionPhase === "dragging") {
+      selectionPhase = "selected";
+      selectionAnchor = null;
+      if (dragChanged) pushHistory();
+      selectionSnap = snapshotSelection(selectionBeads);
+    }
+    isDragging = false;
+    dragChanged = false;
+    gridEl.style.cursor = CURSORS.select;
+    return;
+  }
   if (isDragging) {
     const wasMoving = state.tool === "move";
     isDragging = false;
@@ -856,8 +1075,8 @@ document.addEventListener("mouseup", () => {
 // ─── Grid click (tools that need click, not drag) ───────────
 
 gridEl.addEventListener("click", (e) => {
-  // bead and eraser are handled by drag handlers
-  if (state.tool === "bead" || state.tool === "eraser") return;
+  // bead, eraser and select are handled by drag handlers
+  if (state.tool === "bead" || state.tool === "eraser" || state.tool === "select") return;
 
   const cell = e.target.closest(".cell");
   if (!cell) return;
@@ -884,6 +1103,10 @@ gridEl.addEventListener("click", (e) => {
 
     case "torsade":
       convertWireToTorsade(mx, my);
+      break;
+
+    case "arrow":
+      toggleArrow(mx, my);
       break;
 
     case "loop":
@@ -913,10 +1136,9 @@ let previewRAF = null;
 // ─── Keyboard shortcuts ─────────────────────────────────────
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && state.wireStart) {
-    state.wireStart = null;
-    redrawAll();
-    return;
+  if (e.key === "Escape") {
+    if (selectionPhase !== "idle") { clearSelection(); return; }
+    if (state.wireStart) { state.wireStart = null; redrawAll(); return; }
   }
   const k = e.key.toLowerCase();
   if ((e.ctrlKey || e.metaKey) && k === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
@@ -940,7 +1162,7 @@ document.querySelectorAll(".tool-btn").forEach(btn => {
 });
 
 document.getElementById("loop-count").addEventListener("input", (e) => {
-  state.loopCount = Math.max(3, Math.min(24, parseInt(e.target.value) || 6));
+  state.loopCount = Math.max(3, Math.min(35, parseInt(e.target.value) || 6));
 });
 
 document.querySelectorAll(".twist-btn").forEach(btn => {
@@ -1088,33 +1310,37 @@ function exportPNG(withGrid) {
     for (let i = 0; i <= rows; i++) { oc.beginPath(); oc.moveTo(0, i * CELL_SIZE); oc.lineTo(w, i * CELL_SIZE); oc.stroke(); }
   }
 
-  function expCenter(rc) {
-    return { x: (rc[1] - bounds.minC) * CELL_SIZE + CELL_SIZE / 2, y: (rc[0] - bounds.minR) * CELL_SIZE + CELL_SIZE / 2 };
+  // Translate so cellCenter coordinates map to the export canvas
+  oc.save();
+  oc.translate(-offX, -offY);
+
+  // Draw wires with chains + rounded corners (same as on-screen)
+  const expOffsets = computeWireOffsets();
+  const expChains = findChains();
+  for (const chain of expChains) {
+    drawChain(oc, chain.points, chain.color, expOffsets);
   }
 
-  // Draw wires
-  for (const wire of state.wires) {
-    const from = expCenter(wire.from), to = expCenter(wire.to);
-    oc.beginPath();
-    oc.moveTo(from.x, from.y);
-    oc.lineTo(to.x, to.y);
-    oc.strokeStyle = state.colorblind ? hexToRgba(wire.color, 0.6) : wire.color;
-    oc.lineWidth = 2;
-    oc.lineCap = "round";
-    if (state.colorblind) oc.setLineDash(getWireDash(wire.color));
-    oc.stroke();
-    oc.setLineDash([]);
+  // Draw torsades with offsets
+  for (let i = 0; i < state.torsades.length; i++) {
+    const t = state.torsades[i];
+    const from = cellCenter(t.from[0], t.from[1]);
+    const to = cellCenter(t.to[0], t.to[1]);
+    const tOff = expOffsets.torsade.get(i);
+    const fx = from.x + (tOff ? tOff.fromOff.x : 0);
+    const fy = from.y + (tOff ? tOff.fromOff.y : 0);
+    const tx = to.x + (tOff ? tOff.toOff.x : 0);
+    const ty = to.y + (tOff ? tOff.toOff.y : 0);
+    drawTorsade(oc, { x: fx, y: fy }, { x: tx, y: ty }, t.color, t.twists);
   }
 
-  // Draw torsades
-  for (const t of state.torsades) {
-    drawTorsade(oc, expCenter(t.from), expCenter(t.to), t.color, t.twists);
-  }
+  // Draw arrowheads
+  drawWireArrows(oc, expOffsets);
 
   // Draw beads
   for (const [key, color] of state.beads) {
     const [r, c] = key.split(",").map(Number);
-    const p = expCenter([r, c]);
+    const p = cellCenter(r, c);
     oc.beginPath();
     oc.arc(p.x, p.y, 10, 0, Math.PI * 2);
     if (state.colorblind) {
@@ -1138,6 +1364,8 @@ function exportPNG(withGrid) {
       oc.fillText(getBeadSymbol(color), p.x, p.y);
     }
   }
+
+  oc.restore();
 
   const a = document.createElement("a");
   a.download = withGrid ? "pattern-grid.png" : "pattern.png";

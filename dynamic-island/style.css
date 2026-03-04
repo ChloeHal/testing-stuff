@@ -1,0 +1,384 @@
+:root {
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-out-circ: cubic-bezier(0.075, 0.82, 0.165, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --spring: cubic-bezier(0.22, 1.12, 0.36, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: hsl(0 0% 100%);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: hsl(0 0% 9%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Page ────────────────────────────────────────────── */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 40px 20px;
+}
+
+/* ─── Header ──────────────────────────────────────────── */
+
+.header {
+  text-align: center;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: hsl(0 0% 9%);
+}
+
+.subtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  color: hsl(0 0% 45%);
+  font-weight: 400;
+}
+
+/* ─── Layout: buttons | phone ─────────────────────────── */
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 36px;
+}
+
+/* ─── Phone clip — only cuts the bottom, preserves top/side shadows ── */
+
+.phone-clip {
+  flex-shrink: 0;
+  overflow: hidden;
+  /* generous padding on top/sides for shadows, none at bottom */
+  padding: 30px 30px 0;
+  margin: -30px -30px 0;
+}
+
+/* ─── Phone frame — iPhone 15 Pro proportions (×0.78) ─── */
+
+.phone-frame {
+  width: 315px;
+  height: 600px;
+  background: hsl(0 0% 8%);
+  border-radius: 47px;
+  padding: 4px;
+  box-shadow:
+    inset 0 0 0 1px hsl(0 0% 20%),
+    0 8px 30px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.phone-screen {
+  width: 307px;
+  height: 100%;
+  background: linear-gradient(170deg, hsl(230 15% 92%), hsl(250 10% 88%));
+  border-radius: 43px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ─── Island wrapper — gooey filter ───────────────────── */
+
+.island-wrap {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 9px;     /* 11pt × 0.78 */
+  filter: url(#gooey);
+}
+
+/* ─── Dynamic Island ──────────────────────────────────── */
+
+.island {
+  position: absolute;
+  top: 0;
+  background: #000;
+  color: #fff;
+  border-radius: 17px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+
+  /* Compact: 126×37pt × 0.78 */
+  width: 98px;
+  height: 29px;
+  border-radius: 17px;
+
+  transition:
+    width 650ms var(--spring),
+    height 650ms var(--spring),
+    border-radius 650ms var(--spring),
+    transform 500ms var(--ease-out-quint);
+
+  will-change: width, height, transform;
+  transform: scale(1);
+}
+
+/* Breathing idle */
+@keyframes breathe {
+  0%, 100% { transform: scaleX(1) scaleY(1); }
+  50% { transform: scaleX(1.04) scaleY(1.02); }
+}
+
+.island.idle {
+  animation: breathe 3.5s ease-in-out infinite;
+}
+
+/* ── State: bump ── */
+
+@keyframes bump-spring {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.06, 1.04); }
+  60% { transform: scale(0.97, 0.98); }
+  100% { transform: scale(1); }
+}
+
+.island.bump {
+  animation: bump-spring 400ms var(--ease-out-quint) both;
+  width: 140px;
+  height: 42px;
+  border-radius: 22px;
+  transition:
+    width 400ms var(--spring),
+    height 400ms var(--spring),
+    border-radius 400ms var(--spring),
+    transform 400ms var(--ease-out-quint);
+}
+
+/* ── State: show ── */
+
+.island.show {
+  animation: none;
+  transform: scale(1);
+  width: 250px;
+  height: 46px;
+  border-radius: 24px;
+  transition:
+    width 600ms var(--spring),
+    height 600ms var(--spring),
+    border-radius 600ms var(--spring),
+    transform 500ms var(--ease-out-quint);
+}
+
+/* ── State: settle ── */
+
+@keyframes settle {
+  0% { transform: scale(1); }
+  25% { transform: scale(0.92, 0.94); }
+  50% { transform: scale(1.04, 1.02); }
+  75% { transform: scale(0.98, 0.99); }
+  100% { transform: scale(1); }
+}
+
+.island.settle {
+  animation: settle 700ms var(--ease-out-quint) both;
+}
+
+/* ─── Island inner content ────────────────────────────── */
+
+.island-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  white-space: nowrap;
+  transition: opacity 200ms ease-out;
+}
+
+.island-inner:empty {
+  padding: 0;
+}
+
+.i-emoji {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.3); opacity: 0; }
+  45% { transform: scale(1.25); opacity: 1; }
+  70% { transform: scale(0.92); }
+  85% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.i-emoji.pop {
+  animation: pop-in 500ms var(--ease-out-circ) both;
+}
+
+.i-label {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0;
+  letter-spacing: -0.01em;
+}
+
+@keyframes slide-in {
+  0% { opacity: 0; transform: translateX(-6px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.i-label.enter {
+  animation: slide-in 300ms var(--ease-out-quint) 100ms both;
+}
+
+.i-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2.5px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 0 0 24px 24px;
+}
+
+@keyframes fill-bar {
+  0% { width: 0; }
+  100% { width: 100%; }
+}
+
+.i-progress.run {
+  animation: fill-bar 2s linear both;
+}
+
+/* ─── Phrase box (gooey drip below island) ────────────── */
+
+.phrase-box {
+  position: absolute;
+  top: 14px;
+  background: #000;
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 14px;
+  padding: 0;
+  font-size: 10px;
+  font-style: italic;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  z-index: 1;
+  pointer-events: none;
+
+  opacity: 0;
+  transform: scaleX(0.4) scaleY(0.1);
+  transform-origin: center top;
+  max-height: 0;
+  overflow: hidden;
+
+  transition:
+    opacity 300ms var(--ease-out-quint),
+    transform 650ms var(--spring),
+    max-height 650ms var(--spring),
+    padding 650ms var(--spring),
+    top 650ms var(--spring);
+}
+
+.phrase-box.visible {
+  opacity: 1;
+  max-height: 50px;
+  padding: 7px 16px;
+  top: 56px;
+}
+
+@keyframes gooey-drip {
+  0% { transform: scaleX(0.4) scaleY(0.1); }
+  25% { transform: scaleX(0.6) scaleY(1.3); }
+  50% { transform: scaleX(1.08) scaleY(1.1); }
+  75% { transform: scaleX(0.96) scaleY(0.95); }
+  100% { transform: scaleX(1) scaleY(1); }
+}
+
+.phrase-box.spring {
+  animation: gooey-drip 700ms var(--ease-out-quint) both;
+}
+
+/* ─── Emoji buttons — shadcn style ────────────────────── */
+
+.emoji-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.emoji-btn {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(0 0% 90%);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.emoji-btn:hover {
+  background: hsl(0 0% 97%);
+  border-color: hsl(0 0% 82%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.emoji-btn:active {
+  background: hsl(0 0% 95%);
+  box-shadow: none;
+}
+
+.emoji-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.emoji-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(0 0% 25%);
+  line-height: 1;
+}
+
+@keyframes launch-spring {
+  0% { transform: scale(0.92); opacity: 0.5; }
+  50% { transform: scale(1.03); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.emoji-btn.launched {
+  animation: launch-spring 300ms var(--ease-out-quint) both;
+}
+
+/* ─── Reduced motion ──────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

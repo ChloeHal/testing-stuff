@@ -374,3 +374,71 @@ input[type="color"] {
   z-index: 2;
   pointer-events: none;
 }
+
+/* ─── Tool button icons ───────────────────────────────── */
+
+.tool-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ─── Selection tool ──────────────────────────────────── */
+
+@keyframes marching-ants {
+  to { stroke-dashoffset: -12; }
+}
+
+.selection-marquee {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+  border: none;
+  background: none;
+  overflow: visible;
+}
+
+.selection-marquee svg {
+  position: absolute;
+  inset: -2px;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+}
+
+.selection-marquee .marquee-fill {
+  fill: hsla(220 80% 60% / 0.06);
+}
+
+.selection-marquee .marquee-border {
+  fill: none;
+  stroke: hsl(220 80% 58%);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  stroke-linecap: round;
+  animation: marching-ants 0.4s linear infinite;
+}
+
+.selection-marquee .marquee-glow {
+  fill: none;
+  stroke: hsla(220 80% 60% / 0.3);
+  stroke-width: 6;
+  filter: blur(2px);
+}
+
+.cell.selected {
+  background: hsla(220 75% 60% / 0.08);
+}
+
+.cell.selected .bead {
+  box-shadow:
+    0 0 0 2.5px hsla(220 80% 58% / 0.7),
+    0 0 8px 1px hsla(220 80% 60% / 0.25);
+}
