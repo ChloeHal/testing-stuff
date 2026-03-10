@@ -28,7 +28,7 @@ const row = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.4, ease: [0.19, 1, 0.22, 1] },
+    transition: { duration: 0.4, ease: [0.19, 1, 0.22, 1] as [number, number, number, number] },
   },
 };
 
@@ -42,7 +42,7 @@ export default function TableSection() {
         <motion.h2
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : undefined}
-          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] as [number, number, number, number] }}
           className="text-center text-3xl font-bold tracking-tight"
         >
           Suivez chaque transaction
@@ -50,7 +50,7 @@ export default function TableSection() {
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : undefined}
-          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1], delay: 0.08 }}
+          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] as [number, number, number, number], delay: 0.08 }}
           className="mx-auto mt-3 max-w-lg text-center text-slate-500"
         >
           Historique complet, filtres avancés et export en un clic.
@@ -60,7 +60,7 @@ export default function TableSection() {
           ref={ref}
           initial={{ opacity: 0, scale: 0.97 }}
           animate={inView ? { opacity: 1, scale: 1 } : undefined}
-          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1], delay: 0.15 }}
+          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] as [number, number, number, number], delay: 0.15 }}
           className="mt-12 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
         >
           <table className="w-full text-left text-sm">

@@ -91,7 +91,7 @@ export default function SignUpSection() {
         <motion.div
           className="mx-auto mt-14 max-w-sm"
           animate={{ opacity: fading ? 0 : 1, scale: fading ? 0.97 : 1 }}
-          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] as [number, number, number, number] }}
         >
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
             <AnimatePresence mode="wait">
@@ -101,7 +101,7 @@ export default function SignUpSection() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, scale: 0.97 }}
-                  transition={{ duration: 0.3, ease: [0.19, 1, 0.22, 1] }}
+                  transition={{ duration: 0.3, ease: [0.19, 1, 0.22, 1] as [number, number, number, number] }}
                   className="p-6"
                 >
                   {/* Fields */}
@@ -113,7 +113,7 @@ export default function SignUpSection() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{
                           duration: 0.4,
-                          ease: [0.19, 1, 0.22, 1],
+                          ease: [0.19, 1, 0.22, 1] as [number, number, number, number],
                           delay: i * 0.08,
                         }}
                       >
@@ -134,7 +134,7 @@ export default function SignUpSection() {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{
                                   duration: 0.3,
-                                  ease: [0.19, 1, 0.22, 1],
+                                  ease: [0.19, 1, 0.22, 1] as [number, number, number, number],
                                 }}
                                 className="text-sm text-slate-800"
                               >
@@ -163,7 +163,7 @@ export default function SignUpSection() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
                       duration: 0.4,
-                      ease: [0.19, 1, 0.22, 1],
+                      ease: [0.19, 1, 0.22, 1] as [number, number, number, number],
                       delay: 0.24,
                     }}
                   >
@@ -227,7 +227,7 @@ export default function SignUpSection() {
                   exit={{ opacity: 0 }}
                   transition={{
                     duration: 0.45,
-                    ease: [0.19, 1, 0.22, 1],
+                    ease: [0.19, 1, 0.22, 1] as [number, number, number, number],
                   }}
                   className="flex flex-col items-center justify-center p-10"
                 >
@@ -257,7 +257,7 @@ export default function SignUpSection() {
                         animate={{ pathLength: 1 }}
                         transition={{
                           duration: 0.4,
-                          ease: [0.19, 1, 0.22, 1],
+                          ease: [0.19, 1, 0.22, 1] as [number, number, number, number],
                           delay: 0.15,
                         }}
                       />
@@ -270,7 +270,7 @@ export default function SignUpSection() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
                       duration: 0.35,
-                      ease: [0.19, 1, 0.22, 1],
+                      ease: [0.19, 1, 0.22, 1] as [number, number, number, number],
                       delay: 0.2,
                     }}
                   >
@@ -282,7 +282,7 @@ export default function SignUpSection() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
                       duration: 0.35,
-                      ease: [0.19, 1, 0.22, 1],
+                      ease: [0.19, 1, 0.22, 1] as [number, number, number, number],
                       delay: 0.3,
                     }}
                   >

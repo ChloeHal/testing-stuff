@@ -860,7 +860,7 @@ function DonutChartDemo() {
   const circ = 2 * Math.PI * r;
 
   // Build one <circle> per segment with the correct dash positioning
-  const segmentData = segments.map((seg, i) => {
+  const segmentData = segments.map((seg, _i) => {
     const fraction = seg.value / total;
     const segLen = fraction * circ;
     return { ...seg, segLen, fraction };

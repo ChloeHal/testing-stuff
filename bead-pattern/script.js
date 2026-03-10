@@ -4,15 +4,17 @@ const state = {
   tool: "bead",
   beadColor: "#ffffff",
   wireColor: "#171717",
+  beadShape: "circle",
+  wireStyle: "solid",
   gridRows: 20,
   gridCols: 20,
-  beads: new Map(),
+  beads: new Map(),       // key -> color
+  beadShapes: new Map(),  // key -> shape
   wires: [],
   torsades: [],
   wireStart: null,
   loopCount: 6,
   torsadeTwists: 3,
-  colorblind: false,
 };
 
 const CELL_SIZE = 28;
@@ -26,46 +28,115 @@ marqueeEl.className = "selection-marquee";
 marqueeEl.style.display = "none";
 document.querySelector(".editor").appendChild(marqueeEl);
 
-// ─── Colorblind maps ────────────────────────────────────────
+// ─── Wire style dash patterns ───────────────────────────────
 
-const BEAD_SYMBOLS = {
-  "#ffffff": "○", "#d4d4d4": "–", "#737373": "□", "#171717": "●",
-  "#ef4444": "△", "#e11d48": "♥", "#fb7185": "◇", "#ec4899": "★",
-  "#d946ef": "✕", "#a855f7": "▲", "#8b5cf6": "+", "#6366f1": "◆",
-  "#3b82f6": "▽", "#0ea5e9": "◎", "#06b6d4": "≡", "#14b8a6": "⬡",
-  "#22c55e": "✦", "#84cc16": "◈", "#eab308": "⊕", "#f59e0b": "⊗",
-  "#f97316": "⊞", "#d4a017": "✧",
+const WIRE_STYLE_DASHES = {
+  solid: [],
+  dashed: [8, 4],
+  dotted: [2, 3],
+  "dash-dot": [8, 3, 2, 3],
+  "long-dash": [14, 6],
+  "short-dash": [4, 3],
 };
 
-const WIRE_DASHES = {
-  "#171717": [],       "#ffffff": [8, 4],
-  "#737373": [2, 2],   "#ef4444": [12, 4, 2, 4],
-  "#ec4899": [6, 3],   "#d946ef": [4, 4],
-  "#3b82f6": [10, 5],  "#06b6d4": [2, 4],
-  "#22c55e": [8, 2, 2, 2], "#eab308": [14, 4],
-  "#f97316": [4, 2],   "#8b5cf6": [8, 2, 2, 2, 2, 2],
-  "#78350f": [6, 6],   "#d4a017": [12, 2],
-  "#a8a8a8": [3, 3],
-};
-
-function getBeadSymbol(color) {
-  return BEAD_SYMBOLS[color] || "?";
+function getWireStyleDash(style) {
+  return WIRE_STYLE_DASHES[style] || [];
 }
 
-function getWireDash(color) {
-  return WIRE_DASHES[color] || [5, 5];
+// ─── Bead shape helpers ─────────────────────────────────────
+
+function polygonPoints(cx, cy, r, sides, rotOffset) {
+  const pts = [];
+  for (let i = 0; i < sides; i++) {
+    const angle = (2 * Math.PI * i) / sides - Math.PI / 2 + (rotOffset || 0);
+    pts.push([cx + r * Math.cos(angle), cy + r * Math.sin(angle)]);
+  }
+  return pts;
 }
 
-function isLightColor(hex) {
-  const n = parseInt(hex.replace("#", ""), 16);
-  const r = (n >> 16) & 0xff, g = (n >> 8) & 0xff, b = n & 0xff;
-  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+function starPoints(cx, cy, outerR, innerR, points) {
+  const pts = [];
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (Math.PI * i) / points - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    pts.push([cx + r * Math.cos(angle), cy + r * Math.sin(angle)]);
+  }
+  return pts;
 }
 
-function hexToRgba(hex, alpha) {
-  const n = parseInt(hex.replace("#", ""), 16);
-  const r = (n >> 16) & 0xff, g = (n >> 8) & 0xff, b = n & 0xff;
-  return `rgba(${r},${g},${b},${alpha})`;
+function shapeClipPath(shape) {
+  const size = 22;
+  const r = size / 2;
+  const cx = r, cy = r;
+  switch (shape) {
+    case "circle": return "circle(50% at 50% 50%)";
+    case "square": return "inset(0 0 0 0 round 2px)";
+    case "diamond": return "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)";
+    case "hexagon": {
+      const pts = polygonPoints(cx, cy, r, 6);
+      return "polygon(" + pts.map(([x, y]) => `${(x / size * 100).toFixed(1)}% ${(y / size * 100).toFixed(1)}%`).join(", ") + ")";
+    }
+    case "heptagon": {
+      const pts = polygonPoints(cx, cy, r, 7);
+      return "polygon(" + pts.map(([x, y]) => `${(x / size * 100).toFixed(1)}% ${(y / size * 100).toFixed(1)}%`).join(", ") + ")";
+    }
+    case "octagon": {
+      const pts = polygonPoints(cx, cy, r, 8, Math.PI / 8);
+      return "polygon(" + pts.map(([x, y]) => `${(x / size * 100).toFixed(1)}% ${(y / size * 100).toFixed(1)}%`).join(", ") + ")";
+    }
+    case "triangle": return "polygon(50% 0%, 100% 100%, 0% 100%)";
+    case "star": {
+      const pts = starPoints(cx, cy, r, r * 0.4, 5);
+      return "polygon(" + pts.map(([x, y]) => `${(x / size * 100).toFixed(1)}% ${(y / size * 100).toFixed(1)}%`).join(", ") + ")";
+    }
+    default: return "circle(50% at 50% 50%)";
+  }
+}
+
+// Draw a shape on canvas for export
+function drawShapeOnCanvas(c, cx, cy, shape, radius) {
+  switch (shape) {
+    case "circle":
+      c.arc(cx, cy, radius, 0, Math.PI * 2);
+      break;
+    case "square": {
+      const s = radius * 0.85;
+      c.rect(cx - s, cy - s, s * 2, s * 2);
+      break;
+    }
+    case "diamond": {
+      c.moveTo(cx, cy - radius);
+      c.lineTo(cx + radius, cy);
+      c.lineTo(cx, cy + radius);
+      c.lineTo(cx - radius, cy);
+      c.closePath();
+      break;
+    }
+    case "triangle": {
+      const pts = polygonPoints(cx, cy, radius, 3, Math.PI / 6);
+      c.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+      c.closePath();
+      break;
+    }
+    case "star": {
+      const pts = starPoints(cx, cy, radius, radius * 0.4, 5);
+      c.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+      c.closePath();
+      break;
+    }
+    default: {
+      // hexagon, heptagon, octagon
+      const sides = shape === "hexagon" ? 6 : shape === "heptagon" ? 7 : 8;
+      const rot = shape === "octagon" ? Math.PI / 8 : 0;
+      const pts = polygonPoints(cx, cy, radius, sides, rot);
+      c.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+      c.closePath();
+      break;
+    }
+  }
 }
 
 // ─── Custom cursors ─────────────────────────────────────────
@@ -99,7 +170,8 @@ let historyIdx = -1;
 function snapshot() {
   return {
     beads: new Map(state.beads),
-    wires: state.wires.map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow })),
+    beadShapes: new Map(state.beadShapes),
+    wires: state.wires.map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow, style: w.style })),
     torsades: state.torsades.map(t => ({ from: [...t.from], to: [...t.to], color: t.color, twists: t.twists })),
   };
 }
@@ -114,7 +186,8 @@ function pushHistory() {
 function restoreSnapshot(snap) {
   clearSelection();
   state.beads = new Map(snap.beads);
-  state.wires = snap.wires.map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow }));
+  state.beadShapes = new Map(snap.beadShapes || []);
+  state.wires = snap.wires.map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow, style: w.style }));
   state.torsades = snap.torsades.map(t => ({ from: [...t.from], to: [...t.to], color: t.color, twists: t.twists }));
   state.wireStart = null;
   refreshAllBeads();
@@ -126,6 +199,7 @@ function redo() { if (historyIdx < history.length - 1) { historyIdx++; restoreSn
 
 function resetAll() {
   state.beads.clear();
+  state.beadShapes.clear();
   state.wires.length = 0;
   state.torsades.length = 0;
   state.wireStart = null;
@@ -193,32 +267,27 @@ function inBounds(r, c) {
 
 // ─── Beads ──────────────────────────────────────────────────
 
-function renderBead(cell, color) {
+function renderBead(cell, color, shape) {
   cell.innerHTML = "";
+  const key = `${cell.dataset.row},${cell.dataset.col}`;
+  if (!shape) shape = state.beadShapes.get(key) || "circle";
   const bead = document.createElement("div");
   bead.className = "bead";
-  if (state.colorblind) {
-    bead.style.background = hexToRgba(color, 0.25);
-    bead.style.borderColor = color;
-    bead.style.borderWidth = "2px";
-    const sym = document.createElement("span");
-    sym.className = "bead-symbol";
-    sym.textContent = getBeadSymbol(color);
-    sym.style.color = "#000";
-    bead.appendChild(sym);
-  } else {
-    bead.style.background = color;
-  }
+  bead.style.clipPath = shapeClipPath(shape);
+  bead.style.borderRadius = shape === "circle" ? "50%" : "0";
+  bead.style.background = color;
   cell.appendChild(bead);
 }
 
 function clearBead(cell) { cell.innerHTML = ""; }
 
-function placeBead(r, c, color) {
+function placeBead(r, c, color, shape) {
   if (!inBounds(r, c)) return;
-  state.beads.set(`${r},${c}`, color);
+  const key = `${r},${c}`;
+  state.beads.set(key, color);
+  state.beadShapes.set(key, shape || state.beadShape);
   const cell = getCell(r, c);
-  if (cell) renderBead(cell, color);
+  if (cell) renderBead(cell, color, shape || state.beadShape);
 }
 
 function refreshAllBeads() {
@@ -333,18 +402,19 @@ function computeWireOffsets() {
 // ─── Chain finding for rounded corners ──────────────────────
 
 function findChains() {
-  // Group same-color wires into chains (sequences of connected segments)
-  // A chain is a list of points where consecutive points are wire endpoints
-  const wiresByColor = new Map();
+  // Group same-color same-style wires into chains
+  const wiresByGroup = new Map();
   state.wires.forEach((w, i) => {
-    if (!wiresByColor.has(w.color)) wiresByColor.set(w.color, []);
-    wiresByColor.get(w.color).push(i);
+    const groupKey = `${w.color}|${w.style || "solid"}`;
+    if (!wiresByGroup.has(groupKey)) wiresByGroup.set(groupKey, []);
+    wiresByGroup.get(groupKey).push(i);
   });
 
   const chains = [];
   const used = new Set();
 
-  for (const [color, indices] of wiresByColor) {
+  for (const [groupKey, indices] of wiresByGroup) {
+    const [color, style] = groupKey.split("|");
     // Build adjacency: endpoint -> [{wireIdx, otherEnd}]
     const adj = new Map();
     for (const i of indices) {
@@ -389,7 +459,7 @@ function findChains() {
       }
 
       if (points.length >= 2) {
-        chains.push({ color, points: points.map(k => k.split(",").map(Number)) });
+        chains.push({ color, style: style || "solid", points: points.map(k => k.split(",").map(Number)) });
       }
     }
   }
@@ -406,7 +476,7 @@ function redrawAll() {
 
   // Draw wire chains with rounded corners
   for (const chain of chains) {
-    drawChain(ctx, chain.points, chain.color, offsets);
+    drawChain(ctx, chain.points, chain.color, offsets, chain.style);
   }
 
   // Draw torsades
@@ -438,7 +508,7 @@ function drawWireArrows(c, offsets) {
     const fx = from.x + fOff.x, fy = from.y + fOff.y;
     const tx = to.x + tOff.x, ty = to.y + tOff.y;
     const mx = (fx + tx) / 2, my = (fy + ty) / 2;
-    const color = state.colorblind ? hexToRgba(w.color, 0.6) : w.color;
+    const color = w.color;
     const angle = w.arrow === "end"
       ? Math.atan2(ty - fy, tx - fx)
       : Math.atan2(fy - ty, fx - tx);
@@ -446,9 +516,10 @@ function drawWireArrows(c, offsets) {
   }
 }
 
-function drawChain(c, points, color, offsets) {
+function drawChain(c, points, color, offsets, wireStyle) {
   if (points.length < 2) return;
   const ROUND_RADIUS = CELL_SIZE * 0.4;
+  const styleDash = getWireStyleDash(wireStyle || "solid");
 
   // Get offset centers for each point
   const centers = points.map(([r, col]) => cellCenter(r, col));
@@ -476,11 +547,11 @@ function drawChain(c, points, color, offsets) {
     c.beginPath();
     c.moveTo(f.x + fOff.x, f.y + fOff.y);
     c.lineTo(t.x + tOff.x, t.y + tOff.y);
-    c.strokeStyle = state.colorblind ? hexToRgba(color, 0.4) : color;
+    c.strokeStyle = color;
     c.lineWidth = 2;
     c.lineCap = "round";
     c.lineJoin = "round";
-    if (state.colorblind) c.setLineDash(getWireDash(color));
+    c.setLineDash(styleDash);
     c.stroke();
     c.setLineDash([]);
     return;
@@ -497,11 +568,11 @@ function drawChain(c, points, color, offsets) {
     c.arcTo(curr.x, curr.y, next.x, next.y, ROUND_RADIUS);
   }
   c.lineTo(centers[centers.length - 1].x, centers[centers.length - 1].y);
-  c.strokeStyle = state.colorblind ? hexToRgba(color, 0.4) : color;
+  c.strokeStyle = color;
   c.lineWidth = 2;
   c.lineCap = "round";
   c.lineJoin = "round";
-  if (state.colorblind) c.setLineDash(getWireDash(color));
+  c.setLineDash(styleDash);
   c.stroke();
   c.setLineDash([]);
 }
@@ -521,12 +592,10 @@ function drawTorsade(c, from, to, color, twists) {
       const wave = Math.sin(t * twists * Math.PI * 2 + phase) * amp;
       c.lineTo(from.x + dx * t + nx * wave, from.y + dy * t + ny * wave);
     }
-    c.strokeStyle = state.colorblind ? hexToRgba(color, 0.4) : color;
+    c.strokeStyle = color;
     c.lineWidth = 2;
     c.lineCap = "round";
-    if (state.colorblind) c.setLineDash(getWireDash(color));
     c.stroke();
-    c.setLineDash([]);
   }
 }
 
@@ -546,7 +615,7 @@ function placeLoop(centerR, centerC) {
     placeBead(r, c, state.beadColor);
   }
   for (let i = 0; i < positions.length; i++) {
-    state.wires.push({ from: positions[i], to: positions[(i + 1) % positions.length], color: state.wireColor });
+    state.wires.push({ from: positions[i], to: positions[(i + 1) % positions.length], color: state.wireColor, style: state.wireStyle });
   }
   redrawAll();
 }
@@ -668,7 +737,11 @@ function rotateComponent(r, c) {
   }
 
   const beadColors = new Map();
-  for (const key of comp) if (state.beads.has(key)) beadColors.set(key, state.beads.get(key));
+  const beadShapesSnap = new Map();
+  for (const key of comp) {
+    if (state.beads.has(key)) beadColors.set(key, state.beads.get(key));
+    if (state.beadShapes.has(key)) beadShapesSnap.set(key, state.beadShapes.get(key));
+  }
 
   const compWires = state.wires.filter(w =>
     comp.has(`${w.from[0]},${w.from[1]}`) && comp.has(`${w.to[0]},${w.to[1]}`)
@@ -677,7 +750,7 @@ function rotateComponent(r, c) {
     comp.has(`${t.from[0]},${t.from[1]}`) && comp.has(`${t.to[0]},${t.to[1]}`)
   );
 
-  for (const key of comp) state.beads.delete(key);
+  for (const key of comp) { state.beads.delete(key); state.beadShapes.delete(key); }
   state.wires = state.wires.filter(w =>
     !(comp.has(`${w.from[0]},${w.from[1]}`) && comp.has(`${w.to[0]},${w.to[1]}`))
   );
@@ -688,10 +761,14 @@ function rotateComponent(r, c) {
   for (const [key, color] of beadColors) {
     const [br, bc] = key.split(",").map(Number);
     const [nr, nc] = rot(br, bc);
-    if (inBounds(nr, nc)) state.beads.set(`${nr},${nc}`, color);
+    if (inBounds(nr, nc)) {
+      const nk = `${nr},${nc}`;
+      state.beads.set(nk, color);
+      if (beadShapesSnap.has(key)) state.beadShapes.set(nk, beadShapesSnap.get(key));
+    }
   }
   for (const w of compWires) {
-    state.wires.push({ from: rot(w.from[0], w.from[1]), to: rot(w.to[0], w.to[1]), color: w.color, arrow: w.arrow });
+    state.wires.push({ from: rot(w.from[0], w.from[1]), to: rot(w.to[0], w.to[1]), color: w.color, arrow: w.arrow, style: w.style });
   }
   for (const t of compTorsades) {
     state.torsades.push({ from: rot(t.from[0], t.from[1]), to: rot(t.to[0], t.to[1]), color: t.color, twists: t.twists });
@@ -755,9 +832,12 @@ function handleDrag(e) {
       if (newKey !== (movingBead.currentKey || movingBead.origKey)) {
         const lastKey = movingBead.currentKey || movingBead.origKey;
         if (state.beads.has(lastKey) && state.beads.get(lastKey) === movingBead.color) {
+          const oldShape = state.beadShapes.get(lastKey);
           state.beads.delete(lastKey);
+          state.beadShapes.delete(lastKey);
           const oldCell = getCell(...lastKey.split(",").map(Number));
           if (oldCell) clearBead(oldCell);
+          state.beadShapes.set(newKey, oldShape || "circle");
         }
         state.beads.set(newKey, movingBead.color);
         renderBead(cell, movingBead.color);
@@ -783,6 +863,7 @@ function handleDrag(e) {
   } else if (state.tool === "eraser") {
     if (state.beads.has(key)) {
       state.beads.delete(key);
+      state.beadShapes.delete(key);
       clearBead(cell);
       state.wires = state.wires.filter(w =>
         !(w.from[0] === r && w.from[1] === c) && !(w.to[0] === r && w.to[1] === c)
@@ -805,19 +886,23 @@ function handleDrag(e) {
 
 function snapshotComponent(comp) {
   const beads = new Map();
-  for (const key of comp) if (state.beads.has(key)) beads.set(key, state.beads.get(key));
+  const shapes = new Map();
+  for (const key of comp) {
+    if (state.beads.has(key)) beads.set(key, state.beads.get(key));
+    if (state.beadShapes.has(key)) shapes.set(key, state.beadShapes.get(key));
+  }
   const wires = state.wires.filter(w =>
     comp.has(`${w.from[0]},${w.from[1]}`) || comp.has(`${w.to[0]},${w.to[1]}`)
-  ).map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow }));
+  ).map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow, style: w.style }));
   const torsades = state.torsades.filter(t =>
     comp.has(`${t.from[0]},${t.from[1]}`) || comp.has(`${t.to[0]},${t.to[1]}`)
   ).map(t => ({ from: [...t.from], to: [...t.to], color: t.color, twists: t.twists }));
-  return { beads, wires, torsades };
+  return { beads, shapes, wires, torsades };
 }
 
 function moveComponent(mc, dr, dc) {
   // Remove current positions
-  for (const key of mc.comp) state.beads.delete(key);
+  for (const key of mc.comp) { state.beads.delete(key); state.beadShapes.delete(key); }
   state.wires = state.wires.filter(w =>
     !(mc.comp.has(`${w.from[0]},${w.from[1]}`) || mc.comp.has(`${w.to[0]},${w.to[1]}`))
   );
@@ -831,12 +916,14 @@ function moveComponent(mc, dr, dc) {
     const [or, oc] = key.split(",").map(Number);
     const nr = or + dr, nc = oc + dc;
     if (inBounds(nr, nc)) {
-      state.beads.set(`${nr},${nc}`, color);
-      newComp.add(`${nr},${nc}`);
+      const nk = `${nr},${nc}`;
+      state.beads.set(nk, color);
+      if (mc.shapeSnap && mc.shapeSnap.has(key)) state.beadShapes.set(nk, mc.shapeSnap.get(key));
+      newComp.add(nk);
     }
   }
   for (const w of mc.wireSnap) {
-    const nw = { from: [w.from[0] + dr, w.from[1] + dc], to: [w.to[0] + dr, w.to[1] + dc], color: w.color, arrow: w.arrow };
+    const nw = { from: [w.from[0] + dr, w.from[1] + dc], to: [w.to[0] + dr, w.to[1] + dc], color: w.color, arrow: w.arrow, style: w.style };
     state.wires.push(nw);
   }
   for (const t of mc.torsadeSnap) {
@@ -905,18 +992,22 @@ function finalizeSelection(startR, startC, endR, endC) {
 
 function snapshotSelection(selected) {
   const beads = new Map();
-  for (const key of selected) if (state.beads.has(key)) beads.set(key, state.beads.get(key));
+  const shapes = new Map();
+  for (const key of selected) {
+    if (state.beads.has(key)) beads.set(key, state.beads.get(key));
+    if (state.beadShapes.has(key)) shapes.set(key, state.beadShapes.get(key));
+  }
   const wires = state.wires.filter(w =>
     selected.has(`${w.from[0]},${w.from[1]}`) && selected.has(`${w.to[0]},${w.to[1]}`)
-  ).map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow }));
+  ).map(w => ({ from: [...w.from], to: [...w.to], color: w.color, arrow: w.arrow, style: w.style }));
   const torsades = state.torsades.filter(t =>
     selected.has(`${t.from[0]},${t.from[1]}`) && selected.has(`${t.to[0]},${t.to[1]}`)
   ).map(t => ({ from: [...t.from], to: [...t.to], color: t.color, twists: t.twists }));
-  return { beads, wires, torsades };
+  return { beads, shapes, wires, torsades };
 }
 
 function moveSelection(dr, dc) {
-  for (const key of selectionBeads) state.beads.delete(key);
+  for (const key of selectionBeads) { state.beads.delete(key); state.beadShapes.delete(key); }
   state.wires = state.wires.filter(w =>
     !(selectionBeads.has(`${w.from[0]},${w.from[1]}`) && selectionBeads.has(`${w.to[0]},${w.to[1]}`))
   );
@@ -928,12 +1019,14 @@ function moveSelection(dr, dc) {
     const [or, oc] = key.split(",").map(Number);
     const nr = or + dr, nc = oc + dc;
     if (inBounds(nr, nc)) {
-      state.beads.set(`${nr},${nc}`, color);
-      newSelected.add(`${nr},${nc}`);
+      const nk = `${nr},${nc}`;
+      state.beads.set(nk, color);
+      if (selectionSnap.shapes && selectionSnap.shapes.has(key)) state.beadShapes.set(nk, selectionSnap.shapes.get(key));
+      newSelected.add(nk);
     }
   }
   for (const w of selectionSnap.wires) {
-    state.wires.push({ from: [w.from[0] + dr, w.from[1] + dc], to: [w.to[0] + dr, w.to[1] + dc], color: w.color, arrow: w.arrow });
+    state.wires.push({ from: [w.from[0] + dr, w.from[1] + dc], to: [w.to[0] + dr, w.to[1] + dc], color: w.color, arrow: w.arrow, style: w.style });
   }
   for (const t of selectionSnap.torsades) {
     state.torsades.push({ from: [t.from[0] + dr, t.from[1] + dc], to: [t.to[0] + dr, t.to[1] + dc], color: t.color, twists: t.twists });
@@ -1003,7 +1096,7 @@ gridEl.addEventListener("mousedown", (e) => {
       const comp = findComponent(wireKey);
       if (comp.size >= 1) {
         const snap = snapshotComponent(comp);
-        movingComp = { comp, anchorR: r, anchorC: c, lastDR: 0, lastDC: 0, beadSnap: snap.beads, wireSnap: snap.wires, torsadeSnap: snap.torsades };
+        movingComp = { comp, anchorR: r, anchorC: c, lastDR: 0, lastDC: 0, beadSnap: snap.beads, shapeSnap: snap.shapes, wireSnap: snap.wires, torsadeSnap: snap.torsades };
         movingBead = null;
         isDragging = true;
         dragChanged = false;
@@ -1092,7 +1185,7 @@ gridEl.addEventListener("click", (e) => {
       } else {
         const [sr, sc] = state.wireStart;
         if (sr !== r || sc !== c) {
-          state.wires.push({ from: [sr, sc], to: [r, c], color: state.wireColor });
+          state.wires.push({ from: [sr, sc], to: [r, c], color: state.wireColor, style: state.wireStyle });
           redrawAll();
           pushHistory();
         }
@@ -1165,6 +1258,54 @@ document.getElementById("loop-count").addEventListener("input", (e) => {
   state.loopCount = Math.max(3, Math.min(35, parseInt(e.target.value) || 6));
 });
 
+// ─── Split button dropdowns ──────────────────────────────────
+
+function setupSplitDropdown(toggleId, dropdownId, onSelect) {
+  const toggle = document.getElementById(toggleId);
+  const dropdown = document.getElementById(dropdownId);
+
+  toggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    // Close any other open dropdown
+    document.querySelectorAll(".split-dropdown.open").forEach(d => {
+      if (d !== dropdown) d.classList.remove("open");
+    });
+    dropdown.classList.toggle("open");
+  });
+
+  dropdown.querySelectorAll(".split-option").forEach(opt => {
+    opt.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.querySelectorAll(".split-option").forEach(o => o.classList.remove("active"));
+      opt.classList.add("active");
+      dropdown.classList.remove("open");
+      onSelect(opt);
+    });
+  });
+}
+
+// Close dropdowns on outside click
+document.addEventListener("click", () => {
+  document.querySelectorAll(".split-dropdown.open").forEach(d => d.classList.remove("open"));
+});
+
+// Bead shape split button
+setupSplitDropdown("bead-shape-toggle", "bead-shape-dropdown", (opt) => {
+  state.beadShape = opt.dataset.shape;
+  // Update the icon on the toggle button
+  const iconSvg = opt.querySelector("svg").cloneNode(true);
+  const target = document.getElementById("bead-shape-icon");
+  target.innerHTML = iconSvg.innerHTML;
+});
+
+// Wire style split button
+setupSplitDropdown("wire-style-toggle", "wire-style-dropdown", (opt) => {
+  state.wireStyle = opt.dataset.wire;
+  const iconSvg = opt.querySelector("svg").cloneNode(true);
+  const target = document.getElementById("wire-style-icon");
+  target.innerHTML = iconSvg.innerHTML;
+});
+
 document.querySelectorAll(".twist-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".twist-btn").forEach(b => b.classList.remove("active"));
@@ -1178,53 +1319,6 @@ document.getElementById("btn-undo").addEventListener("click", undo);
 document.getElementById("btn-redo").addEventListener("click", redo);
 document.getElementById("btn-reset").addEventListener("click", resetAll);
 
-// colorblind toggle
-document.getElementById("btn-colorblind").addEventListener("click", () => {
-  state.colorblind = !state.colorblind;
-  document.getElementById("btn-colorblind").classList.toggle("toggle-on", state.colorblind);
-  refreshPaletteSwatches();
-  refreshAllBeads();
-  redrawAll();
-});
-
-function refreshPaletteSwatches() {
-  // Bead swatches: show symbol on transparent color
-  document.querySelectorAll("#bead-palette .swatch").forEach(sw => {
-    const color = sw.dataset.color;
-    if (state.colorblind) {
-      sw.style.background = hexToRgba(color, 0.25);
-      sw.style.borderColor = color;
-      sw.style.color = "#000";
-      sw.textContent = getBeadSymbol(color);
-    } else {
-      sw.style.background = color;
-      sw.style.borderColor = "";
-      sw.style.color = "transparent";
-      sw.textContent = "";
-    }
-  });
-  // Wire swatches: show dash pattern on transparent color
-  document.querySelectorAll("#wire-palette .swatch").forEach(sw => {
-    const color = sw.dataset.color;
-    const existing = sw.querySelector(".wire-dash");
-    if (existing) existing.remove();
-
-    if (state.colorblind) {
-      sw.style.background = hexToRgba(color, 0.25);
-      sw.style.borderColor = color;
-      const dash = getWireDash(color);
-      const dashStr = dash.length ? dash.join(",") : "none";
-      const div = document.createElement("div");
-      div.className = "wire-dash";
-      div.style.display = "block";
-      div.innerHTML = `<svg viewBox="0 0 20 20"><line x1="2" y1="10" x2="18" y2="10" stroke="${color}" stroke-width="2.5" stroke-linecap="round" ${dashStr !== "none" ? `stroke-dasharray="${dashStr}"` : ""}/></svg>`;
-      sw.appendChild(div);
-    } else {
-      sw.style.background = color;
-      sw.style.borderColor = "";
-    }
-  });
-}
 
 // ─── Palettes ───────────────────────────────────────────────
 
@@ -1318,7 +1412,7 @@ function exportPNG(withGrid) {
   const expOffsets = computeWireOffsets();
   const expChains = findChains();
   for (const chain of expChains) {
-    drawChain(oc, chain.points, chain.color, expOffsets);
+    drawChain(oc, chain.points, chain.color, expOffsets, chain.style);
   }
 
   // Draw torsades with offsets
@@ -1341,28 +1435,14 @@ function exportPNG(withGrid) {
   for (const [key, color] of state.beads) {
     const [r, c] = key.split(",").map(Number);
     const p = cellCenter(r, c);
+    const shape = state.beadShapes.get(key) || "circle";
     oc.beginPath();
-    oc.arc(p.x, p.y, 10, 0, Math.PI * 2);
-    if (state.colorblind) {
-      oc.fillStyle = hexToRgba(color, 0.25);
-      oc.fill();
-      oc.strokeStyle = color;
-      oc.lineWidth = 2;
-      oc.stroke();
-    } else {
-      oc.fillStyle = color;
-      oc.fill();
-      oc.strokeStyle = "rgba(0,0,0,0.1)";
-      oc.lineWidth = 1.5;
-      oc.stroke();
-    }
-    if (state.colorblind) {
-      oc.fillStyle = "#000";
-      oc.font = "bold 11px Inter, sans-serif";
-      oc.textAlign = "center";
-      oc.textBaseline = "middle";
-      oc.fillText(getBeadSymbol(color), p.x, p.y);
-    }
+    drawShapeOnCanvas(oc, p.x, p.y, shape, 10);
+    oc.fillStyle = color;
+    oc.fill();
+    oc.strokeStyle = "rgba(0,0,0,0.1)";
+    oc.lineWidth = 1.5;
+    oc.stroke();
   }
 
   oc.restore();

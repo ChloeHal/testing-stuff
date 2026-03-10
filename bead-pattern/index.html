@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bead Flower Pattern Editor</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z'/><path d='M15 3v5a1 1 0 0 0 1 1h5'/><path d='M8 13h.01'/><path d='M16 13h.01'/><path d='M10 16s.8 1 2 1c1.3 0 2-1 2-1'/></svg>">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
   <header class="app-header">
@@ -56,14 +56,44 @@
   <div class="toolbar">
     <div class="toolbar-row">
       <div class="toolbar-group">
-        <button class="tool-btn active" data-tool="bead">
-          <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke-width="1.8"/></svg>
-          Bead
-        </button>
-        <button class="tool-btn" data-tool="wire">
-          <svg viewBox="0 0 18 18"><path d="M3 15 L15 3" stroke-width="1.8" stroke-linecap="round"/><circle cx="3" cy="15" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="3" r="2" fill="currentColor" stroke="none"/></svg>
-          Wire
-        </button>
+        <div class="split-btn-group">
+          <button class="tool-btn active" data-tool="bead">
+            <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke-width="1.8"/></svg>
+            Bead
+          </button>
+          <button class="split-toggle" id="bead-shape-toggle" title="Bead shape">
+            <svg id="bead-shape-icon" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke-width="1.8"/></svg>
+            <svg class="chevron" viewBox="0 0 8 5"><path d="M1 1 L4 4 L7 1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="split-dropdown" id="bead-shape-dropdown">
+            <button class="split-option active" data-shape="circle"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke-width="1.8"/></svg> Circle</button>
+            <button class="split-option" data-shape="square"><svg viewBox="0 0 18 18"><rect x="3" y="3" width="12" height="12" stroke-width="1.8"/></svg> Square</button>
+            <button class="split-option" data-shape="diamond"><svg viewBox="0 0 18 18"><path d="M9 2 L16 9 L9 16 L2 9 Z" stroke-width="1.8"/></svg> Diamond</button>
+            <button class="split-option" data-shape="hexagon"><svg viewBox="0 0 18 18"><path d="M9 2 L15.1 5.5 L15.1 12.5 L9 16 L2.9 12.5 L2.9 5.5 Z" stroke-width="1.8"/></svg> Hexagon</button>
+            <button class="split-option" data-shape="heptagon"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5" stroke-width="1.8" stroke-dasharray="5.8 0.1"/></svg> Heptagon</button>
+            <button class="split-option" data-shape="octagon"><svg viewBox="0 0 18 18"><path d="M6.3 2 L11.7 2 L16 6.3 L16 11.7 L11.7 16 L6.3 16 L2 11.7 L2 6.3 Z" stroke-width="1.8"/></svg> Octagon</button>
+            <button class="split-option" data-shape="triangle"><svg viewBox="0 0 18 18"><path d="M9 2 L16 16 L2 16 Z" stroke-width="1.8"/></svg> Triangle</button>
+            <button class="split-option" data-shape="star"><svg viewBox="0 0 18 18"><path d="M9 1 L11.2 6.5 L17 7.1 L12.7 11 L13.8 17 L9 14 L4.2 17 L5.3 11 L1 7.1 L6.8 6.5 Z" stroke-width="1.4"/></svg> Star</button>
+          </div>
+        </div>
+        <div class="split-btn-group">
+          <button class="tool-btn" data-tool="wire">
+            <svg viewBox="0 0 18 18"><path d="M3 15 L15 3" stroke-width="1.8" stroke-linecap="round"/><circle cx="3" cy="15" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="3" r="2" fill="currentColor" stroke="none"/></svg>
+            Wire
+          </button>
+          <button class="split-toggle" id="wire-style-toggle" title="Wire style">
+            <svg id="wire-style-icon" viewBox="0 0 18 18"><path d="M2 9 L16 9" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg class="chevron" viewBox="0 0 8 5"><path d="M1 1 L4 4 L7 1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="split-dropdown" id="wire-style-dropdown">
+            <button class="split-option active" data-wire="solid"><svg viewBox="0 0 18 18"><path d="M2 9 L16 9" stroke-width="2" stroke-linecap="round"/></svg> Solid</button>
+            <button class="split-option" data-wire="dashed"><svg viewBox="0 0 18 18"><path d="M2 9 L16 9" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 3"/></svg> Dashed</button>
+            <button class="split-option" data-wire="dotted"><svg viewBox="0 0 18 18"><path d="M2 9 L16 9" stroke-width="2" stroke-linecap="round" stroke-dasharray="1.5 3"/></svg> Dotted</button>
+            <button class="split-option" data-wire="dash-dot"><svg viewBox="0 0 18 18"><path d="M2 9 L16 9" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 2 1.5 2"/></svg> Dash-dot</button>
+            <button class="split-option" data-wire="long-dash"><svg viewBox="0 0 18 18"><path d="M2 9 L16 9" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 3"/></svg> Long</button>
+            <button class="split-option" data-wire="short-dash"><svg viewBox="0 0 18 18"><path d="M2 9 L16 9" stroke-width="2" stroke-linecap="round" stroke-dasharray="2.5 2"/></svg> Short</button>
+          </div>
+        </div>
         <button class="tool-btn" data-tool="loop">
           <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke-width="1.8" stroke-dasharray="3.5 2.5"/></svg>
           Loop
@@ -113,12 +143,6 @@
         <button class="action-btn" id="btn-undo" title="Ctrl+Z">&larr; Undo</button>
         <button class="action-btn" id="btn-redo" title="Ctrl+Shift+Z">Redo &rarr;</button>
         <button class="action-btn danger" id="btn-reset">Reset</button>
-      </div>
-
-      <div class="separator"></div>
-
-      <div class="toolbar-group">
-        <button class="action-btn" id="btn-colorblind">Colorblind</button>
       </div>
 
       <div class="separator"></div>
@@ -186,6 +210,7 @@
     <canvas id="wire-canvas"></canvas>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=2"></script>
+<script src="../breadcrumb.js"></script>
 </body>
 </html>

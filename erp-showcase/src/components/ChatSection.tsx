@@ -104,7 +104,7 @@ export default function ChatSection() {
             <motion.div
               className="flex h-80 flex-col gap-3 overflow-hidden p-4"
               animate={{ opacity: fading ? 0 : 1 }}
-              transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+              transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] as [number, number, number, number] }}
             >
               <AnimatePresence mode="popLayout">
                 {visible.map((msg, i) => (
@@ -114,7 +114,7 @@ export default function ChatSection() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{
                       duration: 0.35,
-                      ease: [0.19, 1, 0.22, 1],
+                      ease: [0.19, 1, 0.22, 1] as [number, number, number, number],
                     }}
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
@@ -136,7 +136,7 @@ export default function ChatSection() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.25, ease: [0.19, 1, 0.22, 1] }}
+                    transition={{ duration: 0.25, ease: [0.19, 1, 0.22, 1] as [number, number, number, number] }}
                     className="flex justify-start"
                   >
                     <div className="flex gap-1 rounded-2xl rounded-bl-md bg-slate-100 px-4 py-3">

@@ -66,7 +66,7 @@ export default function FeaturesSection() {
         <motion.h2
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : undefined}
-          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] as [number, number, number, number] }}
           className="text-center text-3xl font-bold tracking-tight"
         >
           Conçu pour les équipes modernes
@@ -74,7 +74,7 @@ export default function FeaturesSection() {
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : undefined}
-          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1], delay: 0.08 }}
+          transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] as [number, number, number, number], delay: 0.08 }}
           className="mx-auto mt-3 max-w-lg text-center text-slate-500"
         >
           Tous les modules dont vous avez besoin, sans la complexité.
