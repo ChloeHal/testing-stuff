@@ -350,7 +350,7 @@ function render(animate = false) {
   o += L(`<span class="dim">${hr()}</span>`);
 
   // Progress bar
-  o += L(` ${progressBar(CW - 8)}`);
+  o += L(` <span id="progress-bar">${progressBar(CW - 8)}</span>`);
   o += L();
 
   // Order Summary
@@ -365,9 +365,8 @@ function render(animate = false) {
   o += L(` ${boxR(`<span class="bright">Payment Information</span>`,BW-2)}`);
 
   // Card type + auto-detect hint
-  const autoHint = detected ? ` <span class="green">← auto-detected</span>` : '';
   o += L(` ├─<span class="muted">Accepted Cards:</span>${'─'.repeat(BW-22)}┤`);
-  o += L(` ${boxR(`  ${pill('visa','VISA')} ${pill('mastercard','MC')}${autoHint}`,BW-2)}`);
+  o += L(` ${boxR(`  <span id="card-pills">${pill('visa','VISA')} ${pill('mastercard','MC')}${detected ? ` <span class="green">← auto-detected</span>` : ''}</span>`,BW-2)}`);
   o += L(` ${boxR('',BW-2)}`);
 
   // Card Number
@@ -409,7 +408,7 @@ function render(animate = false) {
   const payHint = valid ? ' <span class="muted">↵ Enter</span>' : '';
   const cancel = `<button class="ascii-btn danger" onclick="onCancel()">[    Cancel    ]</button>`;
   const pay = `<button class="${payClass}" onclick="onPay()">[  Pay $${state.total.toFixed(2)}  ]</button>`;
-  o += L(`${' '.repeat(CW - 40)} ${cancel}  ${pay}${payHint}`);
+  o += L(`${' '.repeat(CW - 40)} ${cancel}  <span id="pay-btn-wrap">${pay}${payHint}</span>`);
   o += L();
 
   document.getElementById('content').innerHTML = o;
@@ -455,7 +454,45 @@ function onInput(el) {
   if (f === 'cvv') v = v.replace(/[^0-9]/g, '').substring(0, 4);
 
   state[f] = v;
-  render();
+
+  // Sync formatted value back to input without re-render
+  if (el.value !== v) {
+    const pos = el.selectionStart;
+    el.value = v;
+    // Keep cursor in a reasonable position
+    el.setSelectionRange(Math.min(pos + 1, v.length), Math.min(pos + 1, v.length));
+  }
+
+  // Auto-detect card type
+  if (f === 'cardNumber') {
+    const detected = detectCard(v);
+    if (detected && detected !== state.cardType) {
+      state.cardType = detected;
+    }
+    // Update card pills
+    const pillsEl = document.getElementById('card-pills');
+    if (pillsEl) {
+      const det = detectCard(state.cardNumber);
+      const hint = det ? ` <span class="green">← auto-detected</span>` : '';
+      pillsEl.innerHTML = `${pill('visa','VISA')} ${pill('mastercard','MC')}${hint}`;
+    }
+  }
+
+  // Lightweight update: progress bar + pay button only
+  updateDynamic();
+}
+
+function updateDynamic() {
+  const pb = document.getElementById('progress-bar');
+  if (pb) pb.innerHTML = progressBar(CW - 8);
+
+  const pw = document.getElementById('pay-btn-wrap');
+  if (pw) {
+    const valid = isFormValid();
+    const payClass = valid ? 'ascii-btn primary ready' : 'ascii-btn primary';
+    const payHint = valid ? ' <span class="muted">↵ Enter</span>' : '';
+    pw.innerHTML = `<button class="${payClass}" onclick="onPay()">[  Pay $${state.total.toFixed(2)}  ]</button>${payHint}`;
+  }
 }
 
 function onFocus(el) { focused = el.dataset.field; }
