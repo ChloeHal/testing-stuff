@@ -1381,7 +1381,7 @@ function getContentBounds() {
   return { minR, maxR, minC, maxC };
 }
 
-function exportPNG(withGrid) {
+function exportPNG(withGrid, withWatermark = true) {
   const bounds = getContentBounds();
   if (!bounds) return; // nothing to export
 
@@ -1447,6 +1447,25 @@ function exportPNG(withGrid) {
 
   oc.restore();
 
+  // Diagonal repeating watermark
+  if (withWatermark) {
+    const wmText = "chlohal.com";
+    oc.save();
+    oc.font = "700 14px 'Inter', -apple-system, sans-serif";
+    oc.fillStyle = "rgba(0, 0, 0, 0.08)";
+    oc.textAlign = "center";
+    oc.textBaseline = "middle";
+    oc.rotate(-Math.PI / 6);
+    const spacing = 120;
+    const diagonal = Math.sqrt(w * w + h * h);
+    for (let y = -diagonal; y < diagonal * 2; y += spacing) {
+      for (let x = -diagonal; x < diagonal * 2; x += 200) {
+        oc.fillText(wmText, x, y);
+      }
+    }
+    oc.restore();
+  }
+
   const a = document.createElement("a");
   a.download = withGrid ? "pattern-grid.png" : "pattern.png";
   a.href = off.toDataURL("image/png");
@@ -1455,6 +1474,17 @@ function exportPNG(withGrid) {
 
 document.getElementById("export-grid").addEventListener("click", () => exportPNG(true));
 document.getElementById("export-no-grid").addEventListener("click", () => exportPNG(false));
+
+// Export without watermark (password protected)
+document.getElementById("export-clean").addEventListener("click", () => {
+  const pwd = prompt("Password for watermark-free export:");
+  if (pwd === null) return;
+  if (pwd === "GoodLuckBabe") {
+    exportPNG(false, false);
+  } else {
+    alert("Incorrect password.");
+  }
+});
 
 // ─── Init ───────────────────────────────────────────────────
 

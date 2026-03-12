@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bead Flower Pattern Editor</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z'/><path d='M15 3v5a1 1 0 0 0 1 1h5'/><path d='M8 13h.01'/><path d='M16 13h.01'/><path d='M10 16s.8 1 2 1c1.3 0 2-1 2-1'/></svg>">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <header class="app-header">
@@ -53,15 +53,43 @@
       </div>
     </div>
   </header>
-  <div class="toolbar">
-    <div class="toolbar-row">
-      <div class="toolbar-group">
+
+  <div class="editor">
+    <div class="grid" id="grid"></div>
+    <canvas id="wire-canvas"></canvas>
+
+    <!-- Floating action buttons (top-right) -->
+    <div class="floating-actions">
+      <button class="float-btn" id="btn-undo" data-tooltip="Undo (Ctrl+Z)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 4 L3 8 L7 12"/>
+          <path d="M3 8 L13 8 A4 4 0 0 1 13 16 L10 16"/>
+        </svg>
+      </button>
+      <button class="float-btn" id="btn-redo" data-tooltip="Redo (Ctrl+Shift+Z)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 4 L17 8 L13 12"/>
+          <path d="M17 8 L7 8 A4 4 0 0 0 7 16 L10 16"/>
+        </svg>
+      </button>
+      <button class="float-btn danger" id="btn-reset" data-tooltip="Clear everything">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M6 6 L14 14 M14 6 L6 14"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom dock -->
+  <div class="dock">
+    <div class="dock-inner">
+      <!-- Bead tool + color -->
+      <div class="dock-item">
         <div class="split-btn-group">
-          <button class="tool-btn active" data-tool="bead">
+          <button class="tool-btn active" data-tool="bead" data-tooltip="Place beads">
             <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke-width="1.8"/></svg>
-            Bead
           </button>
-          <button class="split-toggle" id="bead-shape-toggle" title="Bead shape">
+          <button class="split-toggle" id="bead-shape-toggle" data-tooltip="Bead shape">
             <svg id="bead-shape-icon" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke-width="1.8"/></svg>
             <svg class="chevron" viewBox="0 0 8 5"><path d="M1 1 L4 4 L7 1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
@@ -76,12 +104,45 @@
             <button class="split-option" data-shape="star"><svg viewBox="0 0 18 18"><path d="M9 1 L11.2 6.5 L17 7.1 L12.7 11 L13.8 17 L9 14 L4.2 17 L5.3 11 L1 7.1 L6.8 6.5 Z" stroke-width="1.4"/></svg> Star</button>
           </div>
         </div>
+        <button class="color-indicator" id="bead-color-btn" data-tooltip="Bead color">
+          <span class="color-dot" id="bead-color-dot" style="background:#ffffff"></span>
+        </button>
+        <div class="palette-popover" id="bead-palette">
+          <div class="popover-grid">
+            <button class="swatch active" data-color="#ffffff" style="background:#ffffff"></button>
+            <button class="swatch" data-color="#d4d4d4" style="background:#d4d4d4"></button>
+            <button class="swatch" data-color="#737373" style="background:#737373"></button>
+            <button class="swatch" data-color="#171717" style="background:#171717"></button>
+            <button class="swatch" data-color="#ef4444" style="background:#ef4444"></button>
+            <button class="swatch" data-color="#e11d48" style="background:#e11d48"></button>
+            <button class="swatch" data-color="#fb7185" style="background:#fb7185"></button>
+            <button class="swatch" data-color="#ec4899" style="background:#ec4899"></button>
+            <button class="swatch" data-color="#d946ef" style="background:#d946ef"></button>
+            <button class="swatch" data-color="#a855f7" style="background:#a855f7"></button>
+            <button class="swatch" data-color="#8b5cf6" style="background:#8b5cf6"></button>
+            <button class="swatch" data-color="#6366f1" style="background:#6366f1"></button>
+            <button class="swatch" data-color="#3b82f6" style="background:#3b82f6"></button>
+            <button class="swatch" data-color="#0ea5e9" style="background:#0ea5e9"></button>
+            <button class="swatch" data-color="#06b6d4" style="background:#06b6d4"></button>
+            <button class="swatch" data-color="#14b8a6" style="background:#14b8a6"></button>
+            <button class="swatch" data-color="#22c55e" style="background:#22c55e"></button>
+            <button class="swatch" data-color="#84cc16" style="background:#84cc16"></button>
+            <button class="swatch" data-color="#eab308" style="background:#eab308"></button>
+            <button class="swatch" data-color="#f59e0b" style="background:#f59e0b"></button>
+            <button class="swatch" data-color="#f97316" style="background:#f97316"></button>
+            <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
+          </div>
+          <input type="color" id="bead-custom-color" value="#ef4444" title="Custom color">
+        </div>
+      </div>
+
+      <!-- Wire tool + color -->
+      <div class="dock-item">
         <div class="split-btn-group">
-          <button class="tool-btn" data-tool="wire">
+          <button class="tool-btn" data-tool="wire" data-tooltip="Draw wires">
             <svg viewBox="0 0 18 18"><path d="M3 15 L15 3" stroke-width="1.8" stroke-linecap="round"/><circle cx="3" cy="15" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="3" r="2" fill="currentColor" stroke="none"/></svg>
-            Wire
           </button>
-          <button class="split-toggle" id="wire-style-toggle" title="Wire style">
+          <button class="split-toggle" id="wire-style-toggle" data-tooltip="Wire style">
             <svg id="wire-style-icon" viewBox="0 0 18 18"><path d="M2 9 L16 9" stroke-width="2" stroke-linecap="round"/></svg>
             <svg class="chevron" viewBox="0 0 8 5"><path d="M1 1 L4 4 L7 1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
@@ -94,123 +155,262 @@
             <button class="split-option" data-wire="short-dash"><svg viewBox="0 0 18 18"><path d="M2 9 L16 9" stroke-width="2" stroke-linecap="round" stroke-dasharray="2.5 2"/></svg> Short</button>
           </div>
         </div>
-        <button class="tool-btn" data-tool="loop">
-          <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke-width="1.8" stroke-dasharray="3.5 2.5"/></svg>
-          Loop
+        <button class="color-indicator" id="wire-color-btn" data-tooltip="Wire color">
+          <span class="color-dot" id="wire-color-dot" style="background:#171717"></span>
         </button>
-        <button class="tool-btn" data-tool="torsade">
-          <svg viewBox="0 0 18 18"><path d="M4 14 C6 10, 12 8, 14 4" stroke-width="1.8" stroke-linecap="round"/><path d="M4 14 C8 12, 10 6, 14 4" stroke-width="1.8" stroke-linecap="round" opacity="0.4"/></svg>
-          Twist
-        </button>
-        <button class="tool-btn" data-tool="arrow">
-          <svg viewBox="0 0 18 18"><path d="M7 4 L12 9 L7 14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-          Chevron
-        </button>
-        <button class="tool-btn" data-tool="rotate">
-          <svg viewBox="0 0 18 18"><path d="M13 5 A5 5 0 1 0 14 10" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M11 3 L14 5 L11 7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-          Rotate
-        </button>
-        <button class="tool-btn" data-tool="select">
-          <svg viewBox="0 0 18 18"><rect x="3" y="3" width="12" height="12" rx="1.5" stroke-width="1.8" stroke-dasharray="3 2.5"/></svg>
-          Select
-        </button>
-        <button class="tool-btn" data-tool="move">
-          <svg viewBox="0 0 18 18"><path d="M9 3 L9 15 M3 9 L15 9" stroke-width="1.8" stroke-linecap="round"/><path d="M7 5 L9 3 L11 5 M7 13 L9 15 L11 13 M5 7 L3 9 L5 11 M13 7 L15 9 L13 11" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-          Move
-        </button>
-        <button class="tool-btn" data-tool="eraser">
-          <svg viewBox="0 0 18 18"><path d="M5 15 L14 6 A1.5 1.5 0 0 0 14 4 L12 2 A1.5 1.5 0 0 0 10 2 L2 10 A1.5 1.5 0 0 0 2 12 L4 14" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M3 15 L9 15" stroke-width="1.8" stroke-linecap="round"/></svg>
-          Eraser
-        </button>
+        <div class="palette-popover" id="wire-palette">
+          <div class="popover-grid">
+            <button class="swatch active" data-color="#171717" style="background:#171717"></button>
+            <button class="swatch" data-color="#ffffff" style="background:#ffffff"></button>
+            <button class="swatch" data-color="#737373" style="background:#737373"></button>
+            <button class="swatch" data-color="#ef4444" style="background:#ef4444"></button>
+            <button class="swatch" data-color="#ec4899" style="background:#ec4899"></button>
+            <button class="swatch" data-color="#d946ef" style="background:#d946ef"></button>
+            <button class="swatch" data-color="#3b82f6" style="background:#3b82f6"></button>
+            <button class="swatch" data-color="#06b6d4" style="background:#06b6d4"></button>
+            <button class="swatch" data-color="#22c55e" style="background:#22c55e"></button>
+            <button class="swatch" data-color="#eab308" style="background:#eab308"></button>
+            <button class="swatch" data-color="#f97316" style="background:#f97316"></button>
+            <button class="swatch" data-color="#8b5cf6" style="background:#8b5cf6"></button>
+            <button class="swatch" data-color="#78350f" style="background:#78350f"></button>
+            <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
+            <button class="swatch" data-color="#a8a8a8" style="background:#a8a8a8"></button>
+          </div>
+          <input type="color" id="wire-custom-color" value="#171717" title="Custom wire color">
+        </div>
       </div>
 
-      <div class="separator"></div>
+      <div class="dock-sep"></div>
 
+      <!-- Other tools -->
+      <button class="tool-btn" data-tool="loop" data-tooltip="Bead loop ring">
+        <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke-width="1.8" stroke-dasharray="3.5 2.5"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="torsade" data-tooltip="Twisted wire pair">
+        <svg viewBox="0 0 18 18"><path d="M4 14 C6 10, 12 8, 14 4" stroke-width="1.8" stroke-linecap="round"/><path d="M4 14 C8 12, 10 6, 14 4" stroke-width="1.8" stroke-linecap="round" opacity="0.4"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="arrow" data-tooltip="Direction chevron">
+        <svg viewBox="0 0 18 18"><path d="M7 4 L12 9 L7 14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="rotate" data-tooltip="Rotate selection">
+        <svg viewBox="0 0 18 18"><path d="M13 5 A5 5 0 1 0 14 10" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M11 3 L14 5 L11 7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="select" data-tooltip="Select area">
+        <svg viewBox="0 0 18 18"><rect x="3" y="3" width="12" height="12" rx="1.5" stroke-width="1.8" stroke-dasharray="3 2.5"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="move" data-tooltip="Move beads">
+        <svg viewBox="0 0 18 18"><path d="M9 3 L9 15 M3 9 L15 9" stroke-width="1.8" stroke-linecap="round"/><path d="M7 5 L9 3 L11 5 M7 13 L9 15 L11 13 M5 7 L3 9 L5 11 M13 7 L15 9 L13 11" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="eraser" data-tooltip="Erase beads & wires">
+        <svg viewBox="0 0 18 18"><path d="M5 15 L14 6 A1.5 1.5 0 0 0 14 4 L12 2 A1.5 1.5 0 0 0 10 2 L2 10 A1.5 1.5 0 0 0 2 12 L4 14" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M3 15 L9 15" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+
+      <!-- Contextual options -->
       <div class="toolbar-group option-group" id="loop-options">
         <label class="option-label">Beads:</label>
         <input type="number" id="loop-count" value="6" min="3" max="35" class="num-input">
       </div>
-
       <div class="toolbar-group option-group" id="torsade-options">
         <label class="option-label">Twists:</label>
         <button class="twist-btn active" data-twists="3">3x</button>
         <button class="twist-btn" data-twists="7">7x</button>
       </div>
 
-      <div class="separator"></div>
+      <div class="dock-sep"></div>
 
-      <div class="toolbar-group">
-        <button class="action-btn" id="btn-undo" title="Ctrl+Z">&larr; Undo</button>
-        <button class="action-btn" id="btn-redo" title="Ctrl+Shift+Z">Redo &rarr;</button>
-        <button class="action-btn danger" id="btn-reset">Reset</button>
-      </div>
-
-      <div class="separator"></div>
-
-      <div class="toolbar-group">
-        <button class="export-btn" id="export-grid">PNG + grid</button>
-        <button class="export-btn" id="export-no-grid">PNG</button>
-      </div>
+      <!-- Export -->
+      <button class="export-btn" id="export-grid" data-tooltip="Export PNG with grid">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <rect x="2" y="2" width="14" height="14" rx="2"/>
+          <path d="M2 6.5 L16 6.5 M2 11 L16 11 M6.5 2 L6.5 16 M11 2 L11 16"/>
+        </svg>
+      </button>
+      <button class="export-btn" id="export-no-grid" data-tooltip="Export PNG without grid">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="14" height="14" rx="2"/>
+          <circle cx="7" cy="7" r="1.5"/>
+          <path d="M2 13 L6 9 L10 12 L13 9 L16 12"/>
+        </svg>
+      </button>
+      <button class="export-btn pro" id="export-clean" data-tooltip="Export without watermark (password required)">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="9" width="10" height="7" rx="1.5"/>
+          <path d="M6 9 L6 6 A3 3 0 0 1 12 6 L12 9"/>
+          <circle cx="9" cy="13" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
     </div>
+  </div>
 
-    <div class="toolbar-row">
-      <div class="toolbar-group" id="bead-palette">
-        <span class="palette-label">Bead:</span>
-        <button class="swatch active" data-color="#ffffff" style="background:#ffffff"></button>
-        <button class="swatch" data-color="#d4d4d4" style="background:#d4d4d4"></button>
-        <button class="swatch" data-color="#737373" style="background:#737373"></button>
-        <button class="swatch" data-color="#171717" style="background:#171717"></button>
-        <button class="swatch" data-color="#ef4444" style="background:#ef4444"></button>
-        <button class="swatch" data-color="#e11d48" style="background:#e11d48"></button>
-        <button class="swatch" data-color="#fb7185" style="background:#fb7185"></button>
-        <button class="swatch" data-color="#ec4899" style="background:#ec4899"></button>
-        <button class="swatch" data-color="#d946ef" style="background:#d946ef"></button>
-        <button class="swatch" data-color="#a855f7" style="background:#a855f7"></button>
-        <button class="swatch" data-color="#8b5cf6" style="background:#8b5cf6"></button>
-        <button class="swatch" data-color="#6366f1" style="background:#6366f1"></button>
-        <button class="swatch" data-color="#3b82f6" style="background:#3b82f6"></button>
-        <button class="swatch" data-color="#0ea5e9" style="background:#0ea5e9"></button>
-        <button class="swatch" data-color="#06b6d4" style="background:#06b6d4"></button>
-        <button class="swatch" data-color="#14b8a6" style="background:#14b8a6"></button>
-        <button class="swatch" data-color="#22c55e" style="background:#22c55e"></button>
-        <button class="swatch" data-color="#84cc16" style="background:#84cc16"></button>
-        <button class="swatch" data-color="#eab308" style="background:#eab308"></button>
-        <button class="swatch" data-color="#f59e0b" style="background:#f59e0b"></button>
-        <button class="swatch" data-color="#f97316" style="background:#f97316"></button>
-        <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
-        <input type="color" id="bead-custom-color" value="#ef4444" title="Custom color">
+  <!-- Tutorial overlay -->
+  <div class="tutorial-overlay" id="tutorial">
+    <div class="tutorial-panel">
+      <div class="tutorial-header">
+        <span class="tutorial-badge">Tutorial</span>
+        <h2 class="tutorial-title">Create your first daisy</h2>
+        <p class="tutorial-sub">A simple daisy has been loaded on the grid. Here's how it was made:</p>
       </div>
-
-      <div class="separator"></div>
-
-      <div class="toolbar-group" id="wire-palette">
-        <span class="palette-label">Wire:</span>
-        <button class="swatch active" data-color="#171717" style="background:#171717"></button>
-        <button class="swatch" data-color="#ffffff" style="background:#ffffff"></button>
-        <button class="swatch" data-color="#737373" style="background:#737373"></button>
-        <button class="swatch" data-color="#ef4444" style="background:#ef4444"></button>
-        <button class="swatch" data-color="#ec4899" style="background:#ec4899"></button>
-        <button class="swatch" data-color="#d946ef" style="background:#d946ef"></button>
-        <button class="swatch" data-color="#3b82f6" style="background:#3b82f6"></button>
-        <button class="swatch" data-color="#06b6d4" style="background:#06b6d4"></button>
-        <button class="swatch" data-color="#22c55e" style="background:#22c55e"></button>
-        <button class="swatch" data-color="#eab308" style="background:#eab308"></button>
-        <button class="swatch" data-color="#f97316" style="background:#f97316"></button>
-        <button class="swatch" data-color="#8b5cf6" style="background:#8b5cf6"></button>
-        <button class="swatch" data-color="#78350f" style="background:#78350f"></button>
-        <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
-        <button class="swatch" data-color="#a8a8a8" style="background:#a8a8a8"></button>
-        <input type="color" id="wire-custom-color" value="#171717" title="Custom wire color">
+      <div class="tutorial-steps">
+        <div class="tutorial-step">
+          <span class="step-num">1</span>
+          <div>
+            <strong>Pick a color & place beads</strong>
+            <p>Click the colored dot next to <em>Bead</em> in the dock to pick a color, then click cells on the grid.</p>
+          </div>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">2</span>
+          <div>
+            <strong>Connect with wires</strong>
+            <p>Switch to the <em>Wire</em> tool, click a bead, then click another to draw a wire between them.</p>
+          </div>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">3</span>
+          <div>
+            <strong>Add loops</strong>
+            <p>Use the <em>Loop</em> tool — click a cell to create a ring of beads connected by wires.</p>
+          </div>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">4</span>
+          <div>
+            <strong>Change shapes</strong>
+            <p>Click the <em>arrow</em> next to Bead in the dock to pick other shapes: diamond, star, hexagon…</p>
+          </div>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">5</span>
+          <div>
+            <strong>Export your pattern</strong>
+            <p>Click the export icons in the dock to download your design as a PNG.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tutorial-footer">
+        <label class="tutorial-check">
+          <input type="checkbox" id="tutorial-hide"> Don't show again
+        </label>
+        <button class="tutorial-btn" id="tutorial-close">Start creating</button>
       </div>
     </div>
   </div>
 
-  <div class="editor">
-    <div class="grid" id="grid"></div>
-    <canvas id="wire-canvas"></canvas>
-  </div>
+  <script src="script.js?v=3"></script>
+  <script>
+  // ─── Tutorial ─────────────────────────────────────────────
+  (function() {
+    const overlay = document.getElementById('tutorial');
+    const closeBtn = document.getElementById('tutorial-close');
+    const hideCheck = document.getElementById('tutorial-hide');
 
-  <script src="script.js?v=2"></script>
-<script src="../breadcrumb.js"></script>
+    if (localStorage.getItem('bead-tuto-hidden') === '1') {
+      overlay.remove();
+      return;
+    }
+
+    // Load simple daisy example
+    function loadExample() {
+      const cx = 10, cy = 6;
+      const wire = (from, to, color, style = 'solid') =>
+        state.wires.push({ from, to, color, style });
+
+      // ── Yellow center ──
+      placeBead(cy, cx, '#eab308', 'circle');
+      const core = [[cy-1,cx],[cy,cx+1],[cy+1,cx],[cy,cx-1]];
+      core.forEach(([r,c]) => placeBead(r, c, '#fbbf24', 'circle'));
+      core.forEach(p => wire([cy,cx], p, '#ca8a04'));
+      for (let i = 0; i < core.length; i++)
+        wire(core[i], core[(i+1) % core.length], '#ca8a04');
+
+      // ── White petals ──
+      const petals = [
+        [cy-2,cx], [cy-1,cx+1], [cy,cx+2], [cy+1,cx+1],
+        [cy+2,cx], [cy+1,cx-1], [cy,cx-2], [cy-1,cx-1],
+      ];
+      petals.forEach(([r,c]) => placeBead(r, c, '#ffffff', 'diamond'));
+      petals.forEach(p => {
+        const n = core.reduce((b,s) =>
+          (Math.abs(s[0]-p[0])+Math.abs(s[1]-p[1])) < (Math.abs(b[0]-p[0])+Math.abs(b[1]-p[1])) ? s : b);
+        wire(n, p, '#d4d4d4');
+      });
+      for (let i = 0; i < petals.length; i++)
+        wire(petals[i], petals[(i+1) % petals.length], '#e5e5e5', 'dashed');
+
+      // ── Stem ──
+      for (let i = 1; i <= 5; i++) {
+        placeBead(cy+2+i, cx, '#16a34a', 'circle');
+        wire([cy+1+i, cx], [cy+2+i, cx], '#22c55e');
+      }
+      wire([cy+2, cx], [cy+3, cx], '#22c55e');
+
+      // ── Leaf ──
+      placeBead(cy+5, cx+1, '#84cc16', 'diamond');
+      placeBead(cy+5, cx+2, '#84cc16', 'diamond');
+      wire([cy+5, cx], [cy+5, cx+1], '#16a34a');
+      wire([cy+5, cx+1], [cy+5, cx+2], '#16a34a');
+
+      redrawAll();
+      pushHistory();
+    }
+
+    loadExample();
+
+    closeBtn.addEventListener('click', () => {
+      if (hideCheck.checked) {
+        localStorage.setItem('bead-tuto-hidden', '1');
+      }
+      overlay.classList.add('closing');
+      setTimeout(() => overlay.remove(), 300);
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeBtn.click();
+    });
+  })();
+
+  // ─── Palette popovers ────────────────────────────────────
+  (function() {
+    function setupPopover(btnId, popoverId) {
+      const btn = document.getElementById(btnId);
+      const popover = document.getElementById(popoverId);
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.palette-popover.open').forEach(p => {
+          if (p !== popover) p.classList.remove('open');
+        });
+        popover.classList.toggle('open');
+      });
+      popover.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+    setupPopover('bead-color-btn', 'bead-palette');
+    setupPopover('wire-color-btn', 'wire-palette');
+
+    // Close popovers on outside click
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.palette-popover.open').forEach(p => p.classList.remove('open'));
+    });
+
+    // Update color dots when swatch is selected
+    document.querySelectorAll('#bead-palette .swatch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        document.getElementById('bead-color-dot').style.background = sw.dataset.color;
+      });
+    });
+    document.getElementById('bead-custom-color').addEventListener('input', (e) => {
+      document.getElementById('bead-color-dot').style.background = e.target.value;
+    });
+
+    document.querySelectorAll('#wire-palette .swatch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        document.getElementById('wire-color-dot').style.background = sw.dataset.color;
+      });
+    });
+    document.getElementById('wire-custom-color').addEventListener('input', (e) => {
+      document.getElementById('wire-color-dot').style.background = e.target.value;
+    });
+  })();
+  </script>
 </body>
 </html>
