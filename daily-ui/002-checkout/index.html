@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily UI #002 — Checkout</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --fg: #24292f;
+      --fg-bright: #1a1e24;
+      --fg-muted: #656d76;
+      --fg-accent: #0969da;
+      --fg-green: #1a7f37;
+      --fg-yellow: #9a6700;
+      --fg-red: #cf222e;
+      --fg-purple: #8250df;
+      --bg: #f6f8fa;
+      --bg-surface: #ffffff;
+      --border: #d0d7de;
+      --selection: rgba(9,105,218,0.08);
+      --cursor: #0969da;
+      --gutter-fg: #b0b8c1;
+      --lh: 1.65;
+      --flash: rgba(9,105,218,0.12);
+    }
+
+    html { background: var(--bg); }
+
+    body {
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: var(--lh);
+      color: var(--fg);
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .terminal {
+      width: 100%;
+      max-width: 78ch;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    }
+
+    .chrome {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      gap: 8px;
+    }
+
+    .dots { display: flex; gap: 6px; }
+    .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%; cursor: pointer;
+      transition: filter 0.2s;
+    }
+    .dot:hover { filter: brightness(0.9); }
+    .dot.red { background: #ff5f57; }
+    .dot.yellow { background: #febc2e; }
+    .dot.green { background: #28c840; }
+
+    .chrome-title {
+      flex: 1; text-align: center;
+      font-size: 11px; color: var(--fg-muted);
+    }
+
+    .content {
+      padding: 0;
+      white-space: pre;
+      overflow-x: hidden;
+      cursor: default;
+      user-select: none;
+    }
+
+    .line {
+      display: block;
+      padding: 0 1ch 0 0;
+      min-height: calc(1em * var(--lh));
+      transition: background 0.1s;
+    }
+    .line:hover { background: var(--selection); }
+
+    /* Typing animation */
+    .line.typing-hidden { opacity: 0; height: 0; min-height: 0; overflow: hidden; }
+    .line.typing-visible {
+      animation: typeFadeIn 0.06s ease-out forwards;
+    }
+    @keyframes typeFadeIn {
+      from { opacity: 0.3; }
+      to { opacity: 1; }
+    }
+
+    .gutter {
+      display: inline-block; width: 4ch;
+      text-align: right; color: var(--gutter-fg);
+      padding-right: 1.5ch;
+      user-select: none; pointer-events: none;
+    }
+
+    .accent { color: var(--fg-accent); }
+    .green { color: var(--fg-green); }
+    .yellow { color: var(--fg-yellow); }
+    .red { color: var(--fg-red); }
+    .purple { color: var(--fg-purple); }
+    .bright { color: var(--fg-bright); font-weight: 500; }
+    .muted { color: var(--fg-muted); }
+    .dim { color: var(--border); }
+
+    .nav-link {
+      color: var(--fg); text-decoration: none; cursor: pointer;
+      display: inline; transition: color 0.15s;
+      background: none; border: none; font: inherit; padding: 0;
+    }
+    .nav-link:hover { color: var(--fg-accent); }
+    .nav-link.active { color: var(--fg-accent); text-decoration: underline; text-underline-offset: 3px; }
+
+    .step { cursor: pointer; display: inline; transition: color 0.15s; }
+    .step:hover { color: var(--fg-bright); }
+    .step.done { color: var(--fg-green); }
+    .step.current { color: var(--fg-accent); }
+
+    .ascii-btn {
+      display: inline; background: none; border: none;
+      font: inherit; color: var(--fg); cursor: pointer;
+      padding: 0; transition: color 0.15s;
+    }
+    .ascii-btn:hover { color: var(--fg-accent); }
+    .ascii-btn.primary { color: var(--fg-green); }
+    .ascii-btn.primary:hover { color: #2da44e; }
+    .ascii-btn.danger:hover { color: var(--fg-red); }
+
+    /* Pulsing pay button when valid */
+    @keyframes pulse-ready {
+      0%, 100% { color: var(--fg-green); }
+      50% { color: #2da44e; }
+    }
+    .ascii-btn.ready {
+      animation: pulse-ready 1.8s ease-in-out infinite;
+    }
+
+    .card-pill {
+      display: inline; background: none; border: none;
+      font: inherit; cursor: pointer; padding: 0;
+      color: var(--fg-muted); transition: color 0.15s;
+    }
+    .card-pill.selected { color: var(--fg-accent); }
+    .card-pill:hover { color: var(--fg-bright); }
+    .card-pill.auto-detected { color: var(--fg-green); }
+
+    .ascii-input-wrap { display: inline-block; position: relative; }
+
+    .ascii-input {
+      font: inherit; background: transparent; border: none;
+      color: var(--fg-bright); outline: none; padding: 0;
+      width: 100%; caret-color: var(--cursor); letter-spacing: inherit;
+    }
+    .ascii-input::placeholder { color: var(--border); }
+    .ascii-input:focus { background: var(--selection); }
+
+    .ascii-check, .ascii-radio {
+      display: inline; cursor: pointer; color: var(--fg);
+      background: none; border: none; font: inherit;
+      padding: 0; transition: color 0.15s;
+    }
+    .ascii-check:hover, .ascii-radio:hover { color: var(--fg-accent); }
+    .ascii-radio.selected { color: var(--fg-green); }
+
+    /* Flash animation for toggles */
+    @keyframes toggle-flash {
+      0% { color: var(--fg-accent); }
+      100% { color: inherit; }
+    }
+    .flash { animation: toggle-flash 0.4s ease-out; }
+
+    @media (max-width: 660px) {
+      body { font-size: 10px; padding: 0.5rem; }
+      .terminal { border-radius: 0; }
+    }
+
+    .content::-webkit-scrollbar { height: 6px; }
+    .content::-webkit-scrollbar-track { background: transparent; }
+    .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    ::selection { background: var(--selection); color: var(--fg-bright); }
+
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      25%{transform:translateX(-4px)}
+      75%{transform:translateX(4px)}
+    }
+  </style>
+</head>
+<body>
+
+<div class="terminal">
+  <div class="chrome">
+    <div class="dots">
+      <span class="dot red"></span>
+      <span class="dot yellow"></span>
+      <span class="dot green"></span>
+    </div>
+    <span class="chrome-title">checkout.md — SecurePay</span>
+    <span style="width:52px"></span>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+const state = {
+  cardType: '',
+  cardNumber: '',
+  cardName: '',
+  expiry: '',
+  cvv: '',
+  saveCard: true,
+  billing: 'same',
+  step: 1,
+  subtotal: 99.00,
+  taxRate: 0.08,
+  booted: false,
+};
+state.tax = +(state.subtotal * state.taxRate).toFixed(2);
+state.total = +(state.subtotal + state.tax).toFixed(2);
+
+const CW = 72;
+
+// ─── Helpers ───
+function padR(s,n){s=String(s);return s.length>=n?s.substring(0,n):s+' '.repeat(n-s.length)}
+function padL(s,n){s=String(s);return s.length>=n?s:' '.repeat(n-s.length)+s}
+function hr(w=CW,ch='─'){return ch.repeat(w)}
+function boxT(w){return'┌'+'─'.repeat(w-2)+'┐'}
+function boxM(w){return'├'+'─'.repeat(w-2)+'┤'}
+function boxB(w){return'└'+'─'.repeat(w-2)+'┘'}
+function boxR(c,w){const l=sLen(c),p=w-4-l;return p<=0?'│ '+c+' │':'│ '+c+' '.repeat(p)+' │'}
+function sLen(h){return h.replace(/<[^>]*>/g,'').length}
+function escH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// ─── Completion ───
+function getCompletion() {
+  let n = 0, total = 4;
+  if (state.cardNumber.replace(/\s/g,'').length >= 16) n++;
+  if (state.cardName.trim()) n++;
+  if (state.expiry.length >= 5) n++;
+  if (state.cvv.length >= 3) n++;
+  return n / total;
+}
+
+function isFormValid() {
+  return state.cardNumber.replace(/\s/g,'').length >= 16
+    && state.cardName.trim()
+    && state.expiry.length >= 5
+    && state.cvv.length >= 3;
+}
+
+function progressBar(w) {
+  const pct = getCompletion();
+  const filled = Math.round(pct * w);
+  const empty = w - filled;
+  const bar = '█'.repeat(filled) + '░'.repeat(empty);
+  const label = Math.round(pct * 100) + '%';
+  const cls = pct >= 1 ? 'green' : pct >= 0.5 ? 'yellow' : 'muted';
+  return `<span class="${cls}">${bar}</span> <span class="muted">${label}</span>`;
+}
+
+// ─── Card auto-detection ───
+function detectCard(num) {
+  const d = num.replace(/\s/g, '');
+  if (!d) return '';
+  if (d[0] === '4') return 'visa';
+  if (d[0] === '5') return 'mastercard';
+  return '';
+}
+
+// ─── Components ───
+function nav(label,id,active){return`<button class="nav-link${active?' active':''}" onclick="navClick('${id}')">${label}</button>`}
+
+function step(label,i){
+  if(i<state.step)return`<span class="step done" onclick="setStep(${i})">  ${label}  </span>`;
+  if(i===state.step)return`<span class="step current" onclick="setStep(${i})">[ ${label} ]</span>`;
+  return`<span class="muted step" onclick="setStep(${i})">  ${label}  </span>`;
+}
+
+function inp(id,ph,w,opts={}){
+  const val=state[id]||'';
+  const ml=opts.maxlen||w;
+  const tp=opts.type||'text';
+  return`[<span class="ascii-input-wrap" style="width:${w}ch"><input class="ascii-input" type="${tp}" id="input-${id}" value="${escH(val)}" placeholder="${ph}" maxlength="${ml}" style="width:${w}ch" data-field="${id}" oninput="onInput(this)" onfocus="onFocus(this)" onblur="onBlur(this)"></span>]`;
+}
+
+function chk(on){
+  return`<button class="ascii-check" onclick="toggleCheck()" id="chk-save">${on?'☑':'☐'}</button>`;
+}
+
+function rad(val,label){
+  const sel=state.billing===val;
+  return`<button class="ascii-radio${sel?' selected':''}" onclick="setRadio('${val}')" id="rad-${val}">${sel?'●':'○'} ${label}</button>`;
+}
+
+function pill(type,label){
+  const auto = detectCard(state.cardNumber);
+  let cls = 'card-pill';
+  if (state.cardType === type) cls += ' selected';
+  if (auto === type && auto) cls += ' auto-detected';
+  return`<button class="${cls}" onclick="setCard('${type}')">[${label}]</button>`;
+}
+
+// ─── Render ───
+let ln = 0;
+let focused = null;
+
+function L(html=''){
+  ln++;
+  return`<span class="line"><span class="gutter">${padL(ln,3)}</span>${html}</span>\n`;
+}
+
+function render(animate = false) {
+  ln = 0;
+  const BW = CW;
+  let o = '';
+
+  // Auto-detect card
+  const detected = detectCard(state.cardNumber);
+  if (detected && detected !== state.cardType) {
+    state.cardType = detected;
+  }
+
+  // Nav
+  o += L();
+  o += L(` ${nav('SecurePay','home',true)}   ${nav('Products','products')}   ${nav('Cart','cart')}   ${nav('Orders','orders')}${' '.repeat(22)}${nav('[ Sign Out ]','signout')}`);
+  o += L(`<span class="dim">${hr()}</span>`);
+
+  // Title + Steps
+  o += L(`<span class="bright"> Complete Your Purchase</span>`);
+  o += L(` ${step('Shipping',0)} ${step('Payment',1)}  ${step('Review',2)}  ${step('Complete',3)}`);
+  o += L(`<span class="dim">${hr()}</span>`);
+
+  // Progress bar
+  o += L(` ${progressBar(CW - 8)}`);
+  o += L();
+
+  // Order Summary
+  o += L(` ${boxT(BW - 2)}`);
+  o += L(` ${boxR(`<span class="bright">Order Summary</span>          <span class="yellow">Premium Subscription</span> · 1 Year           Subtotal: <span class="bright">$${state.subtotal.toFixed(2)}</span>  Tax: <span class="bright">$${state.tax.toFixed(2)}</span>`,BW-2)}`);
+  o += L(` ${boxR(`${' '.repeat(BW-30)}<span class="green bright">Total:  $${state.total.toFixed(2)}</span>     `,BW-2)}`);
+  o += L(` ${boxB(BW - 2)}`);
+  o += L();
+
+  // Payment Information
+  o += L(` ${boxT(BW - 2)}`);
+  o += L(` ${boxR(`<span class="bright">Payment Information</span>`,BW-2)}`);
+
+  // Card type + auto-detect hint
+  const autoHint = detected ? ` <span class="green">← auto-detected</span>` : '';
+  o += L(` ├─<span class="muted">Accepted Cards:</span>${'─'.repeat(BW-22)}┤`);
+  o += L(` ${boxR(`  ${pill('visa','VISA')} ${pill('mastercard','MC')}${autoHint}`,BW-2)}`);
+  o += L(` ${boxR('',BW-2)}`);
+
+  // Card Number
+  o += L(` ${boxR(`<span class="muted">Card Number</span>`,BW-2)}`);
+  o += L(` ${boxR(`  ${inp('cardNumber','0000 0000 0000 0000',BW-12,{maxlen:19})}`,BW-2)}`);
+  o += L(` ${boxR('',BW-2)}`);
+
+  // Cardholder Name
+  o += L(` ${boxR(`<span class="muted">Cardholder Name</span>`,BW-2)}`);
+  o += L(` ${boxR(`  ${inp('cardName','Your full name',BW-12)}`,BW-2)}`);
+  o += L(` ${boxR('',BW-2)}`);
+
+  // Expiry + CVV
+  const halfW = Math.floor((BW - 14) / 2);
+  o += L(` ${boxR(`<span class="muted">Expiry Date</span>${' '.repeat(halfW-8)}<span class="muted">Security Code (CVV)</span>`,BW-2)}`);
+  o += L(` ${boxR(`  ${inp('expiry','MM/YY',halfW-4,{maxlen:5})}   ${inp('cvv','···',halfW-5,{maxlen:4,type:'password'})}`,BW-2)}`);
+  o += L(` ${boxR('',BW-2)}`);
+
+  // Save card
+  o += L(` ${boxR(`  ${chk(state.saveCard)} <span class="muted">Save card for future purchases</span>`,BW-2)}`);
+  o += L(` ${boxR('',BW-2)}`);
+  o += L(` ${boxB(BW - 2)}`);
+  o += L();
+
+  // Billing Address
+  o += L(` ${boxT(BW - 2)}`);
+  o += L(` ${boxR(`<span class="bright">Billing Address</span>`,BW-2)}`);
+  o += L(` ${boxR(`  ${rad('same','Same as shipping address')}`,BW-2)}`);
+  o += L(` ${boxR(`  ${rad('different','Use different billing address')}`,BW-2)}`);
+  o += L(` ${boxB(BW - 2)}`);
+
+  // Footer
+  o += L();
+  o += L(` <span class="muted">Your payment is secured with 256-bit SSL encryption</span>`);
+  o += L();
+
+  const valid = isFormValid();
+  const payClass = valid ? 'ascii-btn primary ready' : 'ascii-btn primary';
+  const payHint = valid ? ' <span class="muted">↵ Enter</span>' : '';
+  const cancel = `<button class="ascii-btn danger" onclick="onCancel()">[    Cancel    ]</button>`;
+  const pay = `<button class="${payClass}" onclick="onPay()">[  Pay $${state.total.toFixed(2)}  ]</button>`;
+  o += L(`${' '.repeat(CW - 40)} ${cancel}  ${pay}${payHint}`);
+  o += L();
+
+  document.getElementById('content').innerHTML = o;
+
+  // Typing animation on first boot
+  if (animate) {
+    const lines = document.querySelectorAll('.line');
+    lines.forEach((line, i) => {
+      line.classList.add('typing-hidden');
+      setTimeout(() => {
+        line.classList.remove('typing-hidden');
+        line.classList.add('typing-visible');
+      }, i * 25);
+    });
+    state.booted = true;
+    return; // Don't restore focus during animation
+  }
+
+  // Restore focus
+  if (focused) {
+    const el = document.getElementById('input-' + focused);
+    if (el) {
+      el.focus();
+      const l = el.value.length;
+      el.setSelectionRange(l, l);
+    }
+  }
+}
+
+// ─── Events ───
+function onInput(el) {
+  const f = el.dataset.field;
+  let v = el.value;
+
+  if (f === 'cardNumber') {
+    v = v.replace(/[^0-9]/g, '').substring(0, 16);
+    v = v.replace(/(.{4})/g, '$1 ').trim();
+  }
+  if (f === 'expiry') {
+    v = v.replace(/[^0-9/]/g, '');
+    if (v.length === 2 && !v.includes('/') && state.expiry.length < v.length) v += '/';
+  }
+  if (f === 'cvv') v = v.replace(/[^0-9]/g, '').substring(0, 4);
+
+  state[f] = v;
+  render();
+}
+
+function onFocus(el) { focused = el.dataset.field; }
+function onBlur(el) { if (focused === el.dataset.field) focused = null; }
+
+function toggleCheck() {
+  state.saveCard = !state.saveCard;
+  render();
+  // flash
+  setTimeout(() => {
+    const el = document.getElementById('chk-save');
+    if (el) { el.classList.add('flash'); }
+  }, 10);
+}
+
+function setRadio(v) {
+  state.billing = v;
+  render();
+  setTimeout(() => {
+    const el = document.getElementById('rad-' + v);
+    if (el) { el.classList.add('flash'); }
+  }, 10);
+}
+
+function setCard(t) { state.cardType = t; render(); }
+function setStep(n) { state.step = n; render(); }
+function navClick() {}
+
+function onCancel() {
+  if (confirm('Cancel your purchase?')) {
+    state.cardNumber = ''; state.cardName = '';
+    state.expiry = ''; state.cvv = ''; state.cardType = '';
+    render();
+  }
+}
+
+function onPay() {
+  const errs = [];
+  if (state.cardNumber.replace(/\s/g,'').length < 16) errs.push('Card number must be 16 digits');
+  if (!state.cardName.trim()) errs.push('Cardholder name is required');
+  if (state.expiry.length < 5) errs.push('Expiry date is required');
+  if (state.cvv.length < 3) errs.push('CVV must be at least 3 digits');
+
+  if (errs.length) {
+    alert('Validation errors:\n\n' + errs.map(e => '  ✗ ' + e).join('\n'));
+    return;
+  }
+
+  state.step = 3;
+  render();
+  showSuccess();
+}
+
+function showSuccess() {
+  setTimeout(() => {
+    ln = 0;
+    const sw = 46;
+    const pad = ' '.repeat(Math.floor((CW - sw) / 2));
+    const lines = [];
+
+    lines.push(L());
+    lines.push(L());
+    lines.push(L());
+    lines.push(L(`${pad}${boxT(sw)}`));
+    lines.push(L(`${pad}${boxR('',sw)}`));
+    lines.push(L(`${pad}${boxR(`<span class="green bright">✓ Payment Successful!</span>`,sw)}`));
+    lines.push(L(`${pad}${boxR('',sw)}`));
+    lines.push(L(`${pad}${boxR(`<span class="muted">Amount charged:</span>  <span class="bright">$${state.total.toFixed(2)}</span>`,sw)}`));
+    lines.push(L(`${pad}${boxR(`<span class="muted">Card ending:</span>     <span class="bright">****${state.cardNumber.replace(/\s/g,'').slice(-4)}</span>`,sw)}`));
+    lines.push(L(`${pad}${boxR(`<span class="muted">Status:</span>          <span class="green">Confirmed</span>`,sw)}`));
+    lines.push(L(`${pad}${boxR('',sw)}`));
+    lines.push(L(`${pad}${boxR(`<span class="muted">A receipt has been sent to</span>`,sw)}`));
+    lines.push(L(`${pad}${boxR(`<span class="muted">your registered email address.</span>`,sw)}`));
+    lines.push(L(`${pad}${boxR('',sw)}`));
+    lines.push(L(`${pad}${boxR(`<button class="ascii-btn accent" onclick="resetForm()">[  Back to Dashboard  ]</button>`,sw)}`));
+    lines.push(L(`${pad}${boxR('',sw)}`));
+    lines.push(L(`${pad}${boxB(sw)}`));
+    lines.push(L());
+    lines.push(L());
+
+    // Type out success lines one by one
+    const container = document.getElementById('content');
+    container.innerHTML = '';
+
+    lines.forEach((lineHtml, i) => {
+      setTimeout(() => {
+        container.innerHTML += lineHtml;
+      }, i * 60);
+    });
+  }, 400);
+}
+
+function resetForm() {
+  state.step = 1;
+  state.cardNumber = ''; state.cardName = '';
+  state.expiry = ''; state.cvv = ''; state.cardType = '';
+  render(true); // re-animate
+}
+
+// Enter to submit
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && isFormValid()) {
+    const active = document.activeElement;
+    if (active && active.classList.contains('ascii-input')) {
+      e.preventDefault();
+      onPay();
+    }
+  }
+  // Tab navigation between inputs
+  if (e.key === 'Tab') {
+    const order = ['cardNumber', 'cardName', 'expiry', 'cvv'];
+    const currentIdx = order.indexOf(focused);
+    if (currentIdx !== -1) {
+      e.preventDefault();
+      const next = e.shiftKey
+        ? (currentIdx - 1 + order.length) % order.length
+        : (currentIdx + 1) % order.length;
+      focused = order[next];
+      render();
+    }
+  }
+});
+
+// Boot with typing animation
+render(true);
+</script>
+
+</body>
+</html>
