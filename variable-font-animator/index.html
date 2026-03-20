@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Variable Font Animator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <div class="col-preview">
+      <div class="panel panel-input">
+        <div class="control-row">
+          <label>Typo</label>
+          <div class="custom-select" id="fontSelect" data-value="Google Sans Flex">
+            <div class="custom-select-trigger">Google Sans Flex</div>
+            <div class="custom-select-options">
+              <div class="custom-select-option selected" data-value="Google Sans Flex">Google Sans Flex</div>
+              <div class="custom-select-option" data-value="Roboto Flex">Roboto Flex</div>
+            </div>
+          </div>
+        </div>
+        <div class="control-row">
+          <label>Mot</label>
+          <input type="text" id="wordInput" value="Hello" class="char-input">
+        </div>
+      </div>
+      <div class="preview" id="preview">
+        <span class="letter">H</span><span class="letter">e</span><span class="letter">l</span><span class="letter">l</span><span class="letter">o</span>
+      </div>
+    </div>
+
+    <div class="col-settings">
+
+      <div class="panel">
+        <h2>Axes variables animés</h2>
+        <div class="control-row">
+          <label>Weight</label>
+          <span class="value" id="wghtMinVal">100</span>
+          <div class="dual-range">
+            <input type="range" id="wghtMin" min="1" max="1000" value="100" step="1">
+            <input type="range" id="wghtMax" min="1" max="1000" value="900" step="1">
+          </div>
+          <span class="value" id="wghtMaxVal">900</span>
+        </div>
+        <div class="control-row">
+          <label>Grade</label>
+          <span class="value" id="gradMinVal">0</span>
+          <div class="dual-range">
+            <input type="range" id="gradMin" min="0" max="100" value="0" step="1">
+            <input type="range" id="gradMax" min="0" max="100" value="100" step="1">
+          </div>
+          <span class="value" id="gradMaxVal">100</span>
+        </div>
+        <div class="control-row">
+          <label>Slant</label>
+          <span class="value" id="slntMinVal">-10</span>
+          <div class="dual-range">
+            <input type="range" id="slntMin" min="-10" max="0" value="-10" step="0.5">
+            <input type="range" id="slntMax" min="-10" max="0" value="0" step="0.5">
+          </div>
+          <span class="value" id="slntMaxVal">0</span>
+        </div>
+        <div class="control-row" id="rondRow">
+          <label>Roundness</label>
+          <span class="value" id="rondMinVal">0</span>
+          <div class="dual-range">
+            <input type="range" id="rondMin" min="0" max="100" value="0" step="1">
+            <input type="range" id="rondMax" min="0" max="100" value="100" step="1">
+          </div>
+          <span class="value" id="rondMaxVal">100</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Animation</h2>
+        <div class="control-row">
+          <label>Vitesse</label>
+          <input type="range" id="speed" min="0.1" max="10" value="1.0" step="0.1">
+          <span class="value" id="speedVal">1.0</span>
+          <span class="unit">s/cycle</span>
+        </div>
+        <div class="control-row">
+          <label>Taille</label>
+          <input type="range" id="size" min="20" max="600" value="160" step="1">
+          <span class="value" id="sizeVal">160</span>
+          <span class="unit">px</span>
+        </div>
+        <div class="control-row">
+          <label>Easing</label>
+          <div class="custom-select" id="easing" data-value="cubic">
+            <div class="custom-select-trigger">Cubique</div>
+            <div class="custom-select-options">
+              <div class="custom-select-option" data-value="linear">Linéaire</div>
+              <div class="custom-select-option selected" data-value="cubic">Cubique</div>
+              <div class="custom-select-option" data-value="sine">Sinusoïdal</div>
+              <div class="custom-select-option" data-value="elastic">Élastique</div>
+              <div class="custom-select-option" data-value="bounce">Rebond</div>
+            </div>
+          </div>
+        </div>
+        <div class="control-row">
+          <label>Décalage lettres</label>
+          <input type="range" id="letterOffset" min="0" max="100" value="15" step="1">
+          <span class="value" id="letterOffsetVal">15</span>
+          <span class="unit">%</span>
+        </div>
+        <div class="buttons">
+          <button id="pauseBtn">Pause</button>
+          <a href="https://fonts.google.com/specimen/Google+Sans+Flex" target="_blank" class="btn-link">Google Sans Flex ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,36 +1,35 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* ─── Liquid Glass palette (light) ─── */
-  --bg-base: #f0f0f5;
-  --bg-mesh-1: #e8e8f0;
-  --bg-mesh-2: #dde0f0;
+  /* ─── Neutral modern palette ─── */
+  --bg-base: #e9eaed;
+  --bg-mesh-1: #e2e4e8;
+  --bg-mesh-2: #d8dbe3;
 
   /* Glass surface */
   --glass-bg: rgba(255, 255, 255, 0.55);
   --glass-bg-hover: rgba(255, 255, 255, 0.72);
-  --glass-bg-active: rgba(255, 255, 255, 0.82);
+  --glass-bg-active: rgba(255, 255, 255, 0.88);
   --glass-border: rgba(255, 255, 255, 0.65);
   --glass-border-strong: rgba(255, 255, 255, 0.85);
   --glass-border-outer: rgba(0, 0, 0, 0.08);
   --glass-highlight: rgba(255, 255, 255, 0.9);
-  --glass-shadow: rgba(0, 0, 0, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.07);
   --glass-blur: 16px;
   --glass-blur-heavy: 24px;
 
-  /* Text */
-  --text-primary: rgba(0, 0, 0, 0.85);
-  --text-secondary: rgba(0, 0, 0, 0.55);
-  --text-muted: rgba(0, 0, 0, 0.35);
+  /* Text — cool near-black */
+  --text-primary: rgba(10, 14, 20, 0.87);
+  --text-secondary: rgba(10, 14, 20, 0.54);
+  --text-muted: rgba(10, 14, 20, 0.36);
 
-  /* Accent */
-  --accent: #5856d6;
-  --accent-glow: rgba(88, 86, 214, 0.25);
+  /* Accent — muted steel blue */
+  --accent: #3d6b96;
+  --accent-glow: rgba(61, 107, 150, 0.22);
 
   --radius: 12px;
   --radius-sm: 8px;
   --radius-xs: 6px;
-  --cell-size: 28px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,11 +41,9 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-
-  /* Soft mesh gradient background */
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(88, 86, 214, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(255, 45, 85, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 18% 0%, rgba(61, 107, 150, 0.07) 0%, transparent 52%),
+    radial-gradient(ellipse at 82% 100%, rgba(61, 107, 150, 0.04) 0%, transparent 52%),
     radial-gradient(ellipse at 50% 50%, var(--bg-mesh-2) 0%, transparent 80%),
     var(--bg-base);
   background-attachment: fixed;
@@ -57,14 +54,7 @@ body {
 .app-header {
   backdrop-filter: blur(var(--glass-blur-heavy)) saturate(1.8) brightness(1.02);
   -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(1.8) brightness(1.02);
-  background:
-    linear-gradient(135deg,
-      rgba(88, 86, 214, 0.12) 0%,
-      rgba(236, 72, 153, 0.08) 35%,
-      rgba(59, 130, 246, 0.08) 65%,
-      rgba(34, 197, 94, 0.06) 100%
-    ),
-    rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.52);
   border-bottom: 1px solid var(--glass-border-outer);
   color: var(--text-primary);
   flex-shrink: 0;
@@ -79,9 +69,9 @@ body {
   height: 1px;
   background: linear-gradient(90deg,
     transparent 5%,
-    rgba(255,255,255,0.6) 20%,
-    rgba(255,255,255,0.85) 50%,
-    rgba(255,255,255,0.6) 80%,
+    rgba(255,255,255,0.65) 20%,
+    rgba(255,255,255,0.92) 50%,
+    rgba(255,255,255,0.65) 80%,
     transparent 95%
   );
 }
@@ -113,13 +103,14 @@ body {
   flex-shrink: 0;
   backdrop-filter: blur(8px);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.72),
     0 1px 3px rgba(0,0,0,0.08);
 }
 
 .header-logo {
   display: block;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+  color: var(--accent);
 }
 
 .header-text {
@@ -151,26 +142,15 @@ body {
   gap: 16px;
 }
 
+/* Decorative oval bead motif in header */
 .header-deco {
   display: flex;
   align-items: center;
-  gap: 0;
-  opacity: 0.8;
+  gap: 5px;
+  opacity: 0.75;
 }
 
-.deco-bead {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--c);
-  flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 2px rgba(255,255,255,0.4);
-}
-
-.deco-wire {
-  width: 14px;
-  height: 0;
-  border-top: 1.5px solid rgba(0, 0, 0, 0.15);
+.deco-bead-oval {
   flex-shrink: 0;
 }
 
@@ -179,7 +159,7 @@ body {
   align-items: center;
   gap: 8px;
   padding-left: 16px;
-  border-left: 1px solid rgba(0,0,0,0.1);
+  border-left: 1px solid rgba(10,14,20,0.1);
 }
 
 .credit-name {
@@ -210,66 +190,26 @@ body {
   .header-deco { display: none; }
 }
 
-/* ─── Editor / Grid ────────────────────────────────────── */
+/* ─── Editor / Canvas area ─────────────────────────────── */
 
 .editor {
   position: relative;
   flex: 1;
   overflow: hidden;
+  background: #d8dbe3;
 }
 
-.grid {
-  display: grid;
-  position: relative;
-  z-index: 1;
-  background: #fff;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
-  border: 1px solid hsl(0 0% 93%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.1s;
-}
-.cell:hover {
-  background: hsl(0 0% 97%);
-}
-
-/* Bead — glass refraction look */
-.bead {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  pointer-events: none;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    inset 0 2px 4px rgba(255, 255, 255, 0.35),
-    inset 0 -1px 3px rgba(0, 0, 0, 0.08),
-    0 1px 3px rgba(0, 0, 0, 0.12);
-}
-
-#wire-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  pointer-events: none;
+#peyote-canvas {
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
 }
 
 /* ─── Floating action buttons (top-right) ────────────── */
 
 .floating-actions {
-  position: absolute;
-  top: 16px;
+  position: fixed;
+  top: 78px;
   right: 16px;
   z-index: 50;
   display: flex;
@@ -281,13 +221,13 @@ body {
   width: 40px;
   height: 40px;
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5);
   border: 1px solid var(--glass-border);
   box-shadow:
     0 2px 8px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.7);
+    inset 0 1px 0 rgba(255,255,255,0.75);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -303,11 +243,11 @@ body {
 }
 
 .float-btn:hover {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.9);
   color: var(--text-primary);
   box-shadow:
     0 4px 12px rgba(0,0,0,0.1),
-    inset 0 1px 0 rgba(255,255,255,0.8);
+    inset 0 1px 0 rgba(255,255,255,0.9);
   transform: translateY(-1px);
 }
 
@@ -333,30 +273,20 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
-
-  /* Layered glass: subtle colorful tint like the header */
-  background:
-    linear-gradient(135deg,
-      rgba(88, 86, 214, 0.06) 0%,
-      rgba(236, 72, 153, 0.04) 30%,
-      rgba(59, 130, 246, 0.04) 60%,
-      rgba(34, 197, 94, 0.03) 100%
-    ),
-    rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(28px) saturate(2) brightness(1.04);
   -webkit-backdrop-filter: blur(28px) saturate(2) brightness(1.04);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 248, 238, 0.6);
   border-radius: 20px;
   box-shadow:
-    0 12px 48px rgba(0,0,0,0.13),
+    0 12px 48px rgba(0,0,0,0.12),
     0 4px 14px rgba(0,0,0,0.06),
     0 0 0 0.5px rgba(0,0,0,0.04),
-    inset 0 1px 0 rgba(255,255,255,0.95),
+    inset 0 1px 0 rgba(255,255,255,0.96),
     inset 0 -1px 0 rgba(0,0,0,0.03);
   padding: 7px 14px;
 }
 
-/* Top specular highlight */
 .dock::before {
   content: '';
   position: absolute;
@@ -373,7 +303,6 @@ body {
   pointer-events: none;
 }
 
-/* Bottom inner glow line */
 .dock::after {
   content: '';
   position: absolute;
@@ -382,9 +311,9 @@ body {
   border-radius: 1px;
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(88, 86, 214, 0.12) 30%,
-    rgba(236, 72, 153, 0.08) 50%,
-    rgba(59, 130, 246, 0.12) 70%,
+    rgba(61, 107, 150, 0.1) 30%,
+    rgba(61, 107, 150, 0.07) 50%,
+    rgba(61, 107, 150, 0.1) 70%,
     transparent 100%
   );
   pointer-events: none;
@@ -408,15 +337,15 @@ body {
   height: 26px;
   background: linear-gradient(180deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.1) 30%,
-    rgba(0, 0, 0, 0.1) 70%,
+    rgba(10,14,20,0.1) 30%,
+    rgba(10,14,20,0.1) 70%,
     transparent 100%
   );
   margin: 0 6px;
   flex-shrink: 0;
 }
 
-/* ─── Tool Buttons (dock) ─────────────────────────────── */
+/* ─── Tool Buttons ────────────────────────────────────── */
 
 .tool-btn {
   font-family: inherit;
@@ -446,8 +375,8 @@ body {
 }
 
 .tool-btn:hover {
-  background: rgba(255, 255, 255, 0.6);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 248, 238, 0.5);
   color: var(--text-primary);
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
@@ -462,20 +391,20 @@ body {
 }
 
 .tool-btn.active {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   color: var(--accent);
-  border-color: rgba(88, 86, 214, 0.25);
+  border-color: rgba(61, 107, 150, 0.25);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.8),
     0 0 12px var(--accent-glow),
-    0 2px 6px rgba(88, 86, 214, 0.1);
+    0 2px 6px rgba(61, 107, 150, 0.1);
 }
 
 .tool-btn.active svg {
   filter: drop-shadow(0 0 3px var(--accent-glow));
 }
 
-/* ─── Color indicator dot ─────────────────────────────── */
+/* ─── Color indicator ─────────────────────────────────── */
 
 .color-indicator {
   width: 26px;
@@ -504,9 +433,9 @@ body {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  border: 2.5px solid rgba(0, 0, 0, 0.1);
+  border: 2.5px solid rgba(10,14,20,0.12);
   box-shadow:
-    inset 0 2px 3px rgba(255,255,255,0.45),
+    inset 0 2px 3px rgba(255,255,255,0.4),
     inset 0 -1px 2px rgba(0,0,0,0.06),
     0 1px 4px rgba(0,0,0,0.12);
   transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
@@ -515,10 +444,10 @@ body {
 .color-indicator:hover .color-dot {
   border-color: var(--accent);
   box-shadow:
-    inset 0 2px 3px rgba(255,255,255,0.45),
+    inset 0 2px 3px rgba(255,255,255,0.4),
     inset 0 -1px 2px rgba(0,0,0,0.06),
     0 0 0 2px var(--accent-glow),
-    0 2px 8px rgba(88, 86, 214, 0.2);
+    0 2px 8px rgba(61, 107, 150, 0.2);
 }
 
 /* ─── Palette popover ─────────────────────────────────── */
@@ -528,13 +457,13 @@ body {
   bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%) translateY(6px) scale(0.95);
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(var(--glass-blur-heavy)) saturate(1.8);
   -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(1.8);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(10,14,20,0.1);
   border-radius: var(--radius);
   box-shadow:
-    0 8px 32px rgba(0,0,0,0.14),
+    0 8px 32px rgba(0,0,0,0.13),
     0 2px 8px rgba(0,0,0,0.06),
     inset 0 1px 0 rgba(255,255,255,0.9);
   padding: 10px;
@@ -551,7 +480,6 @@ body {
   pointer-events: auto;
 }
 
-/* Arrow pointing down to dock */
 .palette-popover::after {
   content: '';
   position: absolute;
@@ -560,9 +488,9 @@ body {
   transform: translateX(-50%) rotate(45deg);
   width: 10px;
   height: 10px;
-  background: rgba(255, 255, 255, 0.94);
-  border-right: 1px solid rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.96);
+  border-right: 1px solid rgba(10,14,20,0.1);
+  border-bottom: 1px solid rgba(10,14,20,0.1);
 }
 
 .popover-grid {
@@ -582,121 +510,13 @@ body {
   background: var(--glass-bg);
 }
 
-/* ─── Split button group (bead shape / wire style) ────── */
-
-.split-btn-group {
-  display: inline-flex;
-  position: relative;
-}
-.split-btn-group .tool-btn {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.split-toggle {
-  font-family: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: 1px;
-  padding: 6px 4px;
-  border: 1px solid transparent;
-  border-top-right-radius: var(--radius-sm);
-  border-bottom-right-radius: var(--radius-sm);
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.split-toggle:hover {
-  background: rgba(255, 255, 255, 0.5);
-  color: var(--text-primary);
-}
-.split-toggle:active {
-  transform: scale(0.88);
-  transition-duration: 0.06s;
-}
-.split-toggle svg:first-child { width: 12px; height: 12px; fill: none; stroke: currentColor; }
-.split-toggle .chevron {
-  width: 7px; height: 5px;
-  fill: none; stroke: currentColor;
-  opacity: 0.5;
-  transition: transform 0.2s ease;
-}
-.split-btn-group:has(.split-dropdown.open) .split-toggle .chevron {
-  transform: rotate(180deg);
-}
-
-.split-btn-group .tool-btn.active + .split-toggle {
-  color: var(--text-primary);
-  border-color: rgba(88, 86, 214, 0.2);
-}
-
-/* Split dropdown — opens UPWARD from dock */
-.split-dropdown {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 0;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(1.8) brightness(1.05);
-  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(1.8) brightness(1.05);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: var(--radius);
-  box-shadow:
-    0 -4px 24px rgba(0,0,0,0.1),
-    0 2px 8px rgba(0,0,0,0.06),
-    inset 0 -1px 0 rgba(255,255,255,0.9);
-  z-index: 300;
-  min-width: 140px;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  opacity: 0;
-  transform: translateY(4px) scale(0.97);
-  pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-.split-dropdown.open {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-
-.split-option {
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 6px 12px;
-  border: none;
-  border-radius: var(--radius-xs);
-  background: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  text-align: left;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-}
-.split-option:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text-primary);
-}
-.split-option.active {
-  background: var(--accent);
-  color: #fff;
-}
-.split-option svg { width: 16px; height: 16px; flex-shrink: 0; fill: none; stroke: currentColor; }
-
-/* ─── Swatches (glass bead look) ────────────────────── */
+/* ─── Swatches ────────────────────────────────────────── */
 
 .swatch {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  border: 1.5px solid rgba(10,14,20,0.1);
   cursor: pointer;
   transition: all 0.15s ease;
   padding: 0;
@@ -711,7 +531,7 @@ body {
 .swatch:hover {
   box-shadow:
     inset 0 1px 3px rgba(255,255,255,0.35),
-    0 0 0 2px rgba(0,0,0,0.1),
+    0 0 0 2px rgba(10,14,20,0.1),
     0 2px 6px rgba(0,0,0,0.1);
   transform: scale(1.15);
 }
@@ -719,7 +539,6 @@ body {
   transform: scale(0.9);
   transition-duration: 0.05s;
 }
-
 .swatch.active {
   box-shadow:
     inset 0 1px 3px rgba(255,255,255,0.35),
@@ -727,65 +546,6 @@ body {
     0 0 8px var(--accent-glow);
   border-color: var(--accent);
   transform: scale(1.1);
-}
-
-/* ─── Option groups ──────────────────────────────────── */
-
-.option-group { display: none; }
-.option-group.visible {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-left: 4px;
-}
-
-.option-label {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--text-muted);
-  white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.num-input {
-  font-family: inherit;
-  font-size: 12px;
-  width: 42px;
-  padding: 3px 4px;
-  border: 1px solid var(--glass-border-outer);
-  border-radius: var(--radius-xs);
-  background: rgba(255,255,255,0.6);
-  color: var(--text-primary);
-  text-align: center;
-  outline: none;
-}
-.num-input:focus {
-  border-color: rgba(88, 86, 214, 0.4);
-  box-shadow: 0 0 8px var(--accent-glow);
-}
-
-.twist-btn {
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 3px 8px;
-  border: 1px solid var(--glass-border-outer);
-  border-radius: var(--radius-xs);
-  background: rgba(255,255,255,0.5);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.twist-btn:hover {
-  background: var(--glass-bg-hover);
-  color: var(--text-primary);
-}
-.twist-btn.active {
-  background: var(--glass-bg-active);
-  color: var(--text-primary);
-  border-color: rgba(88, 86, 214, 0.35);
-  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 /* ─── Export buttons ──────────────────────────────────── */
@@ -814,9 +574,9 @@ body {
 }
 
 .export-btn:hover {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.65);
   color: var(--text-primary);
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 248, 238, 0.5);
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 .export-btn:hover svg {
@@ -827,23 +587,9 @@ body {
   transition-duration: 0.06s;
 }
 
-.export-btn.pro {
-  color: var(--accent);
-  opacity: 0.6;
-}
-.export-btn.pro:hover {
-  opacity: 1;
-  color: var(--accent);
-  background: rgba(88, 86, 214, 0.08);
-  border-color: rgba(88, 86, 214, 0.18);
-  box-shadow: 0 0 10px rgba(88, 86, 214, 0.1);
-}
+/* ─── Custom tooltips ──────────────────────────────── */
 
-/* ─── Custom tooltips (glass style) ──────────────────── */
-
-[data-tooltip] {
-  position: relative;
-}
+[data-tooltip] { position: relative; }
 
 [data-tooltip]::after {
   content: attr(data-tooltip);
@@ -851,10 +597,10 @@ body {
   bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(20px) saturate(1.8);
   -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(10,14,20,0.08);
   border-radius: 8px;
   box-shadow:
     0 4px 16px rgba(0,0,0,0.12),
@@ -879,9 +625,9 @@ body {
   transform: translateX(-50%) rotate(45deg);
   width: 8px;
   height: 8px;
-  background: rgba(255, 255, 255, 0.92);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.94);
+  border-right: 1px solid rgba(10,14,20,0.08);
+  border-bottom: 1px solid rgba(10,14,20,0.08);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s ease;
@@ -892,19 +638,16 @@ body {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
-
 [data-tooltip]:hover::before {
   opacity: 1;
 }
 
-/* Floating buttons: tooltip to the left */
 .float-btn[data-tooltip]::after {
   bottom: auto;
   left: auto;
   right: calc(100% + 10px);
   top: 50%;
   transform: translateY(-50%) translateX(4px);
-  white-space: nowrap;
 }
 .float-btn[data-tooltip]:hover::after {
   transform: translateY(-50%) translateX(0);
@@ -917,76 +660,7 @@ body {
   transform: translateY(-50%) rotate(-45deg);
 }
 
-/* Color indicator: tooltip above, no arrow conflict */
-.color-indicator[data-tooltip]::before {
-  display: none;
-}
-
-/* ─── Selection tool ──────────────────────────────────── */
-
-@keyframes marching-ants {
-  to { stroke-dashoffset: -12; }
-}
-
-.selection-marquee {
-  position: absolute;
-  pointer-events: none;
-  z-index: 3;
-  border: none;
-  background: none;
-  overflow: visible;
-}
-
-.selection-marquee svg {
-  position: absolute;
-  inset: -2px;
-  width: calc(100% + 4px);
-  height: calc(100% + 4px);
-}
-
-.selection-marquee .marquee-fill {
-  fill: rgba(88, 86, 214, 0.06);
-}
-
-.selection-marquee .marquee-border {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2;
-  stroke-dasharray: 6 6;
-  stroke-linecap: round;
-  animation: marching-ants 0.4s linear infinite;
-}
-
-.selection-marquee .marquee-glow {
-  fill: none;
-  stroke: var(--accent-glow);
-  stroke-width: 6;
-  filter: blur(2px);
-}
-
-.cell.selected {
-  background: rgba(88, 86, 214, 0.06);
-}
-
-.cell.selected .bead {
-  box-shadow:
-    inset 0 2px 4px rgba(255, 255, 255, 0.35),
-    inset 0 -1px 3px rgba(0, 0, 0, 0.08),
-    0 0 0 2.5px rgba(88, 86, 214, 0.55),
-    0 0 10px var(--accent-glow);
-}
-
-/* ─── Bead placement animation ─────────────────────── */
-
-@keyframes bead-pop {
-  0%   { transform: scale(0); opacity: 0; }
-  60%  { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.bead {
-  animation: bead-pop 0.18s ease-out both;
-}
+.color-indicator[data-tooltip]::before { display: none; }
 
 /* ─── Tutorial overlay ─────────────────────────────── */
 
@@ -994,7 +668,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(10, 14, 20, 0.35);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
@@ -1018,15 +692,15 @@ body {
 }
 
 .tutorial-panel {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(var(--glass-blur-heavy)) saturate(1.8);
   -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(1.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(10,14,20,0.08);
   border-radius: 20px;
   box-shadow:
-    0 24px 80px rgba(0, 0, 0, 0.18),
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 24px 80px rgba(10,14,20,0.15),
+    0 4px 16px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.9);
   max-width: 480px;
   width: 100%;
   padding: 32px;
@@ -1103,7 +777,7 @@ body {
   font-size: 13px;
   font-weight: 700;
   color: var(--accent);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
 }
 
 .tutorial-step strong {
@@ -1162,12 +836,12 @@ body {
   color: #fff;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 8px rgba(88, 86, 214, 0.3);
+  box-shadow: 0 2px 8px rgba(61, 107, 150, 0.3);
 }
 
 .tutorial-btn:hover {
-  background: #4b49c0;
-  box-shadow: 0 4px 16px rgba(88, 86, 214, 0.4);
+  background: #2d5a80;
+  box-shadow: 0 4px 16px rgba(61, 107, 150, 0.4);
   transform: translateY(-1px);
 }
 
@@ -1202,33 +876,13 @@ body {
     justify-content: center;
     gap: 2px;
   }
-  /* Hide separators on wrap — rows provide visual grouping */
-  .dock-sep {
-    display: none;
-  }
-  .floating-actions {
-    top: 8px;
-    right: 8px;
-  }
-  .float-btn {
-    width: 34px;
-    height: 34px;
-  }
-  .tutorial-panel {
-    padding: 24px;
-    max-width: 400px;
-  }
-  .tutorial-title {
-    font-size: 18px;
-  }
+  .dock-sep { display: none; }
+  .floating-actions { top: 74px; right: 8px; }
+  .float-btn { width: 34px; height: 34px; }
+  .tutorial-panel { padding: 24px; max-width: 400px; }
+  .tutorial-title { font-size: 18px; }
+  [data-tooltip]::after, [data-tooltip]::before { display: none; }
 
-  /* Hide tooltips on touch */
-  [data-tooltip]::after,
-  [data-tooltip]::before {
-    display: none;
-  }
-
-  /* Palette popover: fixed bottom sheet */
   .palette-popover {
     position: fixed;
     bottom: 100px;
@@ -1238,53 +892,20 @@ body {
     min-width: unset;
     border-radius: 14px;
   }
-  .palette-popover.open {
-    transform: none;
-  }
-  .palette-popover::after {
-    display: none;
-  }
-
-  /* Split dropdowns also fixed */
-  .split-dropdown {
-    position: fixed;
-    bottom: 100px;
-    left: 12px;
-    right: auto;
-    min-width: 160px;
-  }
+  .palette-popover.open { transform: none; }
+  .palette-popover::after { display: none; }
 }
 
 /* ─── Responsive: phones ──────────────────────────── */
 
 @media (max-width: 480px) {
-  :root {
-    --cell-size: 22px;
-  }
-
-  .app-header {
-    padding: 0 12px;
-  }
-  .header-inner {
-    padding: 8px 0;
-  }
-  .header-logo-wrap {
-    width: 30px;
-    height: 30px;
-  }
-  .header-title {
-    font-size: 13px;
-  }
-  .header-subtitle {
-    font-size: 9px;
-  }
-  .header-credits {
-    padding-left: 10px;
-    gap: 6px;
-  }
-  .credit-name {
-    font-size: 11px;
-  }
+  .app-header { padding: 0 12px; }
+  .header-inner { padding: 8px 0; }
+  .header-logo-wrap { width: 30px; height: 30px; }
+  .header-title { font-size: 13px; }
+  .header-subtitle { font-size: 9px; }
+  .header-credits { padding-left: 10px; gap: 6px; }
+  .credit-name { font-size: 11px; }
 
   .dock {
     bottom: 6px;
@@ -1293,101 +914,27 @@ body {
     padding: 5px 8px;
     border-radius: 12px;
   }
-  .dock-inner {
-    gap: 1px;
-  }
-  .tool-btn {
-    padding: 6px;
-  }
-  .tool-btn svg {
-    width: 16px;
-    height: 16px;
-  }
-  .export-btn {
-    padding: 5px;
-  }
-  .export-btn svg {
-    width: 16px;
-    height: 16px;
-  }
-  .color-indicator {
-    width: 22px;
-    height: 22px;
-  }
-  .color-dot {
-    width: 14px;
-    height: 14px;
-  }
-  .split-toggle {
-    padding: 5px 3px;
-  }
-  .split-toggle svg:first-child {
-    width: 10px;
-    height: 10px;
-  }
+  .dock-inner { gap: 1px; }
+  .tool-btn { padding: 6px; }
+  .tool-btn svg { width: 16px; height: 16px; }
+  .export-btn { padding: 5px; }
+  .export-btn svg { width: 16px; height: 16px; }
+  .color-indicator { width: 22px; height: 22px; }
+  .color-dot { width: 14px; height: 14px; }
 
-  .floating-actions {
-    top: 6px;
-    right: 6px;
-    gap: 4px;
-  }
-  .float-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-  }
-  .float-btn svg {
-    width: 14px;
-    height: 14px;
-  }
+  .floating-actions { top: 58px; right: 6px; gap: 4px; }
+  .float-btn { width: 30px; height: 30px; border-radius: 8px; }
+  .float-btn svg { width: 14px; height: 14px; }
 
-  .bead {
-    width: 18px;
-    height: 18px;
-  }
+  .tutorial-overlay { padding: 16px; }
+  .tutorial-panel { padding: 20px; border-radius: 16px; max-width: 100%; }
+  .tutorial-title { font-size: 16px; }
+  .tutorial-sub { font-size: 12px; }
+  .tutorial-header { margin-bottom: 20px; }
+  .tutorial-steps { gap: 12px; margin-bottom: 20px; }
+  .tutorial-btn { padding: 8px 18px; font-size: 12px; }
 
-  .tutorial-overlay {
-    padding: 16px;
-  }
-  .tutorial-panel {
-    padding: 20px;
-    border-radius: 16px;
-    max-width: 100%;
-  }
-  .tutorial-title {
-    font-size: 16px;
-  }
-  .tutorial-sub {
-    font-size: 12px;
-  }
-  .tutorial-header {
-    margin-bottom: 20px;
-  }
-  .tutorial-steps {
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .tutorial-btn {
-    padding: 8px 18px;
-    font-size: 12px;
-  }
-
-  .palette-popover {
-    bottom: 80px;
-    left: 8px;
-    right: 8px;
-  }
-  .popover-grid {
-    grid-template-columns: repeat(8, 1fr);
-    gap: 6px;
-  }
-  .swatch {
-    width: 28px;
-    height: 28px;
-  }
-
-  .split-dropdown {
-    bottom: 80px;
-    left: 8px;
-  }
+  .palette-popover { bottom: 80px; left: 8px; right: 8px; }
+  .popover-grid { grid-template-columns: repeat(8, 1fr); gap: 6px; }
+  .swatch { width: 28px; height: 28px; }
 }

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perlin Noise Field</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <div class="col-canvas">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="col-settings">
+      <div class="panel">
+        <h2>Bruit</h2>
+        <div class="control-row">
+          <label>Octaves</label>
+          <input type="range" id="octaves" min="1" max="8" value="4" step="1">
+          <span class="value" id="octavesVal">4</span>
+        </div>
+        <div class="control-row">
+          <label>Persistance</label>
+          <input type="range" id="persistence" min="0.1" max="1" value="0.5" step="0.05">
+          <span class="value" id="persistenceVal">0.50</span>
+        </div>
+        <div class="control-row">
+          <label>Fréquence</label>
+          <input type="range" id="frequency" min="0.5" max="20" value="4" step="0.5">
+          <span class="value" id="frequencyVal">4.0</span>
+        </div>
+        <div class="control-row">
+          <label>Lacunarité</label>
+          <input type="range" id="lacunarity" min="1" max="4" value="2" step="0.1">
+          <span class="value" id="lacunarityVal">2.0</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Animation</h2>
+        <div class="control-row">
+          <label>Vitesse</label>
+          <input type="range" id="speed" min="0" max="3" value="0.5" step="0.05">
+          <span class="value" id="speedVal">0.50</span>
+        </div>
+        <div class="control-row">
+          <label>Résolution</label>
+          <input type="range" id="resolution" min="1" max="8" value="2" step="1">
+          <span class="value" id="resolutionVal">2</span>
+          <span class="unit">px</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Rendu</h2>
+        <div class="control-row">
+          <label>Mode</label>
+          <div class="custom-select" id="renderMode" data-value="gradient">
+            <div class="custom-select-trigger">Dégradé</div>
+            <div class="custom-select-options">
+              <div class="custom-select-option selected" data-value="gradient">Dégradé</div>
+              <div class="custom-select-option" data-value="mono">Monochrome</div>
+              <div class="custom-select-option" data-value="hue">Arc-en-ciel</div>
+              <div class="custom-select-option" data-value="contour">Contours</div>
+              <div class="custom-select-option" data-value="wood">Bois</div>
+              <div class="custom-select-option" data-value="flow">Flow field</div>
+            </div>
+          </div>
+        </div>
+        <div class="control-row">
+          <label>Couleur A</label>
+          <input type="color" id="colorA" value="#0a0a2e" class="color-input">
+        </div>
+        <div class="control-row">
+          <label>Couleur B</label>
+          <input type="color" id="colorB" value="#f0e6d3" class="color-input">
+        </div>
+      </div>
+
+      <div class="panel panel-last">
+        <div class="buttons">
+          <button id="pauseBtn">Pause</button>
+          <button id="randomBtn">Aléatoire</button>
+          <button id="exportBtn">PNG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

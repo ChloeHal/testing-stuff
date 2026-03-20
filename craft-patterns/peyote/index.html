@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peyote Bead Pattern Editor</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23b45309' stroke-width='2' stroke-linecap='round'><ellipse cx='7' cy='8' rx='5' ry='3.5'/><ellipse cx='17' cy='8' rx='5' ry='3.5'/><ellipse cx='12' cy='16' rx='5' ry='3.5'/></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="header-logo-wrap">
+          <!-- Staggered ovals logo -->
+          <svg class="header-logo" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <ellipse cx="7"  cy="8"  rx="5" ry="3.5"/>
+            <ellipse cx="17" cy="8"  rx="5" ry="3.5"/>
+            <ellipse cx="12" cy="16" rx="5" ry="3.5"/>
+          </svg>
+        </div>
+        <div class="header-text">
+          <h1 class="header-title">Peyote Beading</h1>
+          <span class="header-subtitle">Pattern Editor</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <!-- Decorative staggered bead motif -->
+        <div class="header-deco">
+          <svg class="deco-bead-oval" viewBox="0 0 18 12" width="18" height="12">
+            <ellipse cx="9" cy="6" rx="8" ry="5" fill="#c2410c" opacity="0.75"/>
+            <ellipse cx="7" cy="4.5" rx="3" ry="1.8" fill="rgba(255,255,255,0.25)"/>
+          </svg>
+          <svg class="deco-bead-oval" viewBox="0 0 18 12" width="18" height="12">
+            <ellipse cx="9" cy="6" rx="8" ry="5" fill="#d97706" opacity="0.75"/>
+            <ellipse cx="7" cy="4.5" rx="3" ry="1.8" fill="rgba(255,255,255,0.25)"/>
+          </svg>
+          <svg class="deco-bead-oval" viewBox="0 0 18 12" width="18" height="12">
+            <ellipse cx="9" cy="6" rx="8" ry="5" fill="#b45309" opacity="0.75"/>
+            <ellipse cx="7" cy="4.5" rx="3" ry="1.8" fill="rgba(255,255,255,0.25)"/>
+          </svg>
+          <svg class="deco-bead-oval" viewBox="0 0 18 12" width="18" height="12">
+            <ellipse cx="9" cy="6" rx="8" ry="5" fill="#92400e" opacity="0.75"/>
+            <ellipse cx="7" cy="4.5" rx="3" ry="1.8" fill="rgba(255,255,255,0.25)"/>
+          </svg>
+          <svg class="deco-bead-oval" viewBox="0 0 18 12" width="18" height="12">
+            <ellipse cx="9" cy="6" rx="8" ry="5" fill="#78350f" opacity="0.75"/>
+            <ellipse cx="7" cy="4.5" rx="3" ry="1.8" fill="rgba(255,255,255,0.25)"/>
+          </svg>
+        </div>
+        <div class="header-credits">
+          <span class="credit-name"><a href="https://chlohal.com" target="_blank" rel="noopener" class="credit-link" title="portfolio">@chlohal</a></span>
+          <div class="credit-links">
+            <a href="https://github.com/chloehal" target="_blank" rel="noopener" class="credit-link" title="GitHub">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            </a>
+            <a href="https://x.com/chlohal" target="_blank" rel="noopener" class="credit-link" title="X">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="editor">
+    <canvas id="peyote-canvas"></canvas>
+
+    <!-- Floating action buttons (top-right) -->
+    <div class="floating-actions">
+      <button class="float-btn" id="btn-undo" data-tooltip="Undo (Ctrl+Z)" style="opacity:0.35">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 4 L3 8 L7 12"/>
+          <path d="M3 8 L13 8 A4 4 0 0 1 13 16 L10 16"/>
+        </svg>
+      </button>
+      <button class="float-btn" id="btn-redo" data-tooltip="Redo (Ctrl+Y)" style="opacity:0.35">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 4 L17 8 L13 12"/>
+          <path d="M17 8 L7 8 A4 4 0 0 0 7 16 L10 16"/>
+        </svg>
+      </button>
+      <button class="float-btn danger" id="btn-reset" data-tooltip="Clear everything">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M6 6 L14 14 M14 6 L6 14"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom dock -->
+  <div class="dock">
+    <div class="dock-inner">
+
+      <!-- Bead tool + color -->
+      <div class="dock-item">
+        <button class="tool-btn active" data-tool="bead" data-tooltip="Place beads (B)">
+          <!-- Oval bead icon -->
+          <svg viewBox="0 0 18 12" width="18" height="12">
+            <ellipse cx="9" cy="6" rx="8" ry="5" stroke-width="1.8"/>
+          </svg>
+        </button>
+        <button class="color-indicator" id="bead-color-btn" data-tooltip="Bead color">
+          <span class="color-dot" id="bead-color-dot" style="background:#c2410c"></span>
+        </button>
+        <div class="palette-popover" id="bead-palette">
+          <div class="popover-grid">
+            <!-- Warm, earthy bead palette -->
+            <button class="swatch" data-color="#ffffff" style="background:#ffffff; border-color:rgba(0,0,0,0.15)"></button>
+            <button class="swatch" data-color="#fef3c7" style="background:#fef3c7"></button>
+            <button class="swatch" data-color="#fde68a" style="background:#fde68a"></button>
+            <button class="swatch" data-color="#fbbf24" style="background:#fbbf24"></button>
+            <button class="swatch" data-color="#f59e0b" style="background:#f59e0b"></button>
+            <button class="swatch" data-color="#d97706" style="background:#d97706"></button>
+            <button class="swatch" data-color="#b45309" style="background:#b45309"></button>
+            <button class="swatch active" data-color="#c2410c" style="background:#c2410c"></button>
+            <button class="swatch" data-color="#92400e" style="background:#92400e"></button>
+            <button class="swatch" data-color="#78350f" style="background:#78350f"></button>
+            <button class="swatch" data-color="#451a03" style="background:#451a03"></button>
+            <button class="swatch" data-color="#ef4444" style="background:#ef4444"></button>
+            <button class="swatch" data-color="#dc2626" style="background:#dc2626"></button>
+            <button class="swatch" data-color="#f87171" style="background:#f87171"></button>
+            <button class="swatch" data-color="#fca5a5" style="background:#fca5a5"></button>
+            <button class="swatch" data-color="#ec4899" style="background:#ec4899"></button>
+            <button class="swatch" data-color="#db2777" style="background:#db2777"></button>
+            <button class="swatch" data-color="#a855f7" style="background:#a855f7"></button>
+            <button class="swatch" data-color="#7c3aed" style="background:#7c3aed"></button>
+            <button class="swatch" data-color="#3b82f6" style="background:#3b82f6"></button>
+            <button class="swatch" data-color="#0ea5e9" style="background:#0ea5e9"></button>
+            <button class="swatch" data-color="#06b6d4" style="background:#06b6d4"></button>
+            <button class="swatch" data-color="#14b8a6" style="background:#14b8a6"></button>
+            <button class="swatch" data-color="#16a34a" style="background:#16a34a"></button>
+            <button class="swatch" data-color="#15803d" style="background:#15803d"></button>
+            <button class="swatch" data-color="#84cc16" style="background:#84cc16"></button>
+            <button class="swatch" data-color="#d4c5a9" style="background:#d4c5a9"></button>
+            <button class="swatch" data-color="#a8a29e" style="background:#a8a29e"></button>
+            <button class="swatch" data-color="#737373" style="background:#737373"></button>
+            <button class="swatch" data-color="#404040" style="background:#404040"></button>
+            <button class="swatch" data-color="#171717" style="background:#171717"></button>
+            <button class="swatch" data-color="#d4a017" style="background:#d4a017"></button>
+            <button class="swatch" data-color="#86efac" style="background:#86efac"></button>
+          </div>
+          <input type="color" id="bead-custom-color" value="#c2410c" title="Custom bead color">
+        </div>
+      </div>
+
+      <!-- Eraser -->
+      <button class="tool-btn" data-tool="eraser" data-tooltip="Erase beads (E)">
+        <svg viewBox="0 0 18 18"><path d="M5 15 L14 6 A1.5 1.5 0 0 0 14 4 L12 2 A1.5 1.5 0 0 0 10 2 L2 10 A1.5 1.5 0 0 0 2 12 L4 14" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M3 15 L9 15" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="dock-sep"></div>
+
+      <!-- Export -->
+      <button class="export-btn" id="export-btn" data-tooltip="Export PNG">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="14" height="14" rx="2"/>
+          <circle cx="7" cy="7" r="1.5"/>
+          <path d="M2 13 L6 9 L10 12 L13 9 L16 12"/>
+        </svg>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Tutorial overlay -->
+  <div class="tutorial-overlay" id="tutorial">
+    <div class="tutorial-panel">
+      <div class="tutorial-header">
+        <span class="tutorial-badge">Tutorial</span>
+        <h2 class="tutorial-title">Your first peyote pattern</h2>
+        <p class="tutorial-sub">A sample pattern has been loaded. Here's how the peyote editor works:</p>
+      </div>
+      <div class="tutorial-steps">
+        <div class="tutorial-step">
+          <span class="step-num">1</span>
+          <div>
+            <strong>The staggered grid</strong>
+            <p>Each oval represents one bead. Odd rows are offset by half a bead — this is the <em>peyote/brick stitch</em> structure used in real beadwork.</p>
+          </div>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">2</span>
+          <div>
+            <strong>Place beads</strong>
+            <p>Click the color dot to pick a color, then click or drag on the canvas to place beads. Press <em>B</em> to activate the bead tool.</p>
+          </div>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">3</span>
+          <div>
+            <strong>Erase beads</strong>
+            <p>Press <em>E</em> or click the eraser in the dock. Click or drag over beads to remove them.</p>
+          </div>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">4</span>
+          <div>
+            <strong>Undo &amp; redo</strong>
+            <p>Press <em>Ctrl+Z</em> to undo, <em>Ctrl+Y</em> or <em>Ctrl+Shift+Z</em> to redo. Use the buttons top-right too.</p>
+          </div>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">5</span>
+          <div>
+            <strong>Export your pattern</strong>
+            <p>Click the export icon in the dock to download your pattern as a PNG image.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tutorial-footer">
+        <label class="tutorial-check">
+          <input type="checkbox" id="tutorial-hide"> Don't show again
+        </label>
+        <button class="tutorial-btn" id="tutorial-close">Start beading</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+  // ─── Tutorial ─────────────────────────────────────────────
+  (function () {
+    const overlay  = document.getElementById('tutorial');
+    const closeBtn = document.getElementById('tutorial-close');
+    const hideCheck = document.getElementById('tutorial-hide');
+
+    if (localStorage.getItem('peyote-tuto-hidden') === '1') {
+      overlay.remove();
+    } else {
+      // Load a small sample pattern once the canvas is ready
+      function loadExample() {
+        if (!window.peyoteState) { setTimeout(loadExample, 50); return; }
+        const s = window.peyoteState;
+        const k = window.cellKey;
+
+        // A simple diagonal stripe / diamond motif
+        const colors = ['#c2410c','#d97706','#fbbf24','#d97706','#c2410c'];
+        const startRow = 6, startCol = 8;
+
+        // Diagonal band going down-right
+        for (let i = 0; i < 10; i++) {
+          const r = startRow + i;
+          const c = startCol + i;
+          if (r < 24 && c < 30) {
+            s.beads.set(k(r, c), colors[i % colors.length]);
+          }
+          // Make it 3 beads wide
+          if (r < 24 && c + 1 < 30) {
+            s.beads.set(k(r, c + 1), colors[(i + 1) % colors.length]);
+          }
+          if (r + 1 < 24 && c < 30) {
+            s.beads.set(k(r + 1, c), colors[(i + 2) % colors.length]);
+          }
+        }
+        // Horizontal accent stripe
+        for (let c = 8; c < 22; c++) {
+          s.beads.set(k(4, c), '#92400e');
+          s.beads.set(k(5, c), '#b45309');
+        }
+
+        window.peyoteRender();
+        window.pushHistory();
+      }
+
+      loadExample();
+
+      closeBtn.addEventListener('click', () => {
+        if (hideCheck.checked) localStorage.setItem('peyote-tuto-hidden', '1');
+        overlay.classList.add('closing');
+        setTimeout(() => overlay.remove(), 300);
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeBtn.click();
+      });
+    }
+  })();
+
+  // ─── Palette popover ──────────────────────────────────────
+  (function () {
+    const colorBtn  = document.getElementById('bead-color-btn');
+    const popover   = document.getElementById('bead-palette');
+    const colorDot  = document.getElementById('bead-color-dot');
+    const customInp = document.getElementById('bead-custom-color');
+
+    colorBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      popover.classList.toggle('open');
+    });
+    popover.addEventListener('click', (e) => e.stopPropagation());
+
+    document.addEventListener('click', () => {
+      popover.classList.remove('open');
+    });
+
+    document.querySelectorAll('#bead-palette .swatch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        document.querySelectorAll('#bead-palette .swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+        if (window.setBeadColor) window.setBeadColor(sw.dataset.color);
+        popover.classList.remove('open');
+      });
+    });
+
+    customInp.addEventListener('input', (e) => {
+      if (window.setBeadColor) window.setBeadColor(e.target.value);
+      colorDot.style.background = e.target.value;
+      document.querySelectorAll('#bead-palette .swatch').forEach(s => s.classList.remove('active'));
+    });
+  })();
+  </script>
+</body>
+</html>
