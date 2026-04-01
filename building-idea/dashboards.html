@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboards</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #09090b;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .card {
+    position: relative;
+    width: 860px;
+    height: 560px;
+    background: rgba(24,24,27,0.5);
+    border-radius: 8px;
+    border: 1px solid #27272a;
+    overflow: hidden;
+  }
+
+  /* ── Status card (top-left) ── */
+  .status-card {
+    position: absolute;
+    top: 50px;
+    left: 56px;
+    z-index: 3;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    padding: 20px 24px;
+    width: 280px;
+  }
+
+  .status-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #a78bfa;
+    box-shadow: 0 0 8px rgba(167,139,250,0.4);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .status-title {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #a1a1aa;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag {
+    font-size: 11.5px;
+    color: #d4d4d8;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 6px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+
+  /* ── Dashed area ── */
+  .dash-area {
+    position: absolute;
+    top: 130px;
+    left: 190px;
+    width: 520px;
+    height: 340px;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    z-index: 1;
+  }
+
+  /* ── Dashboard grid skeleton ── */
+  .dash-grid {
+    position: absolute;
+    top: 30px;
+    left: 32px;
+    right: 32px;
+    bottom: 70px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto auto 1fr;
+    gap: 12px;
+  }
+
+  /* KPI widget (top row, 3 cards) */
+  .kpi {
+    border: 1.5px dashed rgba(255,255,255,0.09);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .kpi-value {
+    height: 14px;
+    width: 50%;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-value::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 3px;
+    width: 0%;
+    animation: kpi-fill 6s ease-in-out infinite;
+  }
+
+  .kpi:nth-child(1) .kpi-value::after { background: rgba(94,234,212,0.25); animation-delay: 0s; }
+  .kpi:nth-child(2) .kpi-value::after { background: rgba(167,139,250,0.25); animation-delay: 0.6s; }
+  .kpi:nth-child(3) .kpi-value::after { background: rgba(245,158,108,0.25); animation-delay: 1.2s; }
+
+  @keyframes kpi-fill {
+    0%, 15% { width: 0%; }
+    40%, 75% { width: 100%; }
+    90%, 100% { width: 0%; }
+  }
+
+  .kpi-label {
+    height: 3px;
+    width: 70%;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .kpi-spark {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 16px;
+  }
+
+  .kpi-spark span {
+    flex: 1;
+    border-radius: 1px 1px 0 0;
+    background: rgba(255,255,255,0.06);
+    animation: spark 5s ease-in-out infinite;
+  }
+
+  .kpi:nth-child(1) .kpi-spark span { --c: rgba(94,234,212,0.18); }
+  .kpi:nth-child(2) .kpi-spark span { --c: rgba(167,139,250,0.18); }
+  .kpi:nth-child(3) .kpi-spark span { --c: rgba(245,158,108,0.18); }
+
+  @keyframes spark {
+    0%, 20% { height: 3px; background: rgba(255,255,255,0.04); }
+    45%, 65% { height: var(--h); background: var(--c); }
+    85%, 100% { height: 3px; background: rgba(255,255,255,0.04); }
+  }
+
+  /* Wide chart (spans 2 cols) */
+  .chart-wide {
+    grid-column: 1 / 3;
+    border: 1.5px dashed rgba(255,255,255,0.09);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chart-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(96,165,250,0.5);
+  }
+
+  .chart-title-line {
+    height: 3px;
+    width: 60px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .chart-area {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    min-height: 40px;
+  }
+
+  .chart-col {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    background: rgba(96,165,250,0.08);
+    animation: col-grow 6s ease-in-out infinite;
+  }
+
+  @keyframes col-grow {
+    0%, 15% { height: 3px; background: rgba(96,165,250,0.04); }
+    40%, 70% { height: var(--h); background: rgba(96,165,250,0.15); }
+    90%, 100% { height: 3px; background: rgba(96,165,250,0.04); }
+  }
+
+  /* Side list (right of wide chart) */
+  .side-list {
+    border: 1.5px dashed rgba(255,255,255,0.09);
+    border-radius: 8px;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .list-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .list-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .list-row:nth-child(1) .list-dot { background: rgba(94,234,212,0.5); }
+  .list-row:nth-child(2) .list-dot { background: rgba(167,139,250,0.5); }
+  .list-row:nth-child(3) .list-dot { background: rgba(245,158,108,0.5); }
+  .list-row:nth-child(4) .list-dot { background: rgba(96,165,250,0.5); }
+
+  .list-line {
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .list-line::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 2.8s ease-in-out infinite;
+  }
+
+  .list-row:nth-child(2) .list-line::after { animation-delay: 0.3s; }
+  .list-row:nth-child(3) .list-line::after { animation-delay: 0.6s; }
+  .list-row:nth-child(4) .list-line::after { animation-delay: 0.9s; }
+
+  @keyframes shimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+
+  /* Bottom wide block (spans all 3 cols) */
+  .report-block {
+    grid-column: 1 / -1;
+    border: 1.5px dashed rgba(255,255,255,0.09);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .report-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .report-line {
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .report-line::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 2.8s ease-in-out infinite;
+  }
+
+  .report-line:nth-child(2)::after { animation-delay: 0.35s; }
+
+  .report-mini-ring {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.05);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .report-mini-ring::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: rgba(251,191,36,0.4);
+    animation: ring-spin 6s linear infinite;
+  }
+
+  @keyframes ring-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* ── Layout icon (bottom-left of area) ── */
+  .layout-icon {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid #27272a;
+    background: #18181b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .layout-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: rgba(255,255,255,0.6);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ── Tool badges ── */
+  .tool-badge {
+    position: absolute;
+    z-index: 3;
+    border-radius: 8px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  .tool-badge svg {
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .badge-bar {
+    width: 68px;
+    height: 68px;
+    top: 155px;
+    right: 80px;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .badge-bar svg { width: 26px; height: 26px; stroke: #60a5fa; }
+
+  .badge-pie {
+    width: 62px;
+    height: 62px;
+    top: 250px;
+    right: 50px;
+    animation: float 4s ease-in-out infinite 0.8s;
+  }
+
+  .badge-pie svg { width: 24px; height: 24px; stroke: #a78bfa; }
+
+  .badge-trend {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    top: 350px;
+    right: 90px;
+    animation: float 4s ease-in-out infinite 1.6s;
+  }
+
+  .badge-trend svg { width: 22px; height: 22px; stroke: #5eead4; }
+
+  .badge-filter {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    top: 310px;
+    right: 165px;
+    animation: float 4s ease-in-out infinite 2.2s;
+  }
+
+  .badge-filter svg { width: 20px; height: 20px; stroke: #fbbf24; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* ── Bottom text ── */
+  .bottom-text {
+    position: absolute;
+    bottom: 36px;
+    left: 190px;
+    z-index: 2;
+    font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: #71717a;
+    text-transform: uppercase;
+  }
+
+  .bottom-text .dots::after {
+    content: '';
+    animation: dots 1.6s steps(4) infinite;
+  }
+
+  @keyframes dots {
+    0%  { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Status card -->
+  <div class="status-card">
+    <div class="status-header">
+      <span class="status-dot"></span>
+      <span class="status-title">Custom dashboard</span>
+    </div>
+    <div class="tag-list">
+      <span class="tag">KPIs</span>
+      <span class="tag">Widgets</span>
+      <span class="tag">Reports</span>
+      <span class="tag">Filters</span>
+    </div>
+  </div>
+
+  <!-- Dashed area -->
+  <div class="dash-area">
+    <div class="dash-grid">
+
+      <!-- Row 1: 3 KPI widgets -->
+      <div class="kpi">
+        <div class="kpi-value"></div>
+        <div class="kpi-label"></div>
+        <div class="kpi-spark">
+          <span style="--h:8px"></span>
+          <span style="--h:12px"></span>
+          <span style="--h:6px"></span>
+          <span style="--h:14px"></span>
+          <span style="--h:10px"></span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value"></div>
+        <div class="kpi-label"></div>
+        <div class="kpi-spark">
+          <span style="--h:10px"></span>
+          <span style="--h:6px"></span>
+          <span style="--h:13px"></span>
+          <span style="--h:9px"></span>
+          <span style="--h:15px"></span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value"></div>
+        <div class="kpi-label"></div>
+        <div class="kpi-spark">
+          <span style="--h:14px"></span>
+          <span style="--h:8px"></span>
+          <span style="--h:11px"></span>
+          <span style="--h:7px"></span>
+          <span style="--h:12px"></span>
+        </div>
+      </div>
+
+      <!-- Row 2: wide chart + side list -->
+      <div class="chart-wide">
+        <div class="chart-header">
+          <div class="chart-dot"></div>
+          <div class="chart-title-line"></div>
+        </div>
+        <div class="chart-area">
+          <div class="chart-col" style="--h:20px"></div>
+          <div class="chart-col" style="--h:32px"></div>
+          <div class="chart-col" style="--h:18px"></div>
+          <div class="chart-col" style="--h:38px"></div>
+          <div class="chart-col" style="--h:26px"></div>
+          <div class="chart-col" style="--h:42px"></div>
+          <div class="chart-col" style="--h:30px"></div>
+          <div class="chart-col" style="--h:22px"></div>
+        </div>
+      </div>
+
+      <div class="side-list">
+        <div class="list-row">
+          <div class="list-dot"></div>
+          <div class="list-line" style="width:55px"></div>
+        </div>
+        <div class="list-row">
+          <div class="list-dot"></div>
+          <div class="list-line" style="width:42px"></div>
+        </div>
+        <div class="list-row">
+          <div class="list-dot"></div>
+          <div class="list-line" style="width:50px"></div>
+        </div>
+        <div class="list-row">
+          <div class="list-dot"></div>
+          <div class="list-line" style="width:38px"></div>
+        </div>
+      </div>
+
+      <!-- Row 3: full-width report block -->
+      <div class="report-block">
+        <div class="report-mini-ring"></div>
+        <div class="report-lines">
+          <div class="report-line" style="width:85%"></div>
+          <div class="report-line" style="width:60%"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Layout icon -->
+    <div class="layout-icon">
+      <svg viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Badge: Bar chart -->
+  <div class="tool-badge badge-bar">
+    <svg viewBox="0 0 24 24">
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+  </div>
+
+  <!-- Badge: Pie chart -->
+  <div class="tool-badge badge-pie">
+    <svg viewBox="0 0 24 24">
+      <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+      <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+    </svg>
+  </div>
+
+  <!-- Badge: Trend line -->
+  <div class="tool-badge badge-trend">
+    <svg viewBox="0 0 24 24">
+      <polyline points="22 12 18 8 13 13 9 9 2 16"/>
+      <polyline points="16 8 22 8 22 14"/>
+    </svg>
+  </div>
+
+  <!-- Badge: Filter -->
+  <div class="tool-badge badge-filter">
+    <svg viewBox="0 0 24 24">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </svg>
+  </div>
+
+  <!-- Bottom text -->
+  <div class="bottom-text">
+    no pivot tables required<span class="dots"></span>
+  </div>
+
+</div>
+
+</body>
+</html>

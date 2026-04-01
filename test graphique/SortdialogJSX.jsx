@@ -174,97 +174,97 @@ function FixedPopover({ isOpen, coords, popoverRef, minWidth, children }) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   DRAG ACCESSIBILITY — instructions lues par les lecteurs d'écran
-   Injectées via aria-describedby sur chaque élément draggable.
+   DRAG ACCESSIBILITY — instructions read by screen readers
+   Injected via aria-describedby on each draggable element.
    ═══════════════════════════════════════════════════════ */
 const DND_SCREEN_READER_INSTRUCTIONS = {
   draggable:
-    "Pour déplacer cet élément, appuyez sur Espace. " +
-    "Utilisez les touches fléchées pour le déplacer. " +
-    "Appuyez à nouveau sur Espace pour le déposer à sa nouvelle position, " +
-    "ou sur Échap pour annuler.",
+    "To move this item, press Space. " +
+    "Use the arrow keys to move it. " +
+    "Press Space again to drop it at its new position, " +
+    "or Escape to cancel.",
 };
 
 /* ═══════════════════════════════════════════════════════
    DATA CONSTANTS
    ═══════════════════════════════════════════════════════ */
 const COLUMN_TYPES = {
-  text: { label: "Texte", icon: Type, color: "text-blue-500" },
-  number: { label: "Nombre", icon: Hash, color: "text-emerald-500" },
+  text: { label: "Text", icon: Type, color: "text-blue-500" },
+  number: { label: "Number", icon: Hash, color: "text-emerald-500" },
   date: { label: "Date", icon: Calendar, color: "text-orange-500" },
   checkbox: {
-    label: "Case à cocher",
+    label: "Checkbox",
     icon: CheckSquare,
     color: "text-violet-500",
   },
-  select: { label: "Sélection", icon: List, color: "text-pink-500" },
+  select: { label: "Select", icon: List, color: "text-pink-500" },
   tags: { label: "Tags", icon: Tags, color: "text-amber-500" },
   url: { label: "URL", icon: Link, color: "text-cyan-500" },
-  phone: { label: "Téléphone", icon: Phone, color: "text-teal-500" },
+  phone: { label: "Phone", icon: Phone, color: "text-teal-500" },
   email: { label: "Email", icon: Mail, color: "text-rose-500" },
-  location: { label: "Lieu", icon: MapPin, color: "text-red-500" },
+  location: { label: "Location", icon: MapPin, color: "text-red-500" },
   relation: { label: "Relation", icon: GitBranch, color: "text-indigo-500" },
-  formula: { label: "Formule", icon: FunctionSquare, color: "text-lime-500" },
-  user: { label: "Utilisateur", icon: User, color: "text-sky-500" },
-  file: { label: "Fichier", icon: FileText, color: "text-stone-500" },
-  status: { label: "Statut", icon: Activity, color: "text-fuchsia-500" },
+  formula: { label: "Formula", icon: FunctionSquare, color: "text-lime-500" },
+  user: { label: "User", icon: User, color: "text-sky-500" },
+  file: { label: "File", icon: FileText, color: "text-stone-500" },
+  status: { label: "Status", icon: Activity, color: "text-fuchsia-500" },
   emoji: { label: "Emoji", icon: Smile, color: "text-yellow-500" },
   rollup: { label: "Rollup", icon: Database, color: "text-purple-500" },
   created_modified: {
-    label: "Créé/Modifié",
+    label: "Created/Modified",
     icon: Clock,
     color: "text-zinc-500",
   },
-  unique_id: { label: "ID Unique", icon: Key, color: "text-neutral-500" },
+  unique_id: { label: "Unique ID", icon: Key, color: "text-neutral-500" },
 };
 
 const MOCK_COLUMNS = [
-  { id: "col_name", name: "Nom", type: "text" },
-  { id: "col_price", name: "Prix", type: "number" },
-  { id: "col_date", name: "Date d'échéance", type: "date" },
-  { id: "col_done", name: "Terminé", type: "checkbox" },
-  { id: "col_status", name: "Statut", type: "status" },
-  { id: "col_priority", name: "Priorité", type: "select" },
+  { id: "col_name", name: "Name", type: "text" },
+  { id: "col_price", name: "Price", type: "number" },
+  { id: "col_date", name: "Due Date", type: "date" },
+  { id: "col_done", name: "Done", type: "checkbox" },
+  { id: "col_status", name: "Status", type: "status" },
+  { id: "col_priority", name: "Priority", type: "select" },
   { id: "col_tags", name: "Tags", type: "tags" },
   { id: "col_email", name: "Email", type: "email" },
-  { id: "col_phone", name: "Téléphone", type: "phone" },
-  { id: "col_url", name: "Lien", type: "url" },
-  { id: "col_location", name: "Lieu", type: "location" },
-  { id: "col_relation", name: "Projet", type: "relation" },
+  { id: "col_phone", name: "Phone", type: "phone" },
+  { id: "col_url", name: "Link", type: "url" },
+  { id: "col_location", name: "Location", type: "location" },
+  { id: "col_relation", name: "Project", type: "relation" },
   { id: "col_formula", name: "Total", type: "formula" },
-  { id: "col_user", name: "Assigné à", type: "user" },
-  { id: "col_file", name: "Pièce jointe", type: "file" },
-  { id: "col_emoji", name: "Réaction", type: "emoji" },
+  { id: "col_user", name: "Assigned To", type: "user" },
+  { id: "col_file", name: "Attachment", type: "file" },
+  { id: "col_emoji", name: "Reaction", type: "emoji" },
   { id: "col_rollup", name: "Budget", type: "rollup" },
-  { id: "col_created", name: "Créé le", type: "created_modified" },
-  { id: "col_id", name: "Réf.", type: "unique_id" },
+  { id: "col_created", name: "Created On", type: "created_modified" },
+  { id: "col_id", name: "Ref.", type: "unique_id" },
 ];
 
-/* ─── Niveaux d'accès colonnes ─── */
+/* ─── Column access levels ─── */
 const COL_ACCESS_LEVELS = [
-  { id: "full", label: "Éditable",         desc: "Peut voir et modifier",                 Icon: Pencil, color: "text-emerald-500", activeBg: "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700" },
-  { id: "view", label: "Lecture seule",    desc: "Peut voir, pas modifier",               Icon: Eye,    color: "text-blue-500",   activeBg: "bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700"            },
-  { id: "ask",  label: "Masqué + demande", desc: "Sait que c'est masqué, peut demander",  Icon: Lock,   color: "text-amber-500",  activeBg: "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"         },
-  { id: "none", label: "Masqué total",     desc: "Invisible, sans notification",          Icon: EyeOff, color: "text-red-400",    activeBg: "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700"               },
+  { id: "full", label: "Editable",           desc: "Can view and edit",                      Icon: Pencil, color: "text-emerald-500", activeBg: "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700" },
+  { id: "view", label: "Read-only",          desc: "Can view, cannot edit",                  Icon: Eye,    color: "text-blue-500",   activeBg: "bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700"            },
+  { id: "ask",  label: "Hidden + request",   desc: "Knows it is hidden, can request access", Icon: Lock,   color: "text-amber-500",  activeBg: "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"         },
+  { id: "none", label: "Fully hidden",       desc: "Invisible, no notification",             Icon: EyeOff, color: "text-red-400",    activeBg: "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700"               },
 ];
 
-/* ─── Niveaux d'accès filtres ─── */
+/* ─── Filter access levels ─── */
 const FILTER_ACCESS_LEVELS = [
-  { id: "visible", label: "Visible",         desc: "Filtre affiché, non modifiable",       Icon: Eye,  color: "text-emerald-500", activeBg: "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700" },
-  { id: "ask",     label: "Accès restreint", desc: "Masqué, peut demander l'accès",        Icon: Lock, color: "text-amber-500",   activeBg: "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"       },
-  { id: "silent",  label: "Caché",           desc: "Filtre actif, données pré-filtrées",   Icon: EyeOff, color: "text-zinc-400", activeBg: "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600"             },
+  { id: "visible", label: "Visible",           desc: "Filter displayed, not editable",        Icon: Eye,  color: "text-emerald-500", activeBg: "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700" },
+  { id: "ask",     label: "Restricted access", desc: "Hidden, can request access",            Icon: Lock, color: "text-amber-500",   activeBg: "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700"       },
+  { id: "silent",  label: "Hidden",            desc: "Filter active, data pre-filtered",      Icon: EyeOff, color: "text-red-500", activeBg: "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700"             },
 ];
 
-/* ─── Rôles cibles ─── */
+/* ─── Target roles ─── */
 
-/* ─── Rôles de prévisualisation ─── */
+/* ─── Preview roles ─── */
 const PREVIEW_ROLES = [
-  { id: "dev",   label: "Dev",   description: "Accès complet et configuration" },
-  { id: "owner", label: "Owner", description: "Peut imposer des vues aux Users" },
-  { id: "user",  label: "User",  description: "Accès et vues personnels uniquement" },
+  { id: "dev",   label: "Dev",   description: "Full access and configuration" },
+  { id: "owner", label: "Owner", description: "Can enforce views on Users" },
+  { id: "user",  label: "User",  description: "Personal access and views only" },
 ];
 
-/* ─── Ordre de restriction (plus l'index est grand, plus c'est restrictif) ─── */
+/* ─── Restriction order (the higher the index, the more restrictive) ─── */
 const COL_ACCESS_ORDER = ["full", "view", "ask", "none"];
 const FILTER_ACCESS_ORDER = ["visible", "ask", "silent"];
 
@@ -300,53 +300,53 @@ function getOperatorCategory(colType) {
 
 const OPERATORS = {
   text: [
-    { id: "is", label: "est" },
-    { id: "is_not", label: "n'est pas" },
-    { id: "contains", label: "contient" },
-    { id: "not_contains", label: "ne contient pas" },
-    { id: "starts_with", label: "commence par" },
-    { id: "ends_with", label: "finit par" },
-    { id: "is_empty", label: "est vide", noValue: true },
-    { id: "is_not_empty", label: "n'est pas vide", noValue: true },
+    { id: "is", label: "is" },
+    { id: "is_not", label: "is not" },
+    { id: "contains", label: "contains" },
+    { id: "not_contains", label: "does not contain" },
+    { id: "starts_with", label: "starts with" },
+    { id: "ends_with", label: "ends with" },
+    { id: "is_empty", label: "is empty", noValue: true },
+    { id: "is_not_empty", label: "is not empty", noValue: true },
   ],
   number: [
-    { id: "eq", label: "égale" },
-    { id: "neq", label: "différent de" },
-    { id: "gt", label: "supérieur à" },
-    { id: "lt", label: "inférieur à" },
-    { id: "gte", label: "supérieur ou égal à" },
-    { id: "lte", label: "inférieur ou égal à" },
-    { id: "is_empty", label: "est vide", noValue: true },
-    { id: "is_not_empty", label: "n'est pas vide", noValue: true },
+    { id: "eq", label: "equals" },
+    { id: "neq", label: "not equal to" },
+    { id: "gt", label: "greater than" },
+    { id: "lt", label: "less than" },
+    { id: "gte", label: "greater than or equal to" },
+    { id: "lte", label: "less than or equal to" },
+    { id: "is_empty", label: "is empty", noValue: true },
+    { id: "is_not_empty", label: "is not empty", noValue: true },
   ],
   date: [
-    { id: "is", label: "est" },
-    { id: "is_before", label: "est avant" },
-    { id: "is_after", label: "est après" },
-    { id: "is_empty", label: "est vide", noValue: true },
-    { id: "is_not_empty", label: "n'est pas vide", noValue: true },
+    { id: "is", label: "is" },
+    { id: "is_before", label: "is before" },
+    { id: "is_after", label: "is after" },
+    { id: "is_empty", label: "is empty", noValue: true },
+    { id: "is_not_empty", label: "is not empty", noValue: true },
   ],
   select: [
-    { id: "is", label: "est" },
-    { id: "is_not", label: "n'est pas" },
-    { id: "is_empty", label: "est vide", noValue: true },
-    { id: "is_not_empty", label: "n'est pas vide", noValue: true },
+    { id: "is", label: "is" },
+    { id: "is_not", label: "is not" },
+    { id: "is_empty", label: "is empty", noValue: true },
+    { id: "is_not_empty", label: "is not empty", noValue: true },
   ],
   checkbox: [
-    { id: "is_checked", label: "est coché", noValue: true },
-    { id: "is_unchecked", label: "n'est pas coché", noValue: true },
+    { id: "is_checked", label: "is checked", noValue: true },
+    { id: "is_unchecked", label: "is not checked", noValue: true },
   ],
   user: [
-    { id: "is", label: "est" },
-    { id: "is_not", label: "n'est pas" },
-    { id: "is_empty", label: "est vide", noValue: true },
-    { id: "is_not_empty", label: "n'est pas vide", noValue: true },
+    { id: "is", label: "is" },
+    { id: "is_not", label: "is not" },
+    { id: "is_empty", label: "is empty", noValue: true },
+    { id: "is_not_empty", label: "is not empty", noValue: true },
   ],
   tags: [
-    { id: "contains", label: "contient" },
-    { id: "not_contains", label: "ne contient pas" },
-    { id: "is_empty", label: "est vide", noValue: true },
-    { id: "is_not_empty", label: "n'est pas vide", noValue: true },
+    { id: "contains", label: "contains" },
+    { id: "not_contains", label: "does not contain" },
+    { id: "is_empty", label: "is empty", noValue: true },
+    { id: "is_not_empty", label: "is not empty", noValue: true },
   ],
 };
 
@@ -358,38 +358,38 @@ const MOCK_VALUES = {
   col_price: { type: "number", presets: [0, 10, 25, 50, 100, 200, 500] },
   col_date: {
     type: "chips",
-    items: ["Aujourd'hui", "Hier", "Cette semaine", "Ce mois", "Cette année"],
+    items: ["Today", "Yesterday", "This week", "This month", "This year"],
   },
   col_done: null,
   col_status: {
     type: "colored",
     items: [
       {
-        label: "À faire",
+        label: "To Do",
         color: "bg-zinc-400",
         icon: Circle,
         iconColor: "text-zinc-400",
       },
       {
-        label: "En cours",
+        label: "In Progress",
         color: "bg-blue-500",
         icon: Loader,
         iconColor: "text-blue-500",
       },
       {
-        label: "En revue",
+        label: "In Review",
         color: "bg-amber-500",
         icon: Eye,
         iconColor: "text-amber-500",
       },
       {
-        label: "Terminé",
+        label: "Done",
         color: "bg-emerald-500",
         icon: CheckCircle,
         iconColor: "text-emerald-500",
       },
       {
-        label: "Bloqué",
+        label: "Blocked",
         color: "bg-red-500",
         icon: Ban,
         iconColor: "text-red-500",
@@ -406,19 +406,19 @@ const MOCK_VALUES = {
         iconColor: "text-red-500",
       },
       {
-        label: "Haute",
+        label: "High",
         color: "bg-orange-500",
         icon: ChevronsUp,
         iconColor: "text-orange-500",
       },
       {
-        label: "Normale",
+        label: "Normal",
         color: "bg-blue-500",
         icon: Minus,
         iconColor: "text-blue-500",
       },
       {
-        label: "Basse",
+        label: "Low",
         color: "bg-zinc-400",
         icon: ChevronsDown,
         iconColor: "text-zinc-400",
@@ -433,7 +433,7 @@ const MOCK_VALUES = {
       { label: "Dev", color: "bg-cyan-500" },
       { label: "Marketing", color: "bg-pink-500" },
       { label: "Finance", color: "bg-emerald-500" },
-      { label: "RH", color: "bg-indigo-500" },
+      { label: "HR", color: "bg-indigo-500" },
     ],
   },
   col_email: {
@@ -447,11 +447,11 @@ const MOCK_VALUES = {
   },
   col_location: {
     type: "chips",
-    items: ["Bruxelles", "Paris", "Lyon", "Namur", "Liège"],
+    items: ["Brussels", "Paris", "Lyon", "Namur", "Liege"],
   },
   col_relation: {
     type: "chips",
-    items: ["Projet Alpha", "Projet Beta", "Projet Gamma"],
+    items: ["Project Alpha", "Project Beta", "Project Gamma"],
   },
   col_user: {
     type: "users",
@@ -464,14 +464,14 @@ const MOCK_VALUES = {
   },
   col_file: {
     type: "chips",
-    items: ["PDF", "Image", "Vidéo", "Document", "Tableur"],
+    items: ["PDF", "Image", "Video", "Document", "Spreadsheet"],
   },
   col_emoji: { type: "chips", items: ["😀", "👍", "❤️", "⭐", "🔥"] },
   col_rollup: { type: "number", presets: [0, 10, 50, 100, 500] },
   col_formula: { type: "number", presets: [0, 10, 50, 100, 500, 1000] },
   col_created: {
     type: "chips",
-    items: ["Aujourd'hui", "Hier", "Cette semaine", "Ce mois", "Cette année"],
+    items: ["Today", "Yesterday", "This week", "This month", "This year"],
   },
   col_id: { type: "chips", items: ["001", "002", "003", "010", "100"] },
 };
@@ -623,7 +623,7 @@ function ValueDisplay({ columnId, value }) {
     return (
       <span className="inline-flex items-center gap-1">
         <OverlappingAvatars items={initials} />
-        {arr.length} {isUsers ? "personnes" : "noms"}
+        {arr.length} {isUsers ? "people" : "names"}
       </span>
     );
   }
@@ -645,7 +645,7 @@ function ValueDisplay({ columnId, value }) {
           })}
         </span>
       )}
-      {arr.length} sélections
+      {arr.length} selections
     </span>
   );
 }
@@ -678,7 +678,7 @@ function ValueOptions({ columnId, value, onChange, onApply }) {
               if (e.key === "Enter" && numInput.trim())
                 onChange(Number(numInput));
             }}
-            placeholder="Valeur…"
+            placeholder="Value…"
             className="flex-1 rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-sm outline-none focus:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
             autoFocus
           />
@@ -776,7 +776,7 @@ function ValueOptions({ columnId, value, onChange, onApply }) {
         {search && (
           <button
             onClick={() => setSearch("")}
-            aria-label="Effacer la recherche"
+            aria-label="Clear search"
             className="text-zinc-300 hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-400"
           >
             <X size={10} />
@@ -788,7 +788,7 @@ function ValueOptions({ columnId, value, onChange, onApply }) {
       <div ref={itemListRef} role="listbox" className="max-h-[220px] overflow-y-auto p-1">
         {items.length === 0 && (
           <p className="px-2.5 py-2 text-xs text-zinc-400 text-center">
-            Aucun résultat
+            No results
           </p>
         )}
         {items.map((item) => {
@@ -850,7 +850,7 @@ function ValueOptions({ columnId, value, onChange, onApply }) {
             onClick={() => onApply(selected)}
             className="w-full rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
-            Appliquer
+            Apply
           </button>
         </div>
       )}
@@ -901,14 +901,14 @@ function ColumnList({ columns, usedColumnIds, onSelect, placeholder = "…" }) {
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={handleInputKeyDown}
           placeholder={placeholder}
-          aria-label={`Rechercher une colonne`}
+          aria-label={`Search for a column`}
           className="flex-1 bg-transparent text-sm outline-none placeholder-zinc-300 text-zinc-700 dark:text-zinc-200 dark:placeholder-zinc-600"
           autoFocus
         />
         {search && (
           <button
             onClick={() => setSearch("")}
-            aria-label="Effacer la recherche"
+            aria-label="Clear search"
             className="text-zinc-300 hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-400"
           >
             <X size={10} />
@@ -939,14 +939,14 @@ function ColumnList({ columns, usedColumnIds, onSelect, placeholder = "…" }) {
         })}
         {filtered.length === 0 && (
           <p className="text-center text-sm text-zinc-400 py-4">
-            Aucune colonne trouvée
+            No column found
           </p>
         )}
       </div>
       <div className="px-3 py-1.5 border-t border-zinc-100 dark:border-zinc-800 flex gap-3">
-        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↑↓</kbd> Naviguer</span>
-        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↵</kbd> Sélectionner</span>
-        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">Échap</kbd> Fermer</span>
+        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↑↓</kbd> Navigate</span>
+        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↵</kbd> Select</span>
+        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">Esc</kbd> Close</span>
       </div>
     </>
   );
@@ -993,9 +993,9 @@ function OperatorList({ operators, currentOpId, onSelect }) {
         ))}
       </div>
       <div className="px-3 py-1.5 border-t border-zinc-100 dark:border-zinc-800 flex gap-3">
-        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↑↓</kbd> Naviguer</span>
-        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↵</kbd> Sélectionner</span>
-        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">Échap</kbd> Fermer</span>
+        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↑↓</kbd> Navigate</span>
+        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↵</kbd> Select</span>
+        <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">Esc</kbd> Close</span>
       </div>
     </>
   );
@@ -1004,9 +1004,9 @@ function OperatorList({ operators, currentOpId, onSelect }) {
 /* ═══════════════════════════════════════════════════════
    ADVANCED FILTER BUILDER
    Uses the same cascading dropdown as simple filters.
-   Completed conditions displayed as summaries with et/ou.
-   "Ajouter un filtre" opens the cascade to add a new condition.
-   "Valider" to apply.
+   Completed conditions displayed as summaries with and/or.
+   "Add a filter" opens the cascade to add a new condition.
+   "Validate" to apply.
    ═══════════════════════════════════════════════════════ */
 function AdvancedFilterBuilder({
   open,
@@ -1014,7 +1014,7 @@ function AdvancedFilterBuilder({
   containerRef,
   columns,
   editingFilter,
-  onValidate,
+  onChange,
   onClose,
 }) {
   const [logic, setLogic] = useState("and");
@@ -1032,20 +1032,20 @@ function AdvancedFilterBuilder({
   // Edit state for modifying existing conditions
   const [editDD, setEditDD] = useState(null); // { row, field: "operator"|"value", top, left }
 
-  // Refs pour la gestion du focus dans la cascade
+  // Refs for focus management in the cascade
   const colPickerRef = useRef(null);
   const opDropdownRef = useRef(null);
   const editDDRef = useRef(null);
 
-  // Déplace le focus vers le dropdown opérateur quand une colonne est sélectionnée
-  // ou quand on revient depuis le niveau valeur (Échap)
+  // Move focus to the operator dropdown when a column is selected
+  // or when returning from the value level (Esc)
   useLayoutEffect(() => {
     if (showColumnPicker && addingColId && !addingOpId) {
       opDropdownRef.current?.querySelector("button[role='option']")?.focus();
     }
   }, [showColumnPicker, addingColId, addingOpId]);
 
-  // Déplace le focus vers le dropdown d'édition quand il s'ouvre
+  // Move focus to the edit dropdown when it opens
   useLayoutEffect(() => {
     if (editDD) {
       editDDRef.current?.querySelector("button[role='option'], input")?.focus();
@@ -1065,6 +1065,22 @@ function AdvancedFilterBuilder({
       setEditDD(null);
     }
   }, [open, editingFilter]);
+
+  // Auto-apply: push changes to parent whenever conditions or logic change
+  const isInitRef = useRef(true);
+  useEffect(() => {
+    if (isInitRef.current) { isInitRef.current = false; return; }
+    if (!open) return;
+    const valid = conditions.filter((c) => {
+      if (!c.columnId || !c.operator) return false;
+      const col = columns.find((cc) => cc.id === c.columnId);
+      const cat = col ? getOperatorCategory(col.type) : null;
+      const op = cat ? OPERATORS[cat]?.find((o) => o.id === c.operator) : null;
+      if (op?.noValue) return true;
+      return c.value != null;
+    });
+    onChange({ logic, conditions: valid });
+  }, [conditions, logic]);
 
   const resetCascade = () => {
     setShowColumnPicker(false);
@@ -1165,19 +1181,6 @@ function AdvancedFilterBuilder({
   const editCat = editCol ? getOperatorCategory(editCol.type) : null;
   const editOps = editCat ? OPERATORS[editCat] || [] : [];
 
-  const handleValidate = () => {
-    const valid = conditions.filter((c) => {
-      if (!c.columnId || !c.operator) return false;
-      const col = columns.find((cc) => cc.id === c.columnId);
-      const cat = col ? getOperatorCategory(col.type) : null;
-      const op = cat ? OPERATORS[cat]?.find((o) => o.id === c.operator) : null;
-      if (op?.noValue) return true;
-      return c.value != null;
-    });
-    if (valid.length === 0) return;
-    onValidate({ logic, conditions: valid });
-  };
-
   const handleFocusTrap = useCallback((e) => {
     if (e.key !== "Tab") return;
     const focusable = Array.from(
@@ -1237,7 +1240,7 @@ function AdvancedFilterBuilder({
         <div className="p-3">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Filtre avancé
+              Advanced filter
             </p>
             <button
               onClick={onClose}
@@ -1268,7 +1271,7 @@ function AdvancedFilterBuilder({
                         }
                         className="text-[11px] text-zinc-400 hover:text-zinc-600 flex-shrink-0 w-6 text-right"
                       >
-                        {logic === "and" ? "et" : "ou"}
+                        {logic === "and" ? "and" : "or"}
                       </button>
                     )}
                     {i === 0 && <div className="w-6 flex-shrink-0" />}
@@ -1326,21 +1329,13 @@ function AdvancedFilterBuilder({
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800">
+          <div className="flex items-center pt-2 border-t border-zinc-100 dark:border-zinc-800">
             <button
               onClick={openAddFilter}
               className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
             >
-              <Plus size={12} /> Ajouter un filtre
+              <Plus size={12} /> Add a filter
             </button>
-            {conditions.length > 0 && (
-              <button
-                onClick={handleValidate}
-                className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-              >
-                Valider
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -1361,7 +1356,7 @@ function AdvancedFilterBuilder({
         >
           <div className="px-2.5 pt-2 pb-1">
             <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
-              Opérateur
+              Operator
             </p>
           </div>
           <OperatorList
@@ -1392,7 +1387,7 @@ function AdvancedFilterBuilder({
         >
           <div className="px-2.5 pt-2 pb-1">
             <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
-              Valeur
+              Value
             </p>
           </div>
           <ValueOptions
@@ -1419,7 +1414,7 @@ function AdvancedFilterBuilder({
             columns={columns}
             usedColumnIds={[]}
             onSelect={handleColSelect}
-            placeholder="Colonne…"
+            placeholder="Column…"
           />
         </div>
       )}
@@ -1440,7 +1435,7 @@ function AdvancedFilterBuilder({
         >
           <div className="px-2.5 pt-2 pb-1">
             <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
-              Opérateur
+              Operator
             </p>
           </div>
           <OperatorList
@@ -1457,7 +1452,7 @@ function AdvancedFilterBuilder({
             if (e.key === "Escape") {
               e.stopPropagation();
               setAddingOpId(null);
-              // useLayoutEffect va re-focus le dropdown opérateur
+              // useLayoutEffect will re-focus the operator dropdown
             }
           }}
           className="fixed z-[100000] rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
@@ -1465,7 +1460,7 @@ function AdvancedFilterBuilder({
         >
           <div className="px-2.5 pt-2 pb-1">
             <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
-              Valeur
+              Value
             </p>
           </div>
           <ValueOptions
@@ -1487,7 +1482,7 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, devFilterRules,
   const [accessOpen, setAccessOpen] = useState(false);
   const accessBtnRef = useRef(null);
 
-  // Pire niveau d'accès défini pour ce filtre (indicateur coloré)
+  // Worst access level defined for this filter (colored indicator)
   const filterDevRules = devFilterRules?.get(filter.id) || {};
   const filterOwnerRules = ownerFilterRules?.get(filter.id) || {};
   const allRuleValues = editorRole === "dev"
@@ -1527,17 +1522,17 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, devFilterRules,
       filter.conditions.map(c => columns.find(col => col.id === c.columnId)?.name).filter(Boolean)
     )];
     const askLabel = askColNames.length === 0 ? ""
-      : askColNames.length === 1 ? ` sur ${askColNames[0]}`
-      : ` sur ${askColNames.slice(0, -1).join(", ")} et ${askColNames.at(-1)}`;
+      : askColNames.length === 1 ? ` on ${askColNames[0]}`
+      : ` on ${askColNames.slice(0, -1).join(", ")} and ${askColNames.at(-1)}`;
     return (
       <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div className="flex items-center gap-1.5 px-2 py-1 text-zinc-400 dark:text-zinc-500 select-none">
           <Lock size={12} />
-          <span className="text-xs">Filtre restreint{askLabel}</span>
+          <span className="text-xs">Restricted filter{askLabel}</span>
         </div>
         <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
         <button className="px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors">
-          Demander l'accès
+          Request access
         </button>
       </div>
     );
@@ -1555,7 +1550,7 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, devFilterRules,
             <span key={i} className="inline-flex items-center gap-1">
               {i > 0 && (
                 <span className="text-zinc-400 mx-0.5">
-                  {filter.logic === "and" ? "et" : "ou"}
+                  {filter.logic === "and" ? "and" : "or"}
                 </span>
               )}
               {renderCondition(cond)}
@@ -1570,19 +1565,15 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, devFilterRules,
             <button
               ref={accessBtnRef}
               onClick={() => setAccessOpen((s) => !s)}
-              title={hasRestrictions ? `Visibilité : ${worstLevel?.label}` : "Définir la visibilité par rôle"}
-              className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${
-                hasRestrictions
-                  ? worstLevel?.color
-                  : "text-zinc-300 dark:text-zinc-600 hover:text-zinc-500"
-              }`}
+              title={hasRestrictions ? `Visibility: ${worstLevel?.label}` : "Set visibility by role"}
+              className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${worstLevel?.color || "text-emerald-500"}`}
             >
               <Key size={11} />
             </button>
           </>
         )}
 
-        {/* Lock icon (filtre imposé) ou bouton supprimer (filtre personnel) */}
+        {/* Lock icon (enforced filter) or delete button (personal filter) */}
         {filter.locked ? (
           <>
             <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
@@ -1595,7 +1586,7 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, devFilterRules,
             <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
             <button
               onClick={onRemove}
-              aria-label="Supprimer ce filtre avancé"
+              aria-label="Remove this advanced filter"
               className="px-1.5 py-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-colors dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
             >
               <X size={11} />
@@ -1624,7 +1615,7 @@ function AdvancedFilterChip({ filter, columns, onEdit, onRemove, devFilterRules,
 /* ═══════════════════════════════════════════════════════
    FILTER DROPDOWN — column picker + cascading sub-dropdowns
    Click-only. Multi-select for values (filter created on close).
-   "Filtre avancé" option at top.
+   "Advanced filter" option at top.
    ═══════════════════════════════════════════════════════ */
 function FilterDropdown({
   isOpen,
@@ -1635,6 +1626,7 @@ function FilterDropdown({
   onAddSimple,
   onUpdate,
   onAdvancedClick,
+  onHideColumn,
   onClose,
 }) {
   const [search, setSearch] = useState("");
@@ -1764,7 +1756,7 @@ function FilterDropdown({
                 filterColListRef.current?.querySelector("button")?.focus();
               }
             }}
-            placeholder="Colonne…"
+            placeholder="Column…"
             className="flex-1 bg-transparent text-sm outline-none placeholder-zinc-300 text-zinc-700 dark:text-zinc-200 dark:placeholder-zinc-600"
             autoFocus
           />
@@ -1778,13 +1770,13 @@ function FilterDropdown({
           )}
         </div>
 
-        {/* Filtre avancé */}
+        {/* Advanced filter */}
         <div className="p-1.5 border-b border-zinc-100 dark:border-zinc-800">
           <button
             onClick={onAdvancedClick}
             className="w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-sm text-zinc-600 hover:bg-zinc-50 transition-colors dark:text-zinc-400 dark:hover:bg-zinc-800"
           >
-            <span className="font-medium">Filtre avancé</span>
+            <span className="font-medium">Advanced filter</span>
             <ChevronRight size={12} className="ml-auto text-zinc-300" />
           </button>
         </div>
@@ -1842,15 +1834,15 @@ function FilterDropdown({
           })}
           {filtered.length === 0 && (
             <p className="text-center text-sm text-zinc-400 py-4">
-              Aucune colonne trouvée
+              No column found
             </p>
           )}
         </div>
         {/* Keyboard hint */}
         <div className="px-3 py-1.5 border-t border-zinc-100 dark:border-zinc-800 flex gap-3">
-          <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↑↓</kbd> Naviguer</span>
-          <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↵</kbd> Sélectionner</span>
-          <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">Échap</kbd> Fermer</span>
+          <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↑↓</kbd> Navigate</span>
+          <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">↵</kbd> Select</span>
+          <span className="text-[10px] text-zinc-300 dark:text-zinc-600"><kbd className="font-sans">Esc</kbd> Close</span>
         </div>
       </div>
 
@@ -1862,7 +1854,7 @@ function FilterDropdown({
         >
           <div className="px-2.5 pt-2 pb-1">
             <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
-              Opérateur
+              Operator
             </p>
           </div>
           <OperatorList
@@ -1881,7 +1873,7 @@ function FilterDropdown({
         >
           <div className="px-2.5 pt-2 pb-1">
             <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
-              Valeur
+              Value
             </p>
           </div>
           <ValueOptions
@@ -1919,7 +1911,7 @@ function ColumnPicker({
         columns={columns}
         usedColumnIds={usedColumnIds}
         onSelect={onSelect}
-        placeholder="Colonne…"
+        placeholder="Column…"
       />
     </FixedPopover>
   );
@@ -1934,7 +1926,7 @@ function FilterChip({ filter, columns, onUpdate, onRemove, canEditAccess, devFil
   const [accessOpen, setAccessOpen] = useState(false);
   const accessBtnRef = useRef(null);
 
-  // Indicateur de restriction (même logique que AdvancedFilterChip)
+  // Restriction indicator (same logic as AdvancedFilterChip)
   const filterDevRules   = devFilterRules?.get(filter.id) || {};
   const filterOwnerRules = ownerFilterRules?.get(filter.id) || {};
   const allRuleValues    = editorRole === "dev" ? Object.values(filterDevRules) : Object.values(filterOwnerRules);
@@ -1956,26 +1948,26 @@ function FilterChip({ filter, columns, onUpdate, onRemove, canEditAccess, devFil
   const isLocked = filter.locked;
 
   if (isLocked) {
-    // Chip "accès restreint" : cadenas + bouton demander l'accès
+    // "Restricted access" chip: lock + request access button
     if (lockedDisplay === "ask") {
       return (
         <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
           <div className="flex items-center gap-1.5 px-2 py-1 text-zinc-400 dark:text-zinc-500 select-none">
             <Lock size={12} />
-            <span className="text-xs">Filtre restreint sur {column.name}</span>
+            <span className="text-xs">Restricted filter on {column.name}</span>
           </div>
           <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
           <button className="px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors">
-            Demander l'accès
+            Request access
           </button>
         </div>
       );
     }
-    // Chip "visible non modifiable" : chip complet avec cadenas gris
+    // "Visible non-editable" chip: full chip with grey lock
     return (
       <div
         className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
-        title="Filtre imposé — non modifiable"
+        title="Enforced filter — not editable"
       >
         <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 text-zinc-500 select-none dark:bg-zinc-800/50 dark:text-zinc-200">
           {Icon && <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />}
@@ -2002,101 +1994,103 @@ function FilterChip({ filter, columns, onUpdate, onRemove, canEditAccess, devFil
   }
 
   return (
-    <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in will-change-transform">
-      <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 text-zinc-500 select-none dark:bg-zinc-800/50 dark:text-zinc-200">
-        {Icon && (
-          <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />
+    <>
+      <div className="inline-flex items-center rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-sm hover:shadow transition-shadow dark:border-zinc-700 dark:bg-zinc-900 animate-chip-in will-change-transform">
+        <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-50 text-zinc-500 select-none dark:bg-zinc-800/50 dark:text-zinc-200">
+          {Icon && (
+            <Icon size={12} className="text-zinc-400 dark:text-zinc-500" />
+          )}
+          <span className="text-xs font-medium">{column.name}</span>
+        </div>
+
+        <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+
+        <button
+          ref={operatorPop.triggerRef}
+          onClick={operatorPop.toggle}
+          aria-expanded={operatorPop.isOpen}
+          aria-haspopup="listbox"
+          aria-label={`Operator: ${currentOp?.label || "choose"}`}
+          className="flex items-center gap-0.5 px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-50 transition-colors cursor-pointer dark:text-zinc-500 dark:hover:bg-zinc-800"
+        >
+          {currentOp?.label || "…"}
+          <ChevronDown size={10} className="text-zinc-300 dark:text-zinc-600" />
+        </button>
+
+        <FixedPopover
+          isOpen={operatorPop.isOpen}
+          coords={operatorPop.coords}
+          popoverRef={operatorPop.popoverRef}
+          minWidth={180}
+        >
+          <OperatorList
+            operators={operators}
+            currentOpId={filter.operator}
+            onSelect={(op) => {
+              onUpdate({
+                ...filter,
+                operator: op.id,
+                value: op.noValue ? null : filter.value,
+              });
+              operatorPop.close();
+            }}
+          />
+        </FixedPopover>
+
+        {!currentOp?.noValue && (
+          <>
+            <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+            <button
+              ref={valuePop.triggerRef}
+              onClick={valuePop.toggle}
+              aria-expanded={valuePop.isOpen}
+              aria-haspopup="listbox"
+              aria-label="Filter value"
+              className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              <ValueDisplay columnId={filter.columnId} value={filter.value} />
+              <ChevronDown size={10} className="text-zinc-400" />
+            </button>
+
+            <FixedPopover
+              isOpen={valuePop.isOpen}
+              coords={valuePop.coords}
+              popoverRef={valuePop.popoverRef}
+              minWidth={200}
+            >
+              <ValueOptions
+                columnId={filter.columnId}
+                value={filter.value}
+                onChange={(newVal) => onUpdate({ ...filter, value: newVal })}
+              />
+            </FixedPopover>
+          </>
         )}
-        <span className="text-xs font-medium">{column.name}</span>
+
+        {onSetFilterRule && (
+          <>
+            <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+            <button
+              ref={accessBtnRef}
+              onClick={() => setAccessOpen((s) => !s)}
+              title={`Visibility: ${worstLevel?.label || "Visible"}`}
+              className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${worstLevel?.color || "text-emerald-500"}`}
+            >
+              <Key size={11} />
+            </button>
+          </>
+        )}
+        <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
+        <button
+          onClick={onRemove}
+          aria-label="Remove this filter"
+          className="px-1.5 py-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-colors dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+        >
+          <X size={12} />
+        </button>
       </div>
 
-      <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-
-      <button
-        ref={operatorPop.triggerRef}
-        onClick={operatorPop.toggle}
-        aria-expanded={operatorPop.isOpen}
-        aria-haspopup="listbox"
-        aria-label={`Opérateur: ${currentOp?.label || "choisir"}`}
-        className="flex items-center gap-0.5 px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-50 transition-colors cursor-pointer dark:text-zinc-500 dark:hover:bg-zinc-800"
-      >
-        {currentOp?.label || "…"}
-        <ChevronDown size={10} className="text-zinc-300 dark:text-zinc-600" />
-      </button>
-
-      <FixedPopover
-        isOpen={operatorPop.isOpen}
-        coords={operatorPop.coords}
-        popoverRef={operatorPop.popoverRef}
-        minWidth={180}
-      >
-        <OperatorList
-          operators={operators}
-          currentOpId={filter.operator}
-          onSelect={(op) => {
-            onUpdate({
-              ...filter,
-              operator: op.id,
-              value: op.noValue ? null : filter.value,
-            });
-            operatorPop.close();
-          }}
-        />
-      </FixedPopover>
-
-      {!currentOp?.noValue && (
-        <>
-          <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-          <button
-            ref={valuePop.triggerRef}
-            onClick={valuePop.toggle}
-            aria-expanded={valuePop.isOpen}
-            aria-haspopup="listbox"
-            aria-label="Valeur du filtre"
-            className="flex items-center gap-1 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer dark:text-zinc-200 dark:hover:bg-zinc-800"
-          >
-            <ValueDisplay columnId={filter.columnId} value={filter.value} />
-            <ChevronDown size={10} className="text-zinc-400" />
-          </button>
-
-          <FixedPopover
-            isOpen={valuePop.isOpen}
-            coords={valuePop.coords}
-            popoverRef={valuePop.popoverRef}
-            minWidth={200}
-          >
-            <ValueOptions
-              columnId={filter.columnId}
-              value={filter.value}
-              onChange={(newVal) => onUpdate({ ...filter, value: newVal })}
-            />
-          </FixedPopover>
-        </>
-      )}
-
-      {onSetFilterRule && (
-        <>
-          <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-          <button
-            ref={accessBtnRef}
-            onClick={() => setAccessOpen((s) => !s)}
-            title={hasRestrictions ? `Visibilité : ${worstLevel?.label}` : "Définir la visibilité par rôle"}
-            className={`px-1.5 py-1 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${hasRestrictions ? worstLevel?.color : "text-zinc-300 dark:text-zinc-600 hover:text-zinc-500"}`}
-          >
-            <Key size={11} />
-          </button>
-        </>
-      )}
-      <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
-      <button
-        onClick={onRemove}
-        aria-label="Supprimer ce filtre"
-        className="px-1.5 py-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-colors dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-      >
-        <X size={12} />
-      </button>
-
-      {accessOpen && canEditAccess && (
+      {accessOpen && onSetFilterRule && (
         <AccessRulePopover
           itemId={filter.id}
           type="filter"
@@ -2108,7 +2102,7 @@ function FilterChip({ filter, columns, onUpdate, onRemove, canEditAccess, devFil
           onClose={() => setAccessOpen(false)}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -2210,14 +2204,14 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
     ascLabel = "0 → 9";
     descLabel = "9 → 0";
   } else if (isDate) {
-    ascLabel = "Ancien → Récent";
-    descLabel = "Récent → Ancien";
+    ascLabel = "Oldest → Newest";
+    descLabel = "Newest → Oldest";
   } else if (isCheckbox) {
-    ascLabel = "Non coché → Coché";
-    descLabel = "Coché → Non coché";
+    ascLabel = "Unchecked → Checked";
+    descLabel = "Checked → Unchecked";
   } else if (isEmoji) {
-    ascLabel = "Croissant";
-    descLabel = "Décroissant";
+    ascLabel = "Ascending";
+    descLabel = "Descending";
   } else {
     ascLabel = "A → Z";
     descLabel = "Z → A";
@@ -2252,10 +2246,10 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
             onClick={emailModePop.toggle}
             aria-expanded={emailModePop.isOpen}
             aria-haspopup="listbox"
-            aria-label="Mode de tri Email"
+            aria-label="Email sort mode"
             className="flex items-center gap-0.5 px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-50 transition-colors dark:text-zinc-400 dark:hover:bg-zinc-800"
           >
-            {sort.sortBy === "domain" ? "Domaine" : "Adresse"}
+            {sort.sortBy === "domain" ? "Domain" : "Address"}
             <ChevronDown size={10} className="text-zinc-400" />
           </button>
           <FixedPopover
@@ -2266,8 +2260,8 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
           >
             <div className="p-1">
               {[
-                { id: "address", label: "Adresse complète" },
-                { id: "domain", label: "Domaine" },
+                { id: "address", label: "Full address" },
+                { id: "domain", label: "Domain" },
               ].map((opt) => (
                 <button
                   key={opt.id}
@@ -2301,10 +2295,10 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
             onClick={fileModePop.toggle}
             aria-expanded={fileModePop.isOpen}
             aria-haspopup="listbox"
-            aria-label="Mode de tri Fichier"
+            aria-label="File sort mode"
             className="flex items-center gap-0.5 px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-50 transition-colors dark:text-zinc-400 dark:hover:bg-zinc-800"
           >
-            {sort.sortBy === "file_type" ? "Type" : "Nom"}
+            {sort.sortBy === "file_type" ? "Type" : "Name"}
             <ChevronDown size={10} className="text-zinc-400" />
           </button>
           <FixedPopover
@@ -2315,8 +2309,8 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
           >
             <div className="p-1">
               {[
-                { id: "file_name", label: "Nom du fichier" },
-                { id: "file_type", label: "Type de fichier" },
+                { id: "file_name", label: "File name" },
+                { id: "file_type", label: "File type" },
               ].map((opt) => (
                 <button
                   key={opt.id}
@@ -2350,10 +2344,10 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
             onClick={phoneModePop.toggle}
             aria-expanded={phoneModePop.isOpen}
             aria-haspopup="listbox"
-            aria-label="Mode de tri Téléphone"
+            aria-label="Phone sort mode"
             className="flex items-center gap-0.5 px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-50 transition-colors dark:text-zinc-400 dark:hover:bg-zinc-800"
           >
-            {sort.sortBy === "after_prefix" ? "Après préfixe" : "Préfixe"}
+            {sort.sortBy === "after_prefix" ? "After prefix" : "Prefix"}
             <ChevronDown size={10} className="text-zinc-400" />
           </button>
           <FixedPopover
@@ -2364,8 +2358,8 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
           >
             <div className="p-1">
               {[
-                { id: "prefix", label: "Préfixe" },
-                { id: "after_prefix", label: "Après le préfixe" },
+                { id: "prefix", label: "Prefix" },
+                { id: "after_prefix", label: "After prefix" },
               ].map((opt) => (
                 <button
                   key={opt.id}
@@ -2399,15 +2393,15 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
             onClick={locationModePop.toggle}
             aria-expanded={locationModePop.isOpen}
             aria-haspopup="listbox"
-            aria-label="Mode de tri Lieu"
+            aria-label="Location sort mode"
             className="flex items-center gap-0.5 px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-50 transition-colors dark:text-zinc-400 dark:hover:bg-zinc-800"
           >
             {{
-              address: "Adresse",
-              street: "Rue",
-              city: "Ville",
-              country: "Pays",
-            }[sort.sortBy] ?? "Adresse"}
+              address: "Address",
+              street: "Street",
+              city: "City",
+              country: "Country",
+            }[sort.sortBy] ?? "Address"}
             <ChevronDown size={10} className="text-zinc-400" />
           </button>
           <FixedPopover
@@ -2418,10 +2412,10 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
           >
             <div className="p-1">
               {[
-                { id: "address", label: "Adresse complète" },
-                { id: "street", label: "Rue" },
-                { id: "city", label: "Ville" },
-                { id: "country", label: "Pays" },
+                { id: "address", label: "Full address" },
+                { id: "street", label: "Street" },
+                { id: "city", label: "City" },
+                { id: "country", label: "Country" },
               ].map((opt) => (
                 <button
                   key={opt.id}
@@ -2455,7 +2449,7 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
             direction: sort.direction === "asc" ? "desc" : "asc",
           })
         }
-        aria-label={sort.direction === "asc" ? `Tri croissant — basculer en décroissant` : `Tri décroissant — basculer en croissant`}
+        aria-label={sort.direction === "asc" ? `Ascending sort — switch to descending` : `Descending sort — switch to ascending`}
         className="flex items-center gap-0.5 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50 transition-colors dark:text-zinc-300 dark:hover:bg-zinc-800"
       >
         {sort.direction === "asc" ? (
@@ -2475,7 +2469,7 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
             onClick={orderPop.toggle}
             aria-expanded={orderPop.isOpen}
             aria-haspopup="dialog"
-            aria-label="Modifier l'ordre de tri"
+            aria-label="Edit sort order"
             className="flex items-center gap-0.5 px-1.5 py-1 text-xs text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-colors dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
           >
             <ListOrdered size={12} />
@@ -2488,7 +2482,7 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
           >
             <div className="px-2.5 pt-2 pb-1">
               <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
-                Ordre de tri
+                Sort order
               </p>
             </div>
             <DndContext
@@ -2511,10 +2505,10 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
               accessibility={{
                 screenReaderInstructions: DND_SCREEN_READER_INSTRUCTIONS,
                 announcements: {
-                  onDragStart: ({ active }) => `Déplacement de "${active.id}" commencé. Utilisez les flèches pour déplacer, Espace pour déposer.`,
-                  onDragOver: ({ active, over }) => over && over.id !== active.id ? `"${active.id}" au-dessus de "${over.id}".` : undefined,
-                  onDragEnd: ({ active, over }) => over ? `"${active.id}" déposé à la position de "${over.id}".` : `Déplacement de "${active.id}" annulé.`,
-                  onDragCancel: ({ active }) => `Déplacement de "${active.id}" annulé.`,
+                  onDragStart: ({ active }) => `Moving "${active.id}" started. Use arrow keys to move, Space to drop.`,
+                  onDragOver: ({ active, over }) => over && over.id !== active.id ? `"${active.id}" over "${over.id}".` : undefined,
+                  onDragEnd: ({ active, over }) => over ? `"${active.id}" dropped at the position of "${over.id}".` : `Moving "${active.id}" cancelled.`,
+                  onDragCancel: ({ active }) => `Moving "${active.id}" cancelled.`,
                 },
               }}
             >
@@ -2549,7 +2543,7 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
       <div className="w-px self-stretch bg-zinc-200 dark:bg-zinc-700" />
       <button
         onClick={onRemove}
-        aria-label="Supprimer ce tri"
+        aria-label="Remove this sort"
         className="px-1.5 py-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-colors dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
       >
         <X size={12} />
@@ -2560,9 +2554,9 @@ function SortChip({ sort, columns, onUpdate, onRemove }) {
 
 /* ═══════════════════════════════════════════════════════
    ACCESS RULE POPOVER  (style Notion / Linear)
-   Permet de définir le niveau d'accès par rôle cible.
+   Allows setting the access level per target role.
    type = "col" | "filter"
-   editorRole = "dev" (peut régler owner + user) | "owner" (peut régler user seulement)
+   editorRole = "dev" (can set owner + user) | "owner" (can set user only)
    ═══════════════════════════════════════════════════════ */
 function AccessRulePopover({ itemId, type = "col", devRules, ownerRules, editorRole = "dev", onSetRule, anchorRef, onClose }) {
   const popRef = useRef(null);
@@ -2579,12 +2573,12 @@ function AccessRulePopover({ itemId, type = "col", devRules, ownerRules, editorR
     setCoords({ top: r.bottom + 6, left: Math.max(8, left) });
   }, [anchorRef]);
 
-  // Valeur courante : on utilise le premier rôle cible comme référence (owner si dev, user si owner)
+  // Current value: we use the first target role as reference (owner if dev, user if owner)
   const currentRule = editorRole === "dev"
     ? (devRules?.get(itemId)?.owner ?? defaultVal)
     : (ownerRules?.get(itemId)?.user ?? defaultVal);
 
-  // Appliquer à tous les rôles cibles de l'éditeur (toggle : recliquer enlève la restriction)
+  // Apply to all target roles of the editor (toggle: clicking again removes the restriction)
   const applyRule = (levelId) => {
     const next = levelId === currentRule ? (type === "col" ? "full" : "visible") : levelId;
     if (editorRole === "dev") {
@@ -2595,7 +2589,7 @@ function AccessRulePopover({ itemId, type = "col", devRules, ownerRules, editorR
     }
   };
 
-  const header = type === "col" ? "Restrictions d'accès" : "Visibilité du filtre";
+  const header = type === "col" ? "Access restrictions" : "Filter visibility";
 
   return (
     <>
@@ -2615,7 +2609,7 @@ function AccessRulePopover({ itemId, type = "col", devRules, ownerRules, editorR
           </p>
         </div>
 
-        {/* Sélecteur unifié "pour les autres" */}
+        {/* Unified selector "for others" */}
         <div className="px-3 py-2.5">
           <div className="flex gap-1">
             {levels.map((level) => {
@@ -2638,7 +2632,7 @@ function AccessRulePopover({ itemId, type = "col", devRules, ownerRules, editorR
             })}
           </div>
           <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1.5 leading-tight">
-            {levels.find((l) => l.id === currentRule)?.desc ?? (type === "col" ? "Accès par défaut — visible et éditable" : "Filtre visible par défaut")}
+            {levels.find((l) => l.id === currentRule)?.desc ?? (type === "col" ? "Default access — visible and editable" : "Filter visible by default")}
           </p>
         </div>
       </div>
@@ -2669,7 +2663,7 @@ function ColVisItem({
   const isHidden = hiddenColumns.has(col.id);
   const isLocked = lockedHiddenColumns.has(col.id);
 
-  // Pire niveau d'accès défini pour cette colonne (indicateur sur le bouton Key)
+  // Worst access level defined for this column (indicator on the Key button)
   const colDevRulesForItem = devColRules?.get(col.id) || {};
   const colOwnerRulesForItem = ownerColRules?.get(col.id) || {};
   const allRuleValues = editorRole === "dev"
@@ -2682,14 +2676,14 @@ function ColVisItem({
   const hasRestrictions = worstAccess !== "full";
   const worstLevel = COL_ACCESS_LEVELS.find((l) => l.id === worstAccess);
 
-  // Accès effectif pour le rôle en cours de prévisualisation
+  // Effective access for the role being previewed
   const effectiveAccess = previewRole === "dev" ? "full"
     : previewRole === "owner" ? (devColRules?.get(col.id)?.owner ?? "full")
     : mostRestrictiveCol(devColRules?.get(col.id)?.user ?? "full", ownerColRules?.get(col.id)?.user ?? "full");
   const isUserView = previewRole === "user";
-  // Peut configurer les restrictions : accès "full" soi-même ET on est sur vue par défaut ou vue pour tous
+  // Can configure restrictions: "full" access for self AND on default view or shared view
   const canConfigureAccess = !isUserView && effectiveAccess === "full" && isForAllView;
-  // Doit voir "Demander l'accès" : tout rôle non-dev avec accès "ask"
+  // Must see "Request access": any non-dev role with "ask" access
   const showRequestAccess = previewRole !== "dev" && effectiveAccess === "ask";
 
   if (isLocked) {
@@ -2698,7 +2692,7 @@ function ColVisItem({
         ref={setNodeRef}
         style={{ transform: CSS.Transform.toString(transform), transition }}
         {...attributes}
-        title="Colonne masquée par l'administrateur"
+        title="Column hidden by administrator"
         className="w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-zinc-400 dark:text-zinc-600 cursor-default"
       >
         <span className="flex-shrink-0 w-0.5 h-3.5" />
@@ -2752,33 +2746,33 @@ function ColVisItem({
           {...attributes}
           {...listeners}
           onClick={(e) => e.stopPropagation()}
-          aria-label={`Déplacer la colonne ${col.name}`}
+          aria-label={`Move column ${col.name}`}
           className="flex-shrink-0 w-0.5 h-3.5 rounded-full bg-zinc-300 dark:bg-zinc-600 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity duration-150"
         />
         {CIcon && <CIcon size={13} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />}
         <span className={`flex-1 text-left ${isHidden ? "opacity-40" : ""}`}>{col.name}</span>
 
-        {/* Œil : visibilité personnelle (Dev) */}
+        {/* Eye: personal visibility (Dev) */}
         {isHidden
           ? <EyeOff size={12} className="text-zinc-300 dark:text-zinc-600 flex-shrink-0" />
           : <Eye size={12} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
         }
 
-        {/* Owner/User : "Demander l'accès" si accès ask */}
+        {/* Owner/User: "Request access" if ask access */}
         {showRequestAccess && (
           <button
             onClick={(e) => e.stopPropagation()}
             className="text-[10px] text-amber-600 dark:text-amber-400 underline hover:no-underline flex-shrink-0 transition-colors"
           >
-            Demander l'accès
+            Request access
           </button>
         )}
-        {/* Dev / Owner avec accès full : bouton Key pour configurer les restrictions */}
+        {/* Dev / Owner with full access: Key button to configure restrictions */}
         {canConfigureAccess && (
           <button
             ref={accessBtnRef}
             onClick={(e) => { e.stopPropagation(); setPickerOpen((s) => !s); }}
-            title={hasRestrictions ? `Accès restreint : ${worstLevel?.label}` : "Définir les restrictions d'accès"}
+            title={hasRestrictions ? `Restricted access: ${worstLevel?.label}` : "Set access restrictions"}
             className={`flex items-center justify-center w-5 h-5 rounded transition-all flex-shrink-0 ${
               hasRestrictions
                 ? `${worstLevel?.color}`
@@ -2876,7 +2870,7 @@ function ColumnVisibilityDropdown({
   const [colSearch, setColSearch] = useState("");
   const colSearchRef = useRef(null);
   const colListRef = useRef(null);
-  // columns est déjà filtré (sans les colonnes "none") par le parent
+  // columns is already filtered (without "none" columns) by the parent
   const filteredColumns = colSearch.trim()
     ? columns.filter((c) =>
         c.name.toLowerCase().includes(colSearch.toLowerCase()),
@@ -2902,7 +2896,7 @@ function ColumnVisibilityDropdown({
     >
       <div className="px-2.5 pt-2 pb-1 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
         <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
-          Colonnes
+          Columns
         </p>
         <button
           onClick={() =>
@@ -2910,7 +2904,7 @@ function ColumnVisibilityDropdown({
           }
           className="text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
         >
-          {noneHidden ? "Tout masquer" : "Tout afficher"}
+          {noneHidden ? "Hide all" : "Show all"}
         </button>
       </div>
       <div className="flex items-center px-3 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
@@ -2925,14 +2919,14 @@ function ColumnVisibilityDropdown({
               colListRef.current?.querySelector("[data-colvis-row]")?.focus();
             }
           }}
-          placeholder="Colonnes…"
+          placeholder="Columns…"
           autoFocus
           className="flex-1 bg-transparent text-sm outline-none text-zinc-700 placeholder-zinc-300 dark:text-zinc-200 dark:placeholder-zinc-600"
         />
         {colSearch && (
           <button
             onClick={() => setColSearch("")}
-            aria-label="Effacer la recherche"
+            aria-label="Clear search"
             className="text-zinc-300 hover:text-zinc-500 dark:text-zinc-600 dark:hover:text-zinc-400"
           >
             <X size={10} />
@@ -2953,24 +2947,24 @@ function ColumnVisibilityDropdown({
           announcements: {
             onDragStart: ({ active }) => {
               const col = columns.find((c) => c.id === active.id);
-              return `Déplacement de la colonne "${col?.name ?? active.id}" commencé. Utilisez les flèches pour déplacer, Espace pour déposer.`;
+              return `Moving column "${col?.name ?? active.id}" started. Use arrow keys to move, Space to drop.`;
             },
             onDragOver: ({ active, over }) => {
               if (!over || over.id === active.id) return undefined;
               const col = columns.find((c) => c.id === over.id);
-              return `Au-dessus de "${col?.name ?? over.id}".`;
+              return `Over "${col?.name ?? over.id}".`;
             },
             onDragEnd: ({ active, over }) => {
               const name = columns.find((c) => c.id === active.id)?.name ?? active.id;
               if (over) {
                 const overName = columns.find((c) => c.id === over.id)?.name ?? over.id;
-                return `"${name}" déplacée à la position de "${overName}".`;
+                return `"${name}" moved to the position of "${overName}".`;
               }
-              return `Déplacement de "${name}" annulé.`;
+              return `Moving "${name}" cancelled.`;
             },
             onDragCancel: ({ active }) => {
               const name = columns.find((c) => c.id === active.id)?.name ?? active.id;
-              return `Déplacement de "${name}" annulé.`;
+              return `Moving "${name}" cancelled.`;
             },
           },
         }}
@@ -3031,7 +3025,7 @@ function ColHeader({ col, sorts, filters, onSortToggle, index }) {
       {...attributes}
       {...listeners}
       onClick={() => !isDragging && onSortToggle(col.id)}
-      aria-label={`Colonne ${col.name}${sort ? `, tri ${sort.direction === "asc" ? "croissant" : "décroissant"}` : ""}`}
+      aria-label={`Column ${col.name}${sort ? `, sort ${sort.direction === "asc" ? "ascending" : "descending"}` : ""}`}
       className={`group flex items-center gap-1.5 pl-1.5 pr-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 flex-shrink-0 border-r border-zinc-100 dark:border-zinc-800 transition-all duration-200
         ${index === 0 ? "w-48" : "w-36"}
         ${sort ? "bg-zinc-50/60 dark:bg-zinc-800/40" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"}
@@ -3143,24 +3137,24 @@ function TableHeader({
         announcements: {
           onDragStart: ({ active }) => {
             const col = visibleColumns.find((c) => c.id === active.id);
-            return `Déplacement de la colonne "${col?.name ?? active.id}" commencé. Utilisez les flèches pour déplacer, Espace pour déposer.`;
+            return `Moving column "${col?.name ?? active.id}" started. Use arrow keys to move, Space to drop.`;
           },
           onDragOver: ({ active, over }) => {
             if (!over || over.id === active.id) return undefined;
             const col = visibleColumns.find((c) => c.id === over.id);
-            return `Au-dessus de "${col?.name ?? over.id}".`;
+            return `Over "${col?.name ?? over.id}".`;
           },
           onDragEnd: ({ active, over }) => {
             const name = visibleColumns.find((c) => c.id === active.id)?.name ?? active.id;
             if (over) {
               const overName = visibleColumns.find((c) => c.id === over.id)?.name ?? over.id;
-              return `"${name}" déplacée à la position de "${overName}".`;
+              return `"${name}" moved to the position of "${overName}".`;
             }
-            return `Déplacement de "${name}" annulé.`;
+            return `Moving "${name}" cancelled.`;
           },
           onDragCancel: ({ active }) => {
             const name = visibleColumns.find((c) => c.id === active.id)?.name ?? active.id;
-            return `Déplacement de "${name}" annulé.`;
+            return `Moving "${name}" cancelled.`;
           },
         },
       }}
@@ -3193,30 +3187,9 @@ function TableHeader({
 }
 
 /* ═══════════════════════════════════════════════════════
-   TABLE BODY  (données fictives)
+   TABLE BODY
    ═══════════════════════════════════════════════════════ */
-const MOCK_ROWS = [
-  { col_name: "Refonte page d'accueil", col_price: 4500, col_date: "2025-06-15", col_done: true, col_status: "Terminé", col_priority: "Haute", col_tags: ["Design", "Frontend"], col_email: "lea@studio.fr", col_phone: "+33 6 12 34 56 78", col_url: "https://figma.com/file/abc", col_location: "Paris", col_relation: "Site vitrine", col_formula: 5400, col_user: "Léa M.", col_file: "maquette-v3.fig", col_emoji: "🎨", col_rollup: 12000, col_created: "2025-03-10", col_id: "REF-001" },
-  { col_name: "API paiement Stripe", col_price: 8200, col_date: "2025-07-01", col_done: false, col_status: "En cours", col_priority: "Urgent", col_tags: ["Backend", "Paiement"], col_email: "marc@dev.io", col_phone: "+33 7 98 76 54 32", col_url: "https://stripe.com/docs", col_location: "Lyon", col_relation: "E-commerce", col_formula: 9840, col_user: "Marc D.", col_file: "spec-api.pdf", col_emoji: "💳", col_rollup: 25000, col_created: "2025-04-02", col_id: "REF-002" },
-  { col_name: "Migration base de données", col_price: 3200, col_date: "2025-05-20", col_done: true, col_status: "Terminé", col_priority: "Normale", col_tags: ["Infra", "Backend"], col_email: "sophie@ops.dev", col_phone: "+33 6 55 44 33 22", col_url: "https://postgresql.org", col_location: "Remote", col_relation: "Infrastructure", col_formula: 3840, col_user: "Sophie R.", col_file: "migration-plan.sql", col_emoji: "🗄️", col_rollup: 8500, col_created: "2025-02-18", col_id: "REF-003" },
-  { col_name: "Tests E2E Cypress", col_price: 2800, col_date: "2025-08-10", col_done: false, col_status: "À faire", col_priority: "Basse", col_tags: ["QA", "Tests"], col_email: "julien@test.co", col_phone: "+33 6 11 22 33 44", col_url: "https://cypress.io", col_location: "Bordeaux", col_relation: "E-commerce", col_formula: 3360, col_user: "Julien P.", col_file: "test-plan.md", col_emoji: "🧪", col_rollup: 6000, col_created: "2025-05-01", col_id: "REF-004" },
-  { col_name: "Design system composants", col_price: 6100, col_date: "2025-06-30", col_done: false, col_status: "En cours", col_priority: "Haute", col_tags: ["Design", "UI"], col_email: "nina@ux.studio", col_phone: "+33 7 66 55 44 33", col_url: "https://storybook.js.org", col_location: "Paris", col_relation: "Design System", col_formula: 7320, col_user: "Nina K.", col_file: "tokens.json", col_emoji: "🧩", col_rollup: 18000, col_created: "2025-03-25", col_id: "REF-005" },
-  { col_name: "Audit accessibilité RGAA", col_price: 3900, col_date: "2025-09-15", col_done: false, col_status: "À faire", col_priority: "Normale", col_tags: ["A11y", "Audit"], col_email: "paul@a11y.fr", col_phone: "+33 6 77 88 99 00", col_url: "https://accessibilite.numerique.gouv.fr", col_location: "Nantes", col_relation: "Site vitrine", col_formula: 4680, col_user: "Paul V.", col_file: "rapport-rgaa.pdf", col_emoji: "♿", col_rollup: 9200, col_created: "2025-04-15", col_id: "REF-006" },
-  { col_name: "Optimisation SEO technique", col_price: 2100, col_date: "2025-07-20", col_done: false, col_status: "En cours", col_priority: "Normale", col_tags: ["SEO", "Frontend"], col_email: "emma@growth.io", col_phone: "+33 6 22 33 44 55", col_url: "https://search.google.com/console", col_location: "Remote", col_relation: "Site vitrine", col_formula: 2520, col_user: "Emma L.", col_file: "seo-audit.xlsx", col_emoji: "🔍", col_rollup: 5500, col_created: "2025-05-12", col_id: "REF-007" },
-  { col_name: "Newsletter automatisée", col_price: 1800, col_date: "2025-08-01", col_done: false, col_status: "À faire", col_priority: "Basse", col_tags: ["Marketing", "Email"], col_email: "clara@mail.dev", col_phone: "+33 7 11 22 33 44", col_url: "https://resend.com", col_location: "Toulouse", col_relation: "Marketing", col_formula: 2160, col_user: "Clara B.", col_file: "template-nl.html", col_emoji: "📧", col_rollup: 4200, col_created: "2025-06-01", col_id: "REF-008" },
-  { col_name: "Chatbot support client", col_price: 7600, col_date: "2025-09-01", col_done: false, col_status: "En cours", col_priority: "Urgent", col_tags: ["IA", "Backend"], col_email: "ali@ai-lab.dev", col_phone: "+33 6 33 44 55 66", col_url: "https://openai.com/api", col_location: "Paris", col_relation: "E-commerce", col_formula: 9120, col_user: "Ali H.", col_file: "prompt-specs.md", col_emoji: "🤖", col_rollup: 22000, col_created: "2025-05-20", col_id: "REF-009" },
-  { col_name: "Intégration CRM Hubspot", col_price: 5400, col_date: "2025-07-15", col_done: false, col_status: "À faire", col_priority: "Haute", col_tags: ["Intégration", "CRM"], col_email: "lucie@sales.fr", col_phone: "+33 7 55 66 77 88", col_url: "https://developers.hubspot.com", col_location: "Lyon", col_relation: "Marketing", col_formula: 6480, col_user: "Lucie T.", col_file: "crm-mapping.xlsx", col_emoji: "🔗", col_rollup: 15000, col_created: "2025-04-10", col_id: "REF-010" },
-  { col_name: "App mobile React Native", col_price: 12000, col_date: "2025-10-30", col_done: false, col_status: "En cours", col_priority: "Urgent", col_tags: ["Mobile", "Frontend"], col_email: "thomas@app.dev", col_phone: "+33 6 44 55 66 77", col_url: "https://reactnative.dev", col_location: "Bordeaux", col_relation: "E-commerce", col_formula: 14400, col_user: "Thomas G.", col_file: "wireframes.fig", col_emoji: "📱", col_rollup: 35000, col_created: "2025-03-01", col_id: "REF-011" },
-  { col_name: "Monitoring Datadog", col_price: 2900, col_date: "2025-06-20", col_done: true, col_status: "Terminé", col_priority: "Normale", col_tags: ["Infra", "DevOps"], col_email: "kevin@devops.io", col_phone: "+33 6 88 99 00 11", col_url: "https://datadoghq.com", col_location: "Remote", col_relation: "Infrastructure", col_formula: 3480, col_user: "Kevin S.", col_file: "dashboards.json", col_emoji: "📊", col_rollup: 7800, col_created: "2025-02-25", col_id: "REF-012" },
-  { col_name: "SSO SAML entreprise", col_price: 4800, col_date: "2025-08-20", col_done: false, col_status: "À faire", col_priority: "Haute", col_tags: ["Sécurité", "Auth"], col_email: "ines@sec.dev", col_phone: "+33 7 22 33 44 55", col_url: "https://auth0.com", col_location: "Nantes", col_relation: "Infrastructure", col_formula: 5760, col_user: "Inès A.", col_file: "sso-flow.pdf", col_emoji: "🔐", col_rollup: 11000, col_created: "2025-05-08", col_id: "REF-013" },
-  { col_name: "Export PDF rapports", col_price: 1500, col_date: "2025-06-10", col_done: true, col_status: "Terminé", col_priority: "Basse", col_tags: ["Backend", "PDF"], col_email: "remi@tools.fr", col_phone: "+33 6 99 88 77 66", col_url: "https://pdfkit.org", col_location: "Toulouse", col_relation: "Site vitrine", col_formula: 1800, col_user: "Rémi F.", col_file: "template-rapport.html", col_emoji: "📄", col_rollup: 3500, col_created: "2025-04-20", col_id: "REF-014" },
-  { col_name: "Tableau de bord analytics", col_price: 5800, col_date: "2025-09-10", col_done: false, col_status: "En cours", col_priority: "Haute", col_tags: ["Data", "Frontend"], col_email: "chloe@data.io", col_phone: "+33 6 11 00 99 88", col_url: "https://recharts.org", col_location: "Paris", col_relation: "E-commerce", col_formula: 6960, col_user: "Chloé D.", col_file: "dashboard-specs.fig", col_emoji: "📈", col_rollup: 16500, col_created: "2025-06-05", col_id: "REF-015" },
-  { col_name: "Gestion des rôles RBAC", col_price: 3600, col_date: "2025-07-25", col_done: false, col_status: "À faire", col_priority: "Normale", col_tags: ["Sécurité", "Backend"], col_email: "omar@auth.dev", col_phone: "+33 7 44 33 22 11", col_url: "https://casl.js.org", col_location: "Lyon", col_relation: "Infrastructure", col_formula: 4320, col_user: "Omar N.", col_file: "rbac-matrix.md", col_emoji: "🛡️", col_rollup: 8800, col_created: "2025-05-15", col_id: "REF-016" },
-  { col_name: "Recherche full-text Algolia", col_price: 4200, col_date: "2025-08-15", col_done: false, col_status: "En cours", col_priority: "Normale", col_tags: ["Search", "Frontend"], col_email: "maya@search.co", col_phone: "+33 6 55 44 33 22", col_url: "https://algolia.com", col_location: "Remote", col_relation: "E-commerce", col_formula: 5040, col_user: "Maya J.", col_file: "index-config.json", col_emoji: "🔎", col_rollup: 10200, col_created: "2025-04-28", col_id: "REF-017" },
-  { col_name: "CI/CD pipeline GitHub Actions", col_price: 2200, col_date: "2025-06-05", col_done: true, col_status: "Terminé", col_priority: "Haute", col_tags: ["DevOps", "CI/CD"], col_email: "axel@ops.dev", col_phone: "+33 7 88 77 66 55", col_url: "https://github.com/features/actions", col_location: "Remote", col_relation: "Infrastructure", col_formula: 2640, col_user: "Axel R.", col_file: "workflows.yml", col_emoji: "⚙️", col_rollup: 5000, col_created: "2025-03-15", col_id: "REF-018" },
-  { col_name: "Formulaire multi-étapes", col_price: 3100, col_date: "2025-07-10", col_done: false, col_status: "En cours", col_priority: "Normale", col_tags: ["Frontend", "UX"], col_email: "sara@ux.studio", col_phone: "+33 6 77 66 55 44", col_url: "https://react-hook-form.com", col_location: "Bordeaux", col_relation: "Site vitrine", col_formula: 3720, col_user: "Sara M.", col_file: "form-flow.fig", col_emoji: "📝", col_rollup: 7200, col_created: "2025-05-25", col_id: "REF-019" },
-  { col_name: "Localisation i18n", col_price: 2600, col_date: "2025-10-01", col_done: false, col_status: "À faire", col_priority: "Basse", col_tags: ["i18n", "Frontend"], col_email: "yuki@intl.dev", col_phone: "+33 7 33 22 11 00", col_url: "https://i18next.com", col_location: "Paris", col_relation: "E-commerce", col_formula: 3120, col_user: "Yuki T.", col_file: "translations-fr.json", col_emoji: "🌍", col_rollup: 6400, col_created: "2025-06-10", col_id: "REF-020" },
-];
+const MOCK_ROWS = [];
 
 function applyFilter(row, f) {
   const val = row[f.columnId];
@@ -3267,7 +3240,7 @@ function applySorts(rows, sorts) {
         if (av !== bv) return (av - bv) * dir;
         continue;
       }
-      const cmp = String(av).localeCompare(String(bv), "fr");
+      const cmp = String(av).localeCompare(String(bv), "en");
       if (cmp !== 0) return cmp * dir;
     }
     return 0;
@@ -3351,7 +3324,7 @@ function TableBody({ columns, hiddenColumns, lockedHiddenColumns, sorts, filters
     <div className="font-sans">
       {filteredRows.length === 0 ? (
         <div className="flex items-center justify-center py-12 text-sm text-zinc-400 dark:text-zinc-500">
-          Aucun résultat ne correspond aux filtres actifs
+          No results match the active filters
         </div>
       ) : filteredRows.map((row, rowIdx) => (
         <div
@@ -3372,8 +3345,8 @@ function TableBody({ columns, hiddenColumns, lockedHiddenColumns, sorts, filters
         </div>
       ))}
       <div className="flex items-center justify-between px-3 py-2 text-[11px] text-zinc-400 dark:text-zinc-500 border-t border-zinc-200 dark:border-zinc-700">
-        <span>{filteredRows.length} résultat{filteredRows.length > 1 ? "s" : ""}{filters.length > 0 ? ` (${MOCK_ROWS.length} total)` : ""}</span>
-        <span className="tabular-nums">{sorts.length > 0 ? `Trié par ${sorts.length} colonne${sorts.length > 1 ? "s" : ""}` : ""}</span>
+        <span>{filteredRows.length} result{filteredRows.length > 1 ? "s" : ""}{filters.length > 0 ? ` (${MOCK_ROWS.length} total)` : ""}</span>
+        <span className="tabular-nums">{sorts.length > 0 ? `Sorted by ${sorts.length} column${sorts.length > 1 ? "s" : ""}` : ""}</span>
       </div>
     </div>
   );
@@ -3392,17 +3365,17 @@ function ViewSwitcher({ roleData, onSelectView, onAddView, onDeleteView, onRenam
   }, [renamingId]);
 
   const startRename = (view) => {
-    if (view.isDefault) return;
+    if (view.isDefault || view.isForAll) return;
     setRenamingId(view.id);
     setRenameVal(view.name);
   };
   const commitRename = (id) => {
-    onRenameView(id, renameVal.trim() || "Ma vue");
+    onRenameView(id, renameVal.trim() || "My view");
     setRenamingId(null);
   };
 
   const tabs = roleData.views;
-  const canDelete = (tab) => !tab.isDefault && roleData.views.filter(v => !v.isDefault).length > 0;
+  const canDelete = (tab) => !tab.isDefault && !tab.isForAll;
 
   return (
     <div className="font-sans flex items-center bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto flex-shrink-0">
@@ -3430,7 +3403,7 @@ function ViewSwitcher({ roleData, onSelectView, onAddView, onDeleteView, onRenam
               />
             ) : (
               <>
-                {tab.isShared && <Users size={10} className="flex-shrink-0 text-emerald-500" />}
+                {tab.isForAll && <Users size={10} className="flex-shrink-0 text-emerald-500" />}
                 <span>{tab.name}</span>
               </>
             )}
@@ -3442,7 +3415,7 @@ function ViewSwitcher({ roleData, onSelectView, onAddView, onDeleteView, onRenam
           </div>
         );
       })}
-      <button onClick={onAddView} title="Nouvelle vue" className="flex items-center justify-center px-2 py-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors flex-shrink-0">
+      <button onClick={onAddView} title="New view" className="flex items-center justify-center px-2 py-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors flex-shrink-0">
         <Plus size={13} />
       </button>
     </div>
@@ -3453,59 +3426,64 @@ function ViewSwitcher({ roleData, onSelectView, onAddView, onDeleteView, onRenam
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════ */
 export default function DataToolbar() {
-  // ── Vues par rôle ─────────────────────────────────────────────
-  // Chaque vue : { id, name, isDefault, isForOthers, filters, advancedFilters, hiddenColumns, columnOrder }
-  // columnOrder fait partie de la vue mais n'est PAS poussé vers les autres.
+  // ── Views per role ─────────────────────────────────────────────
+  // Each view: { id, name, isDefault?, isForAll?, filters, advancedFilters, hiddenColumns, columnOrder, colRules? (isForAll only) }
   const INIT_COL_ORDER = MOCK_COLUMNS.map(c => c.id);
   const [roleViews, setRoleViews] = useState({
     dev: {
-      views: [{
-        id: "dev_default", name: "Vue par défaut", isDefault: true, isForOthers: false,
-        filters: [],
-        advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER],
-        colRules: {},
-      }],
+      views: [
+        { id: "dev_default", name: "Default view", isDefault: true, filters: [], advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER] },
+        { id: "dev_forall", name: "View for all", isForAll: true, filters: [], advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER], colRules: {} },
+      ],
       activeViewId: "dev_default",
     },
     owner: {
-      views: [{ id: "owner_default", name: "Vue par défaut", isDefault: true, isForOthers: false, filters: [], advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER], colRules: {} }],
+      views: [
+        { id: "owner_default", name: "Default view", isDefault: true, filters: [], advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER] },
+        { id: "owner_forall", name: "View for all", isForAll: true, filters: [], advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER], colRules: {} },
+      ],
       activeViewId: "owner_default",
     },
     user: {
-      views: [{ id: "user_default", name: "Vue par défaut", isDefault: true, isForOthers: false, filters: [], advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER], colRules: {} }],
+      views: [{ id: "user_default", name: "Default view", isDefault: true, filters: [], advancedFilters: [], hiddenColumns: new Set(), columnOrder: [...INIT_COL_ORDER] }],
       activeViewId: "user_default",
     },
   });
-  // Feedback de sauvegarde
+  // Save feedback
   const [saveStatus, setSaveStatus] = useState(null); // null | "saved" | "pushed"
-  const [savePopOpen, setSavePopOpen] = useState(false);
-  const [overwriteConfirmOpen, setOverwriteConfirmOpen] = useState(false);
-  const saveBtnRef = useRef(null);
-  const savePopRef = useRef(null);
-  useEffect(() => {
-    if (!savePopOpen) return;
-    const handler = (e) => {
-      if (
-        savePopRef.current && !savePopRef.current.contains(e.target) &&
-        saveBtnRef.current && !saveBtnRef.current.contains(e.target)
-      ) setSavePopOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [savePopOpen]);
   const [sorts, setSorts] = useState([
     { id: "s1", columnId: "col_date", direction: "desc" },
-    { id: "s2", columnId: "col_priority", direction: "asc", customOrder: ["Urgent", "Haute", "Normale", "Basse"] },
+    { id: "s2", columnId: "col_priority", direction: "asc", customOrder: ["Urgent", "High", "Normal", "Low"] },
   ]);
 
   const filterDropdownPop = usePopover();
   const sortPickerPop = usePopover();
   const columnVisPop = usePopover();
 
-  // ── Helper : mise à jour de la vue active du rôle ────────────
+  // ── Dirty tracking ────────────────────────────────────────
+  const [dirtyViews, setDirtyViews] = useState(new Set());
+  const markDirty = (viewId) => {
+    setDirtyViews(prev => {
+      if (prev.has(viewId)) return prev;
+      const next = new Set(prev);
+      next.add(viewId);
+      return next;
+    });
+  };
+  const clearDirty = (viewId) => {
+    setDirtyViews(prev => {
+      if (!prev.has(viewId)) return prev;
+      const next = new Set(prev);
+      next.delete(viewId);
+      return next;
+    });
+  };
+
+  // ── Helper: update the active view of the role ────────────
   const updateActiveView = (role, updater) => {
     const activeId = roleViews[role]?.activeViewId;
     if (!activeId) return;
+    markDirty(activeId);
     setRoleViews(prev => ({
       ...prev,
       [role]: {
@@ -3517,11 +3495,11 @@ export default function DataToolbar() {
     }));
   };
 
-  // ── Rôle de prévisualisation ──────────────────────────────────
+  // ── Preview role ──────────────────────────────────
   const [previewRole, setPreviewRole] = useState("dev");
 
-  // ── Règles d'accès colonnes ───────────────────────────────────
-  // Committed : dérivées des vues partagées sauvegardées — ne s'appliquent qu'après un "Vue pour tous"
+  // ── Column access rules ───────────────────────────────────
+  // Committed: derived from saved shared views — only apply after a "View for all"
   const devColRules = useMemo(() => {
     const colRulesObjToMap = (obj) => {
       const m = new Map();
@@ -3532,21 +3510,22 @@ export default function DataToolbar() {
       }
       return m;
     };
-    const sharedView = roleViews.dev.views.find(v => v.isShared);
-    return colRulesObjToMap(sharedView?.colRules);
+    const forAllView = roleViews.dev.views.find(v => v.isForAll);
+    return colRulesObjToMap(forAllView?.colRules);
   }, [roleViews.dev]);
 
   const ownerColRules = useMemo(() => {
-    const sharedView = roleViews.owner.views.find(v => v.isShared);
+    const forAllView = roleViews.owner.views.find(v => v.isForAll);
     const m = new Map();
-    for (const [colId, level] of Object.entries(sharedView?.colRules?.user || {})) {
+    for (const [colId, level] of Object.entries(forAllView?.colRules?.user || {})) {
       m.set(colId, { user: level });
     }
     return m;
   }, [roleViews.owner]);
 
-  // setColRule : écrit dans la vue active (draft), pas dans l'état global
+  // setColRule: writes to the "View for all" tab only
   const setColRule = (colId, targetRole, level) => {
+    if (!activeView?.isForAll) return;
     updateActiveView(previewRole, v => {
       const rules = { ...(v.colRules || {}) };
       const targetRules = { ...(rules[targetRole] || {}) };
@@ -3556,13 +3535,16 @@ export default function DataToolbar() {
     });
   };
 
-  // ── Règles d'accès filtres ────────────────────────────────────
+  // ── Filter access rules ────────────────────────────────────
   // Map<filterId, { owner?: FilterAccess, user?: FilterAccess }>
   const [devFilterRules, setDevFilterRules] = useState(new Map());
   // Map<filterId, { user?: FilterAccess }>
   const [ownerFilterRules, setOwnerFilterRules] = useState(new Map());
 
   const setFilterRule = (filterId, targetRole, level) => {
+    // Mark the forAll view as dirty since filter rules belong to it
+    const forAllId = roleViews[previewRole]?.views.find(v => v.isForAll)?.id;
+    if (forAllId) markDirty(forAllId);
     if (previewRole === "dev") {
       setDevFilterRules((prev) => {
         const next = new Map(prev);
@@ -3586,11 +3568,11 @@ export default function DataToolbar() {
     }
   };
 
-  // ── Accès effectif selon le rôle de prévisualisation ─────────
+  // ── Effective access based on the preview role ─────────
   const getEffectiveColAccess = useCallback((colId) => {
     if (previewRole === "dev") return "full";
     if (previewRole === "owner") return devColRules.get(colId)?.owner ?? "full";
-    // user : plus restrictif entre Dev et Owner
+    // user: most restrictive between Dev and Owner
     const d = devColRules.get(colId)?.user ?? "full";
     const o = ownerColRules.get(colId)?.user ?? "full";
     return mostRestrictiveCol(d, o);
@@ -3598,14 +3580,14 @@ export default function DataToolbar() {
 
   const getEffectiveFilterAccess = useCallback((filterId) => {
     if (previewRole === "dev") return "visible";
-    // Par défaut "visible" : un filtre verrouillé est affiché sauf si une règle explicite dit autrement
+    // Default "visible": a locked filter is shown unless an explicit rule says otherwise
     if (previewRole === "owner") return devFilterRules.get(filterId)?.owner ?? "visible";
     const d = devFilterRules.get(filterId)?.user ?? "visible";
     const o = ownerFilterRules.get(filterId)?.user ?? "visible";
     return mostRestrictiveFilter(d, o);
   }, [previewRole, devFilterRules, ownerFilterRules]);
 
-  // ── Valeurs dérivées de la vue active ────────────────────────
+  // ── Values derived from the active view ────────────────────────
   const activeView = roleViews[previewRole]?.views.find(v => v.id === roleViews[previewRole].activeViewId)
     ?? roleViews[previewRole]?.views[0];
 
@@ -3614,7 +3596,7 @@ export default function DataToolbar() {
   const hiddenColumns   = activeView?.hiddenColumns ?? new Set();
   const columnOrder     = activeView?.columnOrder ?? MOCK_COLUMNS.map(c => c.id);
 
-  // Draft : rules de la vue active en cours d'édition (pour l'affichage du panneau colonnes)
+  // Draft: rules of the active view being edited (for the columns panel display)
   const draftColRulesMap = useMemo(() => {
     const m = new Map();
     for (const [targetRole, colMap] of Object.entries(activeView?.colRules || {})) {
@@ -3656,13 +3638,13 @@ export default function DataToolbar() {
   const [advBuilderCoords, setAdvBuilderCoords] = useState({ top: 0, left: 0 });
   const [editingAdvFilter, setEditingAdvFilter] = useState(null);
   const advBuilderRef = useRef(null);
+  const advCloseRef = useRef(null);
 
   useEffect(() => {
     if (!advBuilderOpen) return;
     const handler = (e) => {
       if (advBuilderRef.current && !advBuilderRef.current.contains(e.target)) {
-        setAdvBuilderOpen(false);
-        setEditingAdvFilter(null);
+        advCloseRef.current?.();
       }
     };
     document.addEventListener("mousedown", handler);
@@ -3681,24 +3663,46 @@ export default function DataToolbar() {
     }));
   };
 
+  // ID for the advanced filter currently being built (new or editing)
+  const [liveAdvFilterId, setLiveAdvFilterId] = useState(null);
+
   const handleAdvancedClick = () => {
     const c = filterDropdownPop.coords;
     filterDropdownPop.close();
     setEditingAdvFilter(null);
+    const newId = `af_${Date.now()}`;
+    setLiveAdvFilterId(newId);
+    // Pre-create an empty advanced filter in the view
+    updateActiveView(previewRole, (v) => ({
+      ...v,
+      advancedFilters: [...v.advancedFilters, { id: newId, logic: "and", conditions: [], locked: false }],
+    }));
     setAdvBuilderCoords(c);
     setAdvBuilderOpen(true);
   };
 
-  const handleAdvValidate = ({ logic, conditions }) => {
+  const handleAdvChange = useCallback(({ logic, conditions }) => {
+    const id = liveAdvFilterId;
+    if (!id) return;
     updateActiveView(previewRole, (v) => ({
       ...v,
-      advancedFilters: editingAdvFilter
-        ? v.advancedFilters.map((f) => f.id === editingAdvFilter.id ? { ...f, logic, conditions } : f)
-        : [...v.advancedFilters, { id: `af_${Date.now()}`, logic, conditions, locked: false }],
+      advancedFilters: v.advancedFilters.map((f) => f.id === id ? { ...f, logic, conditions } : f),
     }));
+  }, [liveAdvFilterId, previewRole]);
+
+  const handleAdvClose = () => {
+    // Remove the filter if it has no valid conditions
+    if (liveAdvFilterId) {
+      updateActiveView(previewRole, (v) => ({
+        ...v,
+        advancedFilters: v.advancedFilters.filter((f) => f.id !== liveAdvFilterId || (f.conditions && f.conditions.length > 0)),
+      }));
+    }
     setAdvBuilderOpen(false);
     setEditingAdvFilter(null);
+    setLiveAdvFilterId(null);
   };
+  advCloseRef.current = handleAdvClose;
 
   const editAdvancedFilter = (af) => {
     const triggerEl = filterDropdownPop.triggerRef.current;
@@ -3707,6 +3711,7 @@ export default function DataToolbar() {
       setAdvBuilderCoords({ top: rect.bottom + 4, left: rect.left });
     }
     setEditingAdvFilter(af);
+    setLiveAdvFilterId(af.id);
     setAdvBuilderOpen(true);
   };
 
@@ -3810,59 +3815,35 @@ export default function DataToolbar() {
 
   const hasSorts = sorts.length > 0;
 
-  // ── Sauvegarde de vue ─────────────────────────────────────────
+  // ── View saving ─────────────────────────────────────────
   const saveForSelf = () => {
+    if (activeView?.id) clearDirty(activeView.id);
     setSaveStatus("saved");
-    setSavePopOpen(false);
     setTimeout(() => setSaveStatus(null), 2000);
   };
 
-  // "Pour tous" : met à jour la vue par défaut des rôles cibles
-  const executeSaveForOthers = (overwriteId = null) => {
-    const src = activeView;
+  // "Save for all": pushes the "View for all" config to lower roles' default views
+  const executeSaveForAll = () => {
+    const forAllView = roleViews[previewRole].views.find(v => v.isForAll);
+    if (!forAllView) return;
+    const src = forAllView;
     const targetRoles = previewRole === "dev" ? ["owner", "user"] : previewRole === "owner" ? ["user"] : [];
     if (targetRoles.length === 0) return;
 
-    // isColAccessible lit depuis le draft (src.colRules) — ce qui va être appliqué
     const isColAccessible = (colId, targetRole) => {
       if (previewRole === "dev") {
         const level = src.colRules?.[targetRole]?.[colId] ?? "full";
         return level !== "none" && level !== "ask";
       } else {
-        const devLevel = devColRules.get(colId)?.user ?? "full"; // committed dev
-        const ownerDraft = src.colRules?.user?.[colId] ?? "full"; // draft owner
+        const devLevel = devColRules.get(colId)?.user ?? "full";
+        const ownerDraft = src.colRules?.user?.[colId] ?? "full";
         const access = mostRestrictiveCol(devLevel, ownerDraft);
         return access !== "none" && access !== "ask";
       }
     };
 
-    const sharedViewData = {
-      isDefault: false, isShared: true,
-      filters: [...src.filters], advancedFilters: [...src.advancedFilters],
-      hiddenColumns: new Set(src.hiddenColumns), columnOrder: [...src.columnOrder],
-      colRules: src.colRules || {},   // ← inclus les règles d'accès dans la vue sauvegardée
-    };
-
     setRoleViews(prev => {
       const next = { ...prev };
-
-      // Créer ou écraser la vue pour tous dans la liste du rôle actuel
-      if (overwriteId) {
-        next[previewRole] = {
-          views: prev[previewRole].views.map(v =>
-            v.id === overwriteId ? { ...v, ...sharedViewData } : v
-          ),
-          activeViewId: overwriteId,
-        };
-      } else {
-        const newId = `shared_${previewRole}_${Date.now()}`;
-        next[previewRole] = {
-          views: [...prev[previewRole].views, { id: newId, name: "Nouvelle vue", ...sharedViewData }],
-          activeViewId: newId,
-        };
-      }
-
-      // Mettre à jour la vue par défaut de chaque rôle cible
       for (const targetRole of targetRoles) {
         next[targetRole] = {
           ...next[targetRole],
@@ -3877,37 +3858,19 @@ export default function DataToolbar() {
           }),
         };
       }
-
       return next;
     });
 
+    const forAllId = roleViews[previewRole].views.find(v => v.isForAll)?.id;
+    if (forAllId) clearDirty(forAllId);
     setSaveStatus("pushed");
-    setSavePopOpen(false);
-    setOverwriteConfirmOpen(false);
     setTimeout(() => setSaveStatus(null), 2000);
   };
 
-  const handleSaveForOthers = () => {
-    const existingShared = roleViews[previewRole].views.find(v => v.isShared);
-    if (existingShared) {
-      if (activeView?.isShared) {
-        // Déjà sur la vue pour tous — on sauvegarde directement sans confirmation
-        executeSaveForOthers(existingShared.id);
-      } else {
-        // Sur une autre vue — on demande confirmation avant d'écraser
-        setOverwriteConfirmOpen(true);
-      }
-    } else {
-      executeSaveForOthers();
-    }
-  };
+  // Only the "View for all" tab qualifies for access configuration
+  const isForAllView = !!activeView?.isForAll;
 
-  const canSaveForOthers = previewRole === "dev" || previewRole === "owner";
-
-  // Vue par défaut ou vue pour tous : accès à la clé de restriction de colonnes
-  const isForAllView = !!(activeView?.isDefault || activeView?.isShared);
-
-  // ── Gestion des vues ──────────────────────────────────────────
+  // ── View management ──────────────────────────────────────────
   const addPersonalView = () => {
     const id = `personal_${previewRole}_${Date.now()}`;
     const src = activeView;
@@ -3915,8 +3878,8 @@ export default function DataToolbar() {
       ...prev,
       [previewRole]: {
         views: [...prev[previewRole].views, {
-          id, name: "Nouvelle vue", isDefault: false, isForOthers: false,
-          filters: [...src.filters], advancedFilters: [...src.advancedFilters],
+          id, name: "New view", isDefault: false,
+          filters: [...src.filters.filter(f => !f.locked)], advancedFilters: [...src.advancedFilters.filter(af => !af.locked)],
           hiddenColumns: new Set(src.hiddenColumns), columnOrder: [...src.columnOrder],
         }],
         activeViewId: id,
@@ -3925,6 +3888,8 @@ export default function DataToolbar() {
   };
 
   const deletePersonalView = (viewId) => {
+    const view = roleViews[previewRole].views.find(v => v.id === viewId);
+    if (view?.isDefault || view?.isForAll) return;
     setRoleViews(prev => {
       const rd = prev[previewRole];
       const remaining = rd.views.filter(v => v.id !== viewId);
@@ -3945,7 +3910,7 @@ export default function DataToolbar() {
     }));
   };
 
-  // Tous les filtres (simples + avancés) triés par ordre de création (timestamp extrait de l'id)
+  // All filters (simple + advanced) sorted by creation order (timestamp extracted from id)
   const getFilterTs = (id) => parseInt(id.split("_").pop()) || 0;
 
   const allVisibleFilters = [
@@ -3965,12 +3930,12 @@ export default function DataToolbar() {
       .map((af) => ({ ...af, _kind: "advanced" })),
   ].sort((a, b) => getFilterTs(a.id) - getFilterTs(b.id));
 
-  // Seul dev/owner peut configurer les accès ; user ne restreint personne
+  // Only dev/owner can configure access; user restricts no one
   const canEditAccess = previewRole !== "user";
 
-  // Colonnes effectivement masquées selon le rôle de prévisualisation
-  // Pour dev : celles masquées dans la vue active
-  // Pour owner/user : union de la vue active ET des restrictions d'accès
+  // Columns effectively hidden based on the preview role
+  // For dev: those hidden in the active view
+  // For owner/user: union of the active view AND access restrictions
   const effectiveHiddenCols = previewRole === "dev"
     ? hiddenColumns
     : new Set([
@@ -3981,12 +3946,12 @@ export default function DataToolbar() {
         }).map((c) => c.id),
       ]);
 
-  // Colonnes visibles dans le panel colonnes : exclut "none" (invisible totale)
+  // Columns visible in the columns panel: excludes "none" (fully invisible)
   const accessibleColsForPanel = previewRole === "dev"
     ? orderedColumns
     : orderedColumns.filter((c) => getEffectiveColAccess(c.id) !== "none");
 
-  // Colonnes sélectionnables dans les pickers (tri, filtre) : exclut none et ask (non visibles)
+  // Columns selectable in pickers (sort, filter): excludes none and ask (not visible)
   const selectableColumns = previewRole === "dev"
     ? MOCK_COLUMNS
     : MOCK_COLUMNS.filter((c) => {
@@ -3994,21 +3959,21 @@ export default function DataToolbar() {
         return a !== "none" && a !== "ask";
       });
 
-  // editorRole pour les composants (dev peut tout, owner peut gérer user, user = lecture)
+  // editorRole for components (dev can do everything, owner can manage user, user = read-only)
   const editorRole = previewRole === "user" ? "owner" : previewRole;
 
   return (
     <div className="flex flex-col w-full overflow-hidden">
       {/* Screen-reader live region for filter/sort announcements */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
-        {filters.length > 0 && `${filters.length} filtre${filters.length > 1 ? "s" : ""} actif${filters.length > 1 ? "s" : ""}`}
-        {sorts.length > 0 && `, ${sorts.length} tri${sorts.length > 1 ? "s" : ""} actif${sorts.length > 1 ? "s" : ""}`}
+        {filters.length > 0 && `${filters.length} active filter${filters.length > 1 ? "s" : ""}`}
+        {sorts.length > 0 && `, ${sorts.length} active sort${sorts.length > 1 ? "s" : ""}`}
       </div>
 
-      {/* ── Switcher de rôle — style Linear/Notion ── */}
+      {/* ── Role switcher — Linear/Notion style ── */}
       <div className="font-sans flex items-center gap-2 px-3 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-600 mr-1">
-          Vue
+          View
         </span>
         <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800">
           {PREVIEW_ROLES.map((role) => (
@@ -4028,12 +3993,12 @@ export default function DataToolbar() {
         </div>
         {previewRole !== "dev" && (
           <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/25 border border-amber-200 dark:border-amber-700/50 rounded-full px-2.5 py-0.5">
-            Simulation · vue {previewRole === "owner" ? "Owner" : "User"}
+            Simulation · {previewRole === "owner" ? "Owner" : "User"} view
           </span>
         )}
       </div>
 
-      {/* ── Switcher de vues ── */}
+      {/* ── View switcher ── */}
       <ViewSwitcher
         roleData={roleViews[previewRole]}
         onSelectView={(viewId) =>
@@ -4046,99 +4011,73 @@ export default function DataToolbar() {
 
       <div className="font-sans flex flex-col p-3 gap-2.5">
 
-        {/* ── Bloc Vue unifié (filtres + colonnes) ── */}
+        {/* ── Unified View block (filters + columns) ── */}
         <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
 
-          {/* En-tête du bloc Vue */}
+          {/* View block header */}
           <div className="flex items-center justify-between px-3 py-1.5 border-b bg-zinc-50 dark:bg-zinc-900/80 border-zinc-200 dark:border-zinc-700">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Vue</span>
-            {/* Bouton Enregistrer */}
-            <div className="relative flex items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">View</span>
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => document.documentElement.classList.toggle("dark")}
-                aria-label="Basculer mode clair/sombre"
+                aria-label="Toggle light/dark mode"
                 className="inline-flex items-center justify-center rounded-md border border-zinc-200 bg-white w-6 h-6 text-zinc-400 hover:bg-zinc-50 hover:text-zinc-600 transition-all dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500 dark:hover:bg-zinc-700"
               >
                 <Sun size={12} className="block dark:hidden" />
                 <Moon size={12} className="hidden dark:block" />
               </button>
-              <button
-                ref={saveBtnRef}
-                onClick={() => setSavePopOpen((v) => !v)}
-                className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-all ${
-                  saveStatus === "saved"
-                    ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                    : saveStatus === "pushed"
-                    ? "border-emerald-400 bg-emerald-100 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
-                }`}
-              >
-                <Save size={11} />
-                {saveStatus === "saved" ? "Sauvegardé ✓" : saveStatus === "pushed" ? "Partagée ✓" : "Enregistrer"}
-              </button>
-              {savePopOpen && (
-                <div ref={savePopRef} className="absolute right-0 top-full mt-1 z-50 min-w-[210px] rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900 py-1">
-                  {/* "Enregistrer" (màj) — uniquement si pas sur la vue par défaut et pas sur la vue partagée */}
-                  {!activeView?.isDefault && !activeView?.isShared && (
+              {(() => {
+                const isDirty = activeView?.id ? dirtyViews.has(activeView.id) : false;
+                if (activeView?.isForAll) {
+                  return (
                     <button
-                      onClick={saveForSelf}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
+                      onClick={executeSaveForAll}
+                      disabled={!isDirty && saveStatus !== "pushed"}
+                      className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-all ${
+                        saveStatus === "pushed"
+                          ? "border-emerald-400 bg-emerald-100 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200"
+                          : isDirty
+                          ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-400 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-300 cursor-not-allowed dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-600"
+                      }`}
                     >
-                      <Save size={11} className="text-zinc-400" />
-                      Enregistrer
+                      <Users size={11} />
+                      {saveStatus === "pushed" ? "Saved for all ✓" : "Save for all"}
                     </button>
-                  )}
-                  {/* "Enregistrer une nouvelle vue" — uniquement depuis la vue par défaut */}
-                  {activeView?.isDefault && (
+                  );
+                }
+                if (activeView?.isDefault) {
+                  return (
                     <button
-                      onClick={() => { addPersonalView(); setSavePopOpen(false); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
+                      onClick={addPersonalView}
+                      className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-800 transition-all dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
                     >
-                      <Plus size={11} className="text-zinc-400" />
-                      Enregistrer une nouvelle vue
+                      <Plus size={11} />
+                      Save as new view
                     </button>
-                  )}
-                  {/* "Pour tous" — dev/owner uniquement */}
-                  {canSaveForOthers && !overwriteConfirmOpen && (
-                    <button
-                      onClick={handleSaveForOthers}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors"
-                    >
-                      <Check size={11} className="text-emerald-500" />
-                      {activeView?.isShared ? "Mettre à jour pour tous" : "Vue pour tous"}
-                    </button>
-                  )}
-                  {/* Confirmation écrasement vue pour tous existante */}
-                  {overwriteConfirmOpen && (() => {
-                    const existingShared = roleViews[previewRole].views.find(v => v.isShared);
-                    return (
-                      <div className="px-3 py-2 border-t border-zinc-100 dark:border-zinc-800">
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2">
-                          Une vue pour tous existe déjà. Écraser ?
-                        </p>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => executeSaveForOthers(existingShared?.id)}
-                            className="flex-1 text-[11px] bg-emerald-500 hover:bg-emerald-600 text-white rounded-md py-1 transition-colors"
-                          >
-                            Écraser
-                          </button>
-                          <button
-                            onClick={() => setOverwriteConfirmOpen(false)}
-                            className="flex-1 text-[11px] border border-zinc-200 dark:border-zinc-700 rounded-md py-1 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-                          >
-                            Annuler
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
+                  );
+                }
+                return (
+                  <button
+                    onClick={saveForSelf}
+                    disabled={!isDirty && saveStatus !== "saved"}
+                    className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-all ${
+                      saveStatus === "saved"
+                        ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                        : isDirty
+                        ? "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                        : "border-zinc-200 bg-zinc-50 text-zinc-300 cursor-not-allowed dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-600"
+                    }`}
+                  >
+                    <Save size={11} />
+                    {saveStatus === "saved" ? "Saved ✓" : "Save"}
+                  </button>
+                );
+              })()}
             </div>
           </div>
 
-          {/* Ligne Filtres */}
+          {/* Filters row */}
           <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 min-h-[40px] bg-white dark:bg-zinc-900">
             <Filter size={12} className="text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
             {allVisibleFilters.map((f) =>
@@ -4173,14 +4112,14 @@ export default function DataToolbar() {
                   : "border-dashed border-zinc-400 w-6 h-6 justify-center bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
               }`}
             >
-              {!hasUserFilters ? <><Filter size={12} />Filtrer</> : <Plus size={12} />}
+              {!hasUserFilters ? <><Filter size={12} />Filter</> : <Plus size={12} />}
             </button>
           </div>
 
-          {/* Séparateur interne */}
+          {/* Internal separator */}
           <div className="border-t border-zinc-100 dark:border-zinc-800" />
 
-          {/* Ligne Colonnes */}
+          {/* Columns row */}
           {(() => {
             const totalCount = accessibleColsForPanel.length;
             const hiddenKnown = accessibleColsForPanel.filter(c =>
@@ -4198,15 +4137,15 @@ export default function DataToolbar() {
                   className="text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
                 >
                   {hiddenKnown > 0
-                    ? `${visibleCount} / ${totalCount} colonnes visibles`
-                    : "Toutes les colonnes visibles"}
+                    ? `${visibleCount} / ${totalCount} columns visible`
+                    : "All columns visible"}
                 </button>
               </div>
             );
           })()}
         </div>
 
-        {/* ── Tris ── */}
+        {/* ── Sorts ── */}
         <div className="flex flex-wrap items-center gap-1.5">
           {!hasSorts ? (
             <button
@@ -4217,7 +4156,7 @@ export default function DataToolbar() {
               className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-500 transition-all duration-150 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-700 active:scale-[0.97] will-change-transform dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
             >
               <ArrowUpDown size={13} />
-              Ordonner
+              Sort
             </button>
           ) : (
             <>
@@ -4232,7 +4171,7 @@ export default function DataToolbar() {
                 onClick={sortPickerPop.toggle}
                 aria-expanded={sortPickerPop.isOpen}
                 aria-haspopup="listbox"
-                aria-label="Ajouter un tri"
+                aria-label="Add a sort"
                 className="inline-flex items-center justify-center rounded-md border border-dashed border-zinc-400 w-6 h-6 bg-white text-zinc-500 hover:border-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 transition-all duration-150 active:scale-[0.97] will-change-transform dark:border-zinc-500 dark:bg-zinc-900 dark:hover:border-zinc-400 dark:hover:bg-zinc-800"
               >
                 <Plus size={13} />
@@ -4268,8 +4207,8 @@ export default function DataToolbar() {
         containerRef={advBuilderRef}
         columns={selectableColumns}
         editingFilter={editingAdvFilter}
-        onValidate={handleAdvValidate}
-        onClose={() => { setAdvBuilderOpen(false); setEditingAdvFilter(null); }}
+        onChange={handleAdvChange}
+        onClose={handleAdvClose}
       />
       <ColumnVisibilityDropdown
         isOpen={columnVisPop.isOpen}

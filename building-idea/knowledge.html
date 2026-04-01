@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Base</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #09090b;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .card {
+    position: relative;
+    width: 860px;
+    height: 560px;
+    background: rgba(24,24,27,0.5);
+    border-radius: 8px;
+    border: 1px solid #27272a;
+    overflow: hidden;
+  }
+
+  /* ── Status card (top-left) ── */
+  .status-card {
+    position: absolute;
+    top: 50px;
+    left: 56px;
+    z-index: 3;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    padding: 20px 24px;
+    width: 280px;
+  }
+
+  .status-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #5eead4;
+    box-shadow: 0 0 8px rgba(94,234,212,0.4);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .status-title {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #a1a1aa;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag {
+    font-size: 11.5px;
+    color: #d4d4d8;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 6px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+
+  /* ── Dashed area ── */
+  .docs-area {
+    position: absolute;
+    top: 130px;
+    left: 190px;
+    width: 520px;
+    height: 340px;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    z-index: 1;
+  }
+
+  /* ── Stacked pages layout ── */
+  .pages-layout {
+    position: absolute;
+    top: 24px;
+    left: 28px;
+    right: 28px;
+    bottom: 68px;
+  }
+
+  /* Stacked page cards — offset to look like a pile */
+  .page {
+    position: absolute;
+    border: 1.5px dashed rgba(255,255,255,0.09);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Back page (shadow) */
+  .page-back {
+    top: 8px;
+    left: 20px;
+    width: 260px;
+    height: 170px;
+    opacity: 0.4;
+  }
+
+  /* Main document page */
+  .page-main {
+    top: 18px;
+    left: 10px;
+    width: 260px;
+    height: 170px;
+    background: rgba(255,255,255,0.015);
+  }
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .page-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .page-icon svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+  }
+
+  .page-main .page-icon { background: rgba(94,234,212,0.15); }
+  .page-main .page-icon svg { stroke: rgba(94,234,212,0.7); }
+
+  .page-title-bar {
+    height: 4px;
+    width: 80px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .page-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .page-line {
+    height: 2px;
+    border-radius: 1px;
+    background: rgba(255,255,255,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-line::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 4.5s ease-in-out infinite;
+  }
+
+  .page-line:nth-child(2)::after { animation-delay: 0.4s; }
+  .page-line:nth-child(3)::after { animation-delay: 0.8s; }
+  .page-line:nth-child(4)::after { animation-delay: 1.2s; }
+  .page-line:nth-child(5)::after { animation-delay: 1.6s; }
+
+  @keyframes shimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+
+  /* Checklist panel (right side) */
+  .checklist {
+    position: absolute;
+    top: 24px;
+    right: 10px;
+    width: 180px;
+    border: 1.5px dashed rgba(255,255,255,0.09);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .checklist-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .checklist-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: rgba(167,139,250,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .checklist-icon svg {
+    width: 12px;
+    height: 12px;
+    stroke: rgba(167,139,250,0.7);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+  }
+
+  .checklist-title {
+    height: 4px;
+    width: 55px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .check-box {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    border: 1.5px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .check-box::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border-radius: 1px;
+    background: transparent;
+    animation: check-fill 6s ease-in-out infinite;
+  }
+
+  .check-item:nth-child(2) .check-box::after { animation-delay: 0.6s; --c: rgba(94,234,212,0.5); }
+  .check-item:nth-child(3) .check-box::after { animation-delay: 1.4s; --c: rgba(94,234,212,0.5); }
+  .check-item:nth-child(4) .check-box::after { animation-delay: 2.2s; --c: rgba(167,139,250,0.5); }
+  .check-item:nth-child(5) .check-box::after { animation-delay: 3s; --c: rgba(167,139,250,0.5); }
+  .check-item:nth-child(6) .check-box::after { animation-delay: 3.8s; --c: rgba(245,158,108,0.5); }
+
+  @keyframes check-fill {
+    0%, 12% { background: transparent; }
+    22%, 70% { background: var(--c); }
+    80%, 100% { background: transparent; }
+  }
+
+  .check-label {
+    height: 2.5px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* Playbook card (bottom-left, overlapping) */
+  .playbook {
+    position: absolute;
+    bottom: 10px;
+    left: 50px;
+    width: 200px;
+    border: 1.5px dashed rgba(255,255,255,0.09);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #18181b;
+  }
+
+  .playbook-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .playbook-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: rgba(245,158,108,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .playbook-icon svg {
+    width: 12px;
+    height: 12px;
+    stroke: rgba(245,158,108,0.7);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+  }
+
+  .playbook-title {
+    height: 4px;
+    width: 65px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .playbook-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .step-num {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+  }
+
+  .step-line {
+    height: 2px;
+    border-radius: 1px;
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* Folder card (bottom-right) */
+  .folder-card {
+    position: absolute;
+    bottom: -20px;
+    right: 14px;
+    width: 160px;
+    border: 1.5px dashed rgba(255,255,255,0.09);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .folder-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .folder-card-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: rgba(96,165,250,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .folder-card-icon svg {
+    width: 12px;
+    height: 12px;
+    stroke: rgba(96,165,250,0.7);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+  }
+
+  .folder-card-title {
+    height: 4px;
+    width: 50px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .folder-card-items {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .folder-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .folder-item-icon {
+    width: 4px;
+    height: 4px;
+    border-radius: 1px;
+    background: rgba(255,255,255,0.1);
+    flex-shrink: 0;
+  }
+
+  .folder-item-line {
+    height: 2px;
+    border-radius: 1px;
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* ── Folder icon (bottom-left of area) ── */
+  .folder-icon {
+    position: absolute;
+    bottom: 22px;
+    left: 22px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid #27272a;
+    background: #18181b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .folder-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: rgba(255,255,255,0.6);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ── Tool badges ── */
+  .tool-badge {
+    position: absolute;
+    z-index: 3;
+    border-radius: 8px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  .tool-badge svg {
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .badge-doc {
+    width: 68px;
+    height: 68px;
+    top: 165px;
+    right: 75px;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .badge-doc svg { width: 26px; height: 26px; stroke: #5eead4; }
+
+  .badge-check {
+    width: 62px;
+    height: 62px;
+    top: 260px;
+    right: 48px;
+    animation: float 4s ease-in-out infinite 0.8s;
+  }
+
+  .badge-check svg { width: 24px; height: 24px; stroke: #a78bfa; }
+
+  .badge-share {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    top: 355px;
+    right: 85px;
+    animation: float 4s ease-in-out infinite 1.6s;
+  }
+
+  .badge-share svg { width: 22px; height: 22px; stroke: #f59e6c; }
+
+  .badge-book {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    top: 310px;
+    right: 165px;
+    animation: float 4s ease-in-out infinite 2.2s;
+  }
+
+  .badge-book svg { width: 20px; height: 20px; stroke: #60a5fa; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* ── Bottom text ── */
+  .bottom-text {
+    position: absolute;
+    bottom: 36px;
+    left: 190px;
+    z-index: 2;
+    font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: #71717a;
+    text-transform: uppercase;
+  }
+
+  .bottom-text .dots::after {
+    content: '';
+    animation: dots 1.6s steps(4) infinite;
+  }
+
+  @keyframes dots {
+    0%  { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Status card -->
+  <div class="status-card">
+    <div class="status-header">
+      <span class="status-dot"></span>
+      <span class="status-title">Knowledge base</span>
+    </div>
+    <div class="tag-list">
+      <span class="tag">Documents</span>
+      <span class="tag">Templates</span>
+      <span class="tag">Checklists</span>
+      <span class="tag">Playbooks</span>
+    </div>
+  </div>
+
+  <!-- Dashed area -->
+  <div class="docs-area">
+    <div class="pages-layout">
+
+      <!-- Back page (depth) -->
+      <div class="page page-back"></div>
+
+      <!-- Main document page -->
+      <div class="page page-main">
+        <div class="page-header">
+          <div class="page-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="page-title-bar"></div>
+        </div>
+        <div class="page-body">
+          <div class="page-line" style="width:92%"></div>
+          <div class="page-line" style="width:75%"></div>
+          <div class="page-line" style="width:85%"></div>
+          <div class="page-line" style="width:60%"></div>
+          <div class="page-line" style="width:80%"></div>
+        </div>
+      </div>
+
+      <!-- Checklist panel (right) -->
+      <div class="checklist">
+        <div class="checklist-header">
+          <div class="checklist-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <div class="checklist-title"></div>
+        </div>
+        <div class="check-item">
+          <div class="check-box"></div>
+          <div class="check-label" style="width:80px"></div>
+        </div>
+        <div class="check-item">
+          <div class="check-box"></div>
+          <div class="check-label" style="width:65px"></div>
+        </div>
+        <div class="check-item">
+          <div class="check-box"></div>
+          <div class="check-label" style="width:90px"></div>
+        </div>
+        <div class="check-item">
+          <div class="check-box"></div>
+          <div class="check-label" style="width:55px"></div>
+        </div>
+        <div class="check-item">
+          <div class="check-box"></div>
+          <div class="check-label" style="width:72px"></div>
+        </div>
+      </div>
+
+      <!-- Playbook card (bottom-left, overlapping) -->
+      <div class="playbook">
+        <div class="playbook-header">
+          <div class="playbook-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <div class="playbook-title"></div>
+        </div>
+        <div class="playbook-steps">
+          <div class="step">
+            <div class="step-num"></div>
+            <div class="step-line" style="width:85px"></div>
+          </div>
+          <div class="step">
+            <div class="step-num"></div>
+            <div class="step-line" style="width:70px"></div>
+          </div>
+          <div class="step">
+            <div class="step-num"></div>
+            <div class="step-line" style="width:95px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Folder card (bottom-right) -->
+      <div class="folder-card">
+        <div class="folder-card-header">
+          <div class="folder-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="folder-card-title"></div>
+        </div>
+        <div class="folder-card-items">
+          <div class="folder-item">
+            <div class="folder-item-icon"></div>
+            <div class="folder-item-line" style="width:70px"></div>
+          </div>
+          <div class="folder-item">
+            <div class="folder-item-icon"></div>
+            <div class="folder-item-line" style="width:55px"></div>
+          </div>
+          <div class="folder-item">
+            <div class="folder-item-icon"></div>
+            <div class="folder-item-line" style="width:65px"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Folder icon -->
+    <div class="folder-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Badge: Document -->
+  <div class="tool-badge badge-doc">
+    <svg viewBox="0 0 24 24">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="8" y1="13" x2="16" y2="13"/>
+      <line x1="8" y1="17" x2="12" y2="17"/>
+    </svg>
+  </div>
+
+  <!-- Badge: Checklist -->
+  <div class="tool-badge badge-check">
+    <svg viewBox="0 0 24 24">
+      <path d="M9 11l3 3L22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+  </div>
+
+  <!-- Badge: Share/team -->
+  <div class="tool-badge badge-share">
+    <svg viewBox="0 0 24 24">
+      <circle cx="18" cy="5" r="3"/>
+      <circle cx="6" cy="12" r="3"/>
+      <circle cx="18" cy="19" r="3"/>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+    </svg>
+  </div>
+
+  <!-- Badge: Playbook -->
+  <div class="tool-badge badge-book">
+    <svg viewBox="0 0 24 24">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </svg>
+  </div>
+
+  <!-- Bottom text -->
+  <div class="bottom-text">
+    shared across the team<span class="dots"></span>
+  </div>
+
+</div>
+
+</body>
+</html>

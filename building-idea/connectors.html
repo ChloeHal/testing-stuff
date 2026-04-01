@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connectors</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #09090b;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .card {
+    position: relative;
+    width: 860px;
+    height: 560px;
+    background: rgba(24,24,27,0.5);
+    border-radius: 8px;
+    border: 1px solid #27272a;
+    overflow: hidden;
+  }
+
+  /* ── Status card ── */
+  .status-card {
+    position: absolute;
+    top: 50px; left: 56px; z-index: 4;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    padding: 20px 24px;
+    width: 290px;
+  }
+
+  .status-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 8px rgba(52,211,153,0.4);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .status-title {
+    font-size: 12px; font-weight: 500; letter-spacing: 1.5px;
+    text-transform: uppercase; color: #a1a1aa;
+  }
+
+  .integrations-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .integration-tag {
+    font-size: 11.5px; color: #d4d4d8;
+    background: #27272a; border: 1px solid #3f3f46;
+    border-radius: 6px; padding: 4px 10px; white-space: nowrap;
+  }
+
+  /* ── Main area ── */
+  .sync-area {
+    position: absolute;
+    top: 130px; left: 190px;
+    width: 520px; height: 340px;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    z-index: 1;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  /* ── Header row ── */
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #27272a;
+    margin-bottom: 6px;
+  }
+
+  .panel-title {
+    height: 3px; width: 70px; border-radius: 1px;
+    background: #3f3f46;
+  }
+
+  .panel-count {
+    margin-left: auto;
+    height: 3px; width: 30px; border-radius: 1px;
+    background: #27272a;
+  }
+
+  /* ── Connector rows ── */
+  .conn-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(39,39,42,0.5);
+  }
+
+  .conn-row:last-child { border-bottom: none; }
+
+  /* Icon */
+  .cr-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .cr-icon svg {
+    width: 14px; height: 14px; fill: none;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .conn-row:nth-child(2) .cr-icon { background: rgba(94,234,212,0.1); }
+  .conn-row:nth-child(2) .cr-icon svg { stroke: rgba(94,234,212,0.6); }
+  .conn-row:nth-child(3) .cr-icon { background: rgba(167,139,250,0.1); }
+  .conn-row:nth-child(3) .cr-icon svg { stroke: rgba(167,139,250,0.6); }
+  .conn-row:nth-child(4) .cr-icon { background: rgba(245,158,108,0.1); }
+  .conn-row:nth-child(4) .cr-icon svg { stroke: rgba(245,158,108,0.6); }
+  .conn-row:nth-child(5) .cr-icon { background: rgba(96,165,250,0.1); }
+  .conn-row:nth-child(5) .cr-icon svg { stroke: rgba(96,165,250,0.6); }
+  .conn-row:nth-child(6) .cr-icon { background: rgba(251,191,36,0.1); }
+  .conn-row:nth-child(6) .cr-icon svg { stroke: rgba(251,191,36,0.6); }
+  .conn-row:nth-child(7) .cr-icon { background: rgba(244,114,182,0.1); }
+  .conn-row:nth-child(7) .cr-icon svg { stroke: rgba(244,114,182,0.6); }
+
+  /* Name skeleton */
+  .cr-name {
+    width: 52px; height: 3px; border-radius: 1px;
+    background: #3f3f46;
+    flex-shrink: 0;
+  }
+
+  /* Sync progress bar */
+  .cr-bar {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: #1c1c1f;
+    position: relative;
+    overflow: hidden;
+    min-width: 60px;
+  }
+
+  .cr-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -30px;
+    width: 30px; height: 100%;
+    border-radius: 2px;
+  }
+
+  .conn-row:nth-child(2) .cr-bar::after { background: rgba(94,234,212,0.5);  animation: sync-slide 2.4s ease-in-out infinite 0s; }
+  .conn-row:nth-child(3) .cr-bar::after { background: rgba(167,139,250,0.5); animation: sync-slide 2.4s ease-in-out infinite 0.4s; }
+  .conn-row:nth-child(4) .cr-bar::after { background: rgba(245,158,108,0.5); animation: sync-slide 2.4s ease-in-out infinite 0.8s; }
+  .conn-row:nth-child(5) .cr-bar::after { background: rgba(96,165,250,0.5);  animation: sync-slide 2.4s ease-in-out infinite 1.2s; }
+  .conn-row:nth-child(6) .cr-bar::after { background: rgba(251,191,36,0.5);  animation: sync-slide 2.4s ease-in-out infinite 1.6s; }
+  .conn-row:nth-child(7) .cr-bar::after { background: rgba(244,114,182,0.5); animation: sync-slide 2.4s ease-in-out infinite 2s; }
+
+  /* Disabled rows — no animation */
+  .conn-row.off .cr-bar::after { animation: none; }
+  .conn-row.off .cr-icon { opacity: 0.4; }
+  .conn-row.off .cr-name { opacity: 0.4; }
+  .conn-row.off .conn-status-dot { background: #3f3f46; }
+
+  @keyframes sync-slide {
+    0%   { left: -30px; opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
+  }
+
+  /* Toggle — on */
+  .cr-toggle {
+    width: 24px; height: 14px;
+    border-radius: 7px;
+    background: #27272a;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .cr-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 12px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #34d399;
+  }
+
+  /* Toggle — off */
+  .cr-toggle.off::after {
+    left: 2px;
+    background: #52525b;
+  }
+
+  /* Status text */
+  .cr-status {
+    width: 28px; height: 2px; border-radius: 1px;
+    background: #27272a;
+    flex-shrink: 0;
+  }
+
+  /* ── Plug icon ── */
+  .plug-icon {
+    position: absolute;
+    bottom: 18px; left: 18px;
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    border: 1px solid #3f3f46;
+    background: #18181b;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3;
+  }
+
+  .plug-icon svg {
+    width: 16px; height: 16px;
+    stroke: #71717a; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  /* ── Tool badges ── */
+  .tool-badge {
+    position: absolute; z-index: 3;
+    border-radius: 10px; background: #18181b;
+    border: 1px solid #27272a;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .tool-badge svg {
+    fill: none; stroke-width: 1.6;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .badge-1 { width: 64px; height: 64px; top: 170px; right: 70px; animation: float 4s ease-in-out infinite; }
+  .badge-1 svg { width: 24px; height: 24px; stroke: #60a5fa; }
+
+  .badge-2 { width: 56px; height: 56px; top: 265px; right: 48px; animation: float 4s ease-in-out infinite 0.9s; }
+  .badge-2 svg { width: 22px; height: 22px; stroke: #fbbf24; }
+
+  .badge-3 { width: 52px; height: 52px; top: 355px; right: 88px; animation: float 4s ease-in-out infinite 1.8s; }
+  .badge-3 svg { width: 20px; height: 20px; stroke: #a78bfa; }
+
+  .badge-4 { width: 48px; height: 48px; top: 310px; right: 158px; animation: float 4s ease-in-out infinite 2.4s; }
+  .badge-4 svg { width: 18px; height: 18px; stroke: #f59e6c; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* ── Bottom text ── */
+  .bottom-text {
+    position: absolute; bottom: 36px; left: 190px; z-index: 2;
+    font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 13px; letter-spacing: 4px;
+    color: #52525b; text-transform: uppercase;
+  }
+
+  .bottom-text .dots::after { content: ''; animation: dots 1.6s steps(4) infinite; }
+
+  @keyframes dots {
+    0%  { content: ''; } 25% { content: '.'; }
+    50% { content: '..'; } 75% { content: '...'; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Status card -->
+  <div class="status-card">
+    <div class="status-header">
+      <span class="status-dot"></span>
+      <span class="status-title">6 connectors active</span>
+    </div>
+    <div class="integrations-list">
+      <span class="integration-tag">Email</span>
+      <span class="integration-tag">Calendar</span>
+      <span class="integration-tag">Accounting</span>
+      <span class="integration-tag">Peppol</span>
+      <span class="integration-tag">Bank sync</span>
+      <span class="integration-tag">API</span>
+    </div>
+  </div>
+
+  <!-- Main area -->
+  <div class="sync-area">
+
+    <!-- Header -->
+    <div class="panel-header">
+      <div class="panel-title"></div>
+      <div class="panel-count"></div>
+    </div>
+
+    <!-- Rows -->
+    <div class="conn-row">
+      <div class="cr-icon"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 4 12 13 2 4"/></svg></div>
+      <div class="cr-name" style="width:48px"></div>
+      <div class="cr-bar"></div>
+      <div class="cr-toggle"></div>
+      <div class="cr-status"></div>
+    </div>
+
+    <div class="conn-row">
+      <div class="cr-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="cr-name" style="width:42px"></div>
+      <div class="cr-bar"></div>
+      <div class="cr-toggle"></div>
+      <div class="cr-status"></div>
+    </div>
+
+    <div class="conn-row">
+      <div class="cr-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="cr-name" style="width:56px"></div>
+      <div class="cr-bar"></div>
+      <div class="cr-toggle"></div>
+      <div class="cr-status"></div>
+    </div>
+
+    <div class="conn-row">
+      <div class="cr-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M12 3l9 7H3z"/><path d="M7 10v8"/><path d="M12 10v8"/><path d="M17 10v8"/></svg></div>
+      <div class="cr-name" style="width:38px"></div>
+      <div class="cr-bar"></div>
+      <div class="cr-toggle"></div>
+      <div class="cr-status"></div>
+    </div>
+
+    <div class="conn-row off">
+      <div class="cr-icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+      <div class="cr-name" style="width:30px"></div>
+      <div class="cr-bar"></div>
+      <div class="cr-toggle off"></div>
+      <div class="cr-status"></div>
+    </div>
+
+    <div class="conn-row off">
+      <div class="cr-icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+      <div class="cr-name" style="width:34px"></div>
+      <div class="cr-bar"></div>
+      <div class="cr-toggle off"></div>
+      <div class="cr-status"></div>
+    </div>
+
+    <!-- Plug icon -->
+    <div class="plug-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2v6"/><path d="M6 8h12"/>
+        <path d="M8 8v4a4 4 0 0 0 8 0V8"/><path d="M12 16v6"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Badges -->
+  <div class="tool-badge badge-1">
+    <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10"/><path d="M3.51 15A9 9 0 0 0 18.36 18.36L23 14"/></svg>
+  </div>
+  <div class="tool-badge badge-2">
+    <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  </div>
+  <div class="tool-badge badge-3">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+  </div>
+  <div class="tool-badge badge-4">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+  </div>
+
+  <!-- Bottom text -->
+  <div class="bottom-text">
+    works with your tools<span class="dots"></span>
+  </div>
+
+</div>
+
+</body>
+</html>
